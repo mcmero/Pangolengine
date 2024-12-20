@@ -60,6 +60,10 @@ add_subdirectory(SDL EXCLUDE_FROM_ALL)
 target_link_libraries(${EXECUTABLE_NAME} PUBLIC SDL3::SDL3)
 target_compile_definitions(${EXECUTABLE_NAME} PUBLIC SDL_MAIN_USE_CALLBACKS)
 
+# Add SDL_image submodule and link it
+add_subdirectory(SDL_image EXCLUDE_FROM_ALL)
+target_link_libraries(${EXECUTABLE_NAME} PUBLIC SDL3_image::SDL3_image)
+
 # set some extra configs for each platform
 set_target_properties(${EXECUTABLE_NAME} PROPERTIES 
     # On macOS, make a proper .app bundle instead of a bare executable

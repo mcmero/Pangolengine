@@ -1,6 +1,10 @@
 #include "Game.h"
-#include <cmath>
+#include "SDL3/SDL_render.h"
+#include "SDL3/SDL_surface.h"
+#include "SDL3_image/SDL_image.h"
 #include <iostream>
+
+SDL_Texture *playerTex;
 
 Game::Game() : running(true), window(nullptr), renderer(nullptr) {}
 
@@ -16,6 +20,10 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   }
 
   SDL_Log("Game started successfully!");
+
+  SDL_Surface *tmpSurface = IMG_Load("src/logo.png");
+  playerTex = SDL_CreateTextureFromSurface(renderer, tmpSurface);
+  SDL_DestroySurface(tmpSurface);
 
   return true;
 }
@@ -34,13 +42,8 @@ void Game::update(float deltaTime) {
 }
 
 void Game::render() {
-  auto time = SDL_GetTicks() / 1000.f;
-  auto red = (std::sin(time) + 1) / 2.0 * 255;
-  auto green = (std::sin(time / 2) + 1) / 2.0 * 255;
-  auto blue = (std::sin(time) * 2 + 1) / 2.0 * 255;
-
-  SDL_SetRenderDrawColor(renderer, red, green, blue, SDL_ALPHA_OPAQUE);
   SDL_RenderClear(renderer);
+  SDL_RenderTexture(renderer, playerTex, NULL, NULL);
   SDL_RenderPresent(renderer);
 }
 
