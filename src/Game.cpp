@@ -5,6 +5,8 @@
 #include <iostream>
 
 SDL_Texture *playerTex;
+SDL_FRect srcR, destR;
+int cnt = 0;
 
 Game::Game() : running(true), window(nullptr), renderer(nullptr) {}
 
@@ -21,7 +23,7 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
 
   SDL_Log("Game started successfully!");
 
-  SDL_Surface *tmpSurface = IMG_Load("src/logo.png");
+  SDL_Surface *tmpSurface = IMG_Load("assets/characters/player.png");
   playerTex = SDL_CreateTextureFromSurface(renderer, tmpSurface);
   SDL_DestroySurface(tmpSurface);
 
@@ -38,12 +40,19 @@ void Game::handleEvents() {
 }
 
 void Game::update(float deltaTime) {
-  // Update game state
+
+  cnt++;
+  if (cnt >= 320)
+    cnt = 0;
+  destR.h = 32;
+  destR.w = 32;
+  destR.x = float(cnt);
+  std::cout << cnt << std::endl;
 }
 
 void Game::render() {
   SDL_RenderClear(renderer);
-  SDL_RenderTexture(renderer, playerTex, NULL, NULL);
+  SDL_RenderTexture(renderer, playerTex, NULL, &destR);
   SDL_RenderPresent(renderer);
 }
 

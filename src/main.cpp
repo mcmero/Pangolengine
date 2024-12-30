@@ -1,6 +1,8 @@
 #include "Game.h"
+#include "SDL3/SDL_timer.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <cstdint>
 
 struct AppContext {
   SDL_Window *window;
@@ -72,10 +74,19 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 SDL_AppResult SDL_AppIterate(void *appstate) {
   auto *app = (AppContext *)appstate;
 
+  auto frameStart = SDL_GetTicks();
   float deltaTime = 1.0f / 60.0f;
+  float frameDelay = 1000.0f * deltaTime;
+
   app->game.handleEvents();
   app->game.update(deltaTime);
   app->game.render();
+
+  auto frameTime = SDL_GetTicks() - frameStart;
+
+  if (frameDelay > frameTime) {
+    SDL_Delay(static_cast<uint32_t>(frameDelay - frameTime));
+  }
 
   return app->app_quit;
 }
