@@ -1,7 +1,6 @@
 #include "Game.h"
 #include "SDL3/SDL_render.h"
-#include "SDL3/SDL_surface.h"
-#include "SDL3_image/SDL_image.h"
+#include "TextureManager.h"
 #include <iostream>
 
 SDL_Texture *playerTex;
@@ -23,9 +22,8 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
 
   SDL_Log("Game started successfully!");
 
-  SDL_Surface *tmpSurface = IMG_Load("assets/characters/player.png");
-  playerTex = SDL_CreateTextureFromSurface(renderer, tmpSurface);
-  SDL_DestroySurface(tmpSurface);
+  playerTex =
+      TextureManager::LoadTexture("assets/characters/player.png", renderer);
 
   return true;
 }

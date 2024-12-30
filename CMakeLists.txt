@@ -29,6 +29,8 @@ PRIVATE
     src/main.cpp
     src/Game.cpp
     src/Game.h
+    src/TextureManager.h
+    src/TextureManager.cpp
     src/iosLaunchScreen.storyboard
 )
 # What is iosLaunchScreen.storyboard? This file describes what Apple's mobile platforms
