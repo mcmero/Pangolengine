@@ -1,10 +1,9 @@
 #include "Game.h"
+#include "GameObject.h"
 #include "SDL3/SDL_render.h"
-#include "TextureManager.h"
 #include <iostream>
 
-SDL_Texture *playerTex;
-SDL_FRect srcR, destR;
+GameObject *player;
 int cnt = 0;
 
 Game::Game() : running(true), window(nullptr), renderer(nullptr) {}
@@ -22,8 +21,7 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
 
   SDL_Log("Game started successfully!");
 
-  playerTex =
-      TextureManager::LoadTexture("assets/characters/player.png", renderer);
+  player = new GameObject("assets/characters/player.png", renderer, 0, 0);
 
   return true;
 }
@@ -37,20 +35,11 @@ void Game::handleEvents() {
   }
 }
 
-void Game::update(float deltaTime) {
-
-  cnt++;
-  if (cnt >= 320)
-    cnt = 0;
-  destR.h = 32;
-  destR.w = 32;
-  destR.x = float(cnt);
-  std::cout << cnt << std::endl;
-}
+void Game::update(float deltaTime) { player->Update(); }
 
 void Game::render() {
   SDL_RenderClear(renderer);
-  SDL_RenderTexture(renderer, playerTex, NULL, &destR);
+  player->Render();
   SDL_RenderPresent(renderer);
 }
 
