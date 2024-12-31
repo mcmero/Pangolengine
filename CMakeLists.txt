@@ -30,6 +30,7 @@ PRIVATE
     src/Game.cpp
     src/TextureManager.cpp
     src/GameObject.cpp
+    src/Map.cpp
     src/iosLaunchScreen.storyboard
 )
 # What is iosLaunchScreen.storyboard? This file describes what Apple's mobile platforms

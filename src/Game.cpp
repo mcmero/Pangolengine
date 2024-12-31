@@ -1,9 +1,10 @@
 #include "Game.h"
 #include "GameObject.h"
+#include "Map.h"
 #include "SDL3/SDL_render.h"
 #include <iostream>
-
 GameObject *player;
+Map *map;
 
 SDL_Renderer *Game::renderer = nullptr;
 
@@ -19,10 +20,10 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
     std::cerr << "Invalid window or renderer!" << std::endl;
     return false;
   }
-
   SDL_Log("Game started successfully!");
 
   player = new GameObject("assets/characters/player.png", 0, 0);
+  map = new Map();
 
   return true;
 }
@@ -40,6 +41,7 @@ void Game::update(float deltaTime) { player->Update(); }
 
 void Game::render() {
   SDL_RenderClear(renderer);
+  map->DrawMap();
   player->Render();
   SDL_RenderPresent(renderer);
 }
