@@ -4,9 +4,10 @@
 #include <iostream>
 
 GameObject *player;
-int cnt = 0;
 
-Game::Game() : running(true), window(nullptr), renderer(nullptr) {}
+SDL_Renderer *Game::renderer = nullptr;
+
+Game::Game() : running(true), window(nullptr) {}
 
 Game::~Game() { clean(); }
 
@@ -21,7 +22,7 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
 
   SDL_Log("Game started successfully!");
 
-  player = new GameObject("assets/characters/player.png", renderer, 0, 0);
+  player = new GameObject("assets/characters/player.png", 0, 0);
 
   return true;
 }

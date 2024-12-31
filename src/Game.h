@@ -16,8 +16,9 @@ public:
 
   bool isRunning() const { return running; }
 
+  static SDL_Renderer *renderer;
+
 private:
   bool running;
   SDL_Window *window;
-  SDL_Renderer *renderer;
 };
