@@ -12,6 +12,7 @@ Otherwise, install CMake and your favorite compiler, and follow the commands bel
 git clone https://github.com/Ravbug/sdl3-sample --depth=1 --recurse-submodules
 cd sdl3-sample
 cmake -S . -B build
+cmake --build build --parallel --target sdl-min
 ```
 You can also use an init script inside [`config/`](config/). Then open the IDE project inside `build/` 
 (If you had CMake generate one) and run!

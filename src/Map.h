@@ -2,13 +2,17 @@
 
 #include "Game.h"
 #include "SDL3/SDL_render.h"
+#include <third_party/nlohmann/json.hpp>
+#include <vector>
+
+using namespace nlohmann;
 
 class Map {
 public:
   Map();
   ~Map();
 
-  void LoadMap(int arr[20][20]);
+  void LoadMap(json map_data);
   void DrawMap();
 
 private:
@@ -17,5 +21,7 @@ private:
   SDL_Texture *grass;
   SDL_Texture *path;
 
-  int map[20][20];
+  std::vector<std::vector<int>> map;
+  int height;
+  int width;
 };

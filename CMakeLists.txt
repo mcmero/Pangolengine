@@ -14,6 +14,10 @@ project(sdl-min)
 # Set the name of the executable
 set(EXECUTABLE_NAME ${PROJECT_NAME})
 
+# Include directories
+include_directories(include)
+include_directories(include/third_party)
+
 # Create an executable or a shared library based on the platform and add our sources to it
 if (ANDROID)
 	# The SDL java code is hardcoded to load libmain.so on android, so we need to change EXECUTABLE_NAME
