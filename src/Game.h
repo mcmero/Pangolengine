@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
+#include <third_party/entt/entt.hpp>
 
 class Game {
 public:
@@ -10,7 +11,7 @@ public:
 
   bool initialise(SDL_Window *window, SDL_Renderer *renderer);
   void handleEvents();
-  void update(float deltaTime);
+  void update();
   void render();
   void clean();
 
@@ -21,4 +22,5 @@ public:
 private:
   bool running;
   SDL_Window *window;
+  entt::registry registry;
 };

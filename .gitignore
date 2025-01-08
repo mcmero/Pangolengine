@@ -1,2 +1,5 @@
 .DS_Store
 build/
+.cache/
+build.lnk
+compile_commands.json

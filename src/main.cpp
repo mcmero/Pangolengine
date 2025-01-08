@@ -50,6 +50,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
   // Create the AppContext and initialize the game
   auto *app = new AppContext{window, renderer};
+  entt::registry registry;
 
   if (!app->game.initialise(window, renderer)) {
     return SDL_Fail();
@@ -79,7 +80,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   float frameDelay = 1000.0f * deltaTime;
 
   app->game.handleEvents();
-  app->game.update(deltaTime);
+  app->game.update();
   app->game.render();
 
   auto frameTime = SDL_GetTicks() - frameStart;

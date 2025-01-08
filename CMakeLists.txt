@@ -33,7 +33,7 @@ PRIVATE
     src/main.cpp
     src/Game.cpp
     src/TextureManager.cpp
-    src/GameObject.cpp
+    src/Components/Sprite.h
     src/Map.cpp
     src/iosLaunchScreen.storyboard
 )
