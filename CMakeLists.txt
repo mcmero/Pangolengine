@@ -34,6 +34,7 @@ PRIVATE
     src/Game.cpp
     src/TextureManager.cpp
     src/Components/Sprite.h
+    src/Components/Transform.h
     src/Map.cpp
     src/iosLaunchScreen.storyboard
 )

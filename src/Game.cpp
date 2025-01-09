@@ -23,7 +23,8 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   SDL_Log("Game started successfully!");
 
   const entt::entity player = registry.create();
-  registry.emplace<Sprite>(player, "assets/characters/player.png", 0, 0);
+  registry.emplace<Sprite>(player, "assets/characters/player.png");
+  registry.emplace<Transform>(player, 0, 0);
   map = new Map();
 
   return true;
@@ -39,10 +40,12 @@ void Game::handleEvents() {
 }
 
 void Game::update() {
-  auto view = registry.view<Sprite>();
+  auto view = registry.view<Sprite, Transform>();
   for (auto entity : view) {
     auto &sprite = view.get<Sprite>(entity);
-    sprite.update();
+    auto &transform = view.get<Transform>(entity);
+    transform.update();
+    sprite.update(transform);
   }
 }
 
