@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Constants.h"
 #include <iostream>
 
 class Transform {
@@ -18,9 +19,9 @@ public:
   int y() { return ypos; }
 
   void update() {
-    if (xpos > 320)
+    if (xpos > SCREEN_WIDTH)
       xpos = 0;
-    if (ypos > 180)
+    if (ypos > SCREEN_HEIGTH)
       ypos = 0;
 
     xpos++;

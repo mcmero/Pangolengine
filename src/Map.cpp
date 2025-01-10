@@ -1,4 +1,5 @@
 #include "Map.h"
+#include "Constants.h"
 #include "TextureManager.h"
 #include <fstream>
 
@@ -12,8 +13,8 @@ Map::Map() {
 
   LoadMap(lvl1);
   srcRect.x = srcRect.y = 0;
-  srcRect.w = destRect.w = 16;
-  srcRect.h = destRect.h = 16;
+  srcRect.w = destRect.w = TILE_SIZE;
+  srcRect.h = destRect.h = TILE_SIZE;
 
   destRect.x = destRect.y = 0;
 }
@@ -37,8 +38,8 @@ void Map::DrawMap() {
     for (int col = 0; col < width; col++) {
       type = map[row][col];
 
-      destRect.x = float(col * 16);
-      destRect.y = float(row * 16);
+      destRect.x = float(col * TILE_SIZE);
+      destRect.y = float(row * TILE_SIZE);
 
       switch (type) {
       case 2:

@@ -1,3 +1,4 @@
+#include "Constants.h"
 #include "Game.h"
 #include "SDL3/SDL_timer.h"
 #include <SDL3/SDL.h>
@@ -25,7 +26,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
   // create a window
   SDL_Window *window =
-      SDL_CreateWindow("Window", 320, 180, SDL_WINDOW_RESIZABLE);
+      SDL_CreateWindow("Window", SCREEN_WIDTH * RENDER_SCALE,
+                       SCREEN_HEIGTH * RENDER_SCALE, SDL_WINDOW_RESIZABLE);
   if (not window) {
     return SDL_Fail();
   }
@@ -34,6 +36,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   if (not renderer) {
     return SDL_Fail();
   }
+
+  SDL_SetRenderScale(renderer, RENDER_SCALE, RENDER_SCALE);
 
   // print some information about the window
   SDL_ShowWindow(window);

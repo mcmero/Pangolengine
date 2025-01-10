@@ -32,6 +32,7 @@ target_sources(${EXECUTABLE_NAME}
 PRIVATE 
     src/main.cpp
     src/Game.cpp
+    src/Constants.h
     src/TextureManager.cpp
     src/Components/Sprite.h
     src/Components/Transform.h

@@ -23,7 +23,7 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   SDL_Log("Game started successfully!");
 
   const entt::entity player = registry.create();
-  registry.emplace<Sprite>(player, "assets/characters/player.png");
+  registry.emplace<Sprite>(player, "assets/characters/player.png", 32, 32);
   registry.emplace<Transform>(player, 0, 0);
   map = new Map();
 

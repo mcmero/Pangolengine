@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Constants.h"
 #include "../Game.h"
 #include "../TextureManager.h"
 #include "SDL3/SDL_rect.h"
@@ -8,11 +9,11 @@
 
 class Sprite {
 public:
-  Sprite(const char *texturePath) {
+  Sprite(const char *texturePath, int width, int height) {
     srcRect.x = 0;
     srcRect.y = 0;
-    srcRect.h = 32;
-    srcRect.w = 32;
+    srcRect.h = float(width);
+    srcRect.w = float(height);
 
     texture = TextureManager::LoadTexture(texturePath);
   }
