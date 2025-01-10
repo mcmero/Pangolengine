@@ -42,10 +42,12 @@ void Game::handleEvents() {
 void Game::update() {
   auto view = registry.view<Sprite, Transform>();
   for (auto entity : view) {
-    auto &sprite = view.get<Sprite>(entity);
-    auto &transform = view.get<Transform>(entity);
-    transform.update();
-    sprite.update(transform);
+    if (registry.all_of<Transform>(entity)) {
+      auto &sprite = view.get<Sprite>(entity);
+      auto &transform = view.get<Transform>(entity);
+      transform.update();
+      sprite.update(transform);
+    }
   }
 }
 
