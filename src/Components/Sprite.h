@@ -18,8 +18,8 @@ public:
   }
 
   void update(Transform &transform) {
-    destRect.x = float(transform.x());
-    destRect.y = float(transform.y());
+    destRect.x = float(transform.position.x);
+    destRect.y = float(transform.position.y);
     destRect.w = srcRect.w;
     destRect.h = srcRect.h;
   }

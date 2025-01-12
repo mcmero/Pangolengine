@@ -1,12 +1,17 @@
 #include "Game.h"
+#include "Components/KeyboardController.h"
 #include "Components/Sprite.h"
+#include "Components/Transform.h"
 #include "Map.h"
+#include "SDL3/SDL_events.h"
 #include "SDL3/SDL_render.h"
 #include <iostream>
 
 Map *map;
 
 SDL_Renderer *Game::renderer = nullptr;
+
+SDL_Event Game::event;
 
 Game::Game() : running(true), window(nullptr) {}
 
@@ -24,28 +29,29 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
 
   const entt::entity player = registry.create();
   registry.emplace<Sprite>(player, "assets/characters/player.png", 32, 32);
-  registry.emplace<Transform>(player, 0, 0);
+  registry.emplace<Transform>(player, float(0), float(0));
+  registry.emplace<KeyboardController>(player);
   map = new Map();
 
   return true;
 }
 
-void Game::handleEvents() {
-  SDL_Event event;
-  while (SDL_PollEvent(&event)) {
-    if (event.type == SDL_EVENT_QUIT) {
-      running = false;
-    }
+void Game::handleEvents(SDL_Event *event) {
+  // we need to get the event from AppContext somehow...
+  auto view = registry.view<Transform, KeyboardController>();
+  for (auto entity : view) {
+    auto &controller = view.get<KeyboardController>(entity);
+    auto &transform = view.get<Transform>(entity);
+    controller.update(event, transform);
   }
 }
 
 void Game::update() {
-  auto view = registry.view<Sprite, Transform>();
+  auto view = registry.view<Sprite, Transform, KeyboardController>();
   for (auto entity : view) {
+    auto &sprite = view.get<Sprite>(entity);
     if (registry.all_of<Transform>(entity)) {
-      auto &sprite = view.get<Sprite>(entity);
       auto &transform = view.get<Transform>(entity);
-      transform.update();
       sprite.update(transform);
     }
   }

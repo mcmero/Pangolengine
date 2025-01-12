@@ -34,9 +34,11 @@ PRIVATE
     src/Game.cpp
     src/Constants.h
     src/TextureManager.cpp
+    src/Map.cpp
+    src/Vector2D.cpp
     src/Components/Sprite.h
     src/Components/Transform.h
-    src/Map.cpp
+    src/Components/KeyboardController.h
     src/iosLaunchScreen.storyboard
 )
 # What is iosLaunchScreen.storyboard? This file describes what Apple's mobile platforms

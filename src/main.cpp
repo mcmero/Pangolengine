@@ -1,9 +1,11 @@
 #include "Constants.h"
 #include "Game.h"
+#include "SDL3/SDL_events.h"
 #include "SDL3/SDL_timer.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <cstdint>
+#include <iostream>
 
 struct AppContext {
   SDL_Window *window;
@@ -70,6 +72,8 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 
   if (event->type == SDL_EVENT_QUIT) {
     app->app_quit = SDL_APP_SUCCESS;
+  } else {
+    app->game.handleEvents(event);
   }
 
   return SDL_APP_CONTINUE;
@@ -82,7 +86,6 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   float deltaTime = 1.0f / 60.0f;
   float frameDelay = 1000.0f * deltaTime;
 
-  app->game.handleEvents();
   app->game.update();
   app->game.render();
 
