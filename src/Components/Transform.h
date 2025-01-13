@@ -4,9 +4,11 @@
 
 class Transform {
 public:
+  Vector2D position;
+
   Transform() { position = Vector2D(); }
 
   Transform(float x, float y) { position = Vector2D(x, y); }
 
-  Vector2D position;
+  void update() {}
 };

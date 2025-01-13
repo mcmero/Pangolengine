@@ -37,12 +37,12 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
 }
 
 void Game::handleEvents(SDL_Event *event) {
-  // we need to get the event from AppContext somehow...
   auto view = registry.view<Transform, KeyboardController>();
   for (auto entity : view) {
     auto &controller = view.get<KeyboardController>(entity);
     auto &transform = view.get<Transform>(entity);
     controller.update(event, transform);
+    transform.update();
   }
 }
 

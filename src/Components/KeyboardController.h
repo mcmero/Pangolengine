@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Constants.h"
 #include "SDL3/SDL_events.h"
 #include "Transform.h"
 
@@ -11,16 +12,16 @@ public:
     if (event->type == SDL_EVENT_KEY_DOWN) {
       switch (event->key.key) {
       case SDLK_W:
-        transform.position.y -= 1;
+        transform.position.y -= PLAYER_SPEED;
         break;
       case SDLK_A:
-        transform.position.x -= 1;
+        transform.position.x -= PLAYER_SPEED;
         break;
       case SDLK_D:
-        transform.position.x += 1;
+        transform.position.x += PLAYER_SPEED;
         break;
       case SDLK_S:
-        transform.position.y += 1;
+        transform.position.y += PLAYER_SPEED;
         break;
       default:
         break;
