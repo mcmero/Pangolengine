@@ -2,6 +2,7 @@
 #include "Game.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_timer.h"
+#include "SDL3/SDL_video.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <cstdint>
@@ -27,8 +28,9 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   }
 
   // create a window
-  SDL_Window *window = SDL_CreateWindow("Window", SCREEN_WIDTH * RENDER_SCALE,
-                                        SCREEN_HEIGTH * RENDER_SCALE, NULL);
+  SDL_Window *window =
+      SDL_CreateWindow("Window", SCREEN_WIDTH * RENDER_SCALE,
+                       SCREEN_HEIGTH * RENDER_SCALE, SDL_WINDOW_RESIZABLE);
   if (not window) {
     return SDL_Fail();
   }

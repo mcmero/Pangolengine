@@ -1,16 +1,17 @@
 #include "Game.h"
 #include "Components/KeyboardController.h"
+#include "Components/Map.h"
 #include "Components/Sprite.h"
 #include "Components/Transform.h"
-#include "Map.h"
+#include "Constants.h"
+#include "MapLoader.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_render.h"
 #include <iostream>
 
-Map *map;
+MapLoader *mapLoader;
 
 SDL_Renderer *Game::renderer = nullptr;
-
 SDL_Event Game::event;
 
 Game::Game() : running(true), window(nullptr) {}
@@ -31,7 +32,11 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   registry.emplace<Sprite>(player, "assets/characters/player.png", 32, 32);
   registry.emplace<Transform>(player, float(0), float(0));
   registry.emplace<KeyboardController>(player);
-  map = new Map();
+
+  mapLoader = new MapLoader();
+  mapLoader->LoadMap("assets/maps/level1.tmj");
+  const entt::entity map = registry.create();
+  registry.emplace<Map>(map, &mapLoader->mapData, TILE_SIZE);
 
   return true;
 }
@@ -47,7 +52,7 @@ void Game::handleEvents(SDL_Event *event) {
 }
 
 void Game::update() {
-  auto view = registry.view<Sprite, Transform, KeyboardController>();
+  auto view = registry.view<Sprite, Transform>();
   for (auto entity : view) {
     auto &sprite = view.get<Sprite>(entity);
     if (registry.all_of<Transform>(entity)) {
@@ -59,7 +64,15 @@ void Game::update() {
 
 void Game::render() {
   SDL_RenderClear(renderer);
-  map->DrawMap();
+
+  // draw map
+  auto mapView = registry.view<Map>();
+  for (auto mapEntity : mapView) {
+    auto &map = mapView.get<Map>(mapEntity);
+    map.render();
+  }
+
+  // draw sprites
   auto view = registry.view<Sprite>();
   for (auto entity : view) {
     auto &sprite = view.get<Sprite>(entity);
@@ -77,6 +90,7 @@ void Game::clean() {
   }
   registry.clear();
 
+  delete mapLoader;
   // No need to destroy window and renderer as they are managed outside
   SDL_Quit();
 }
