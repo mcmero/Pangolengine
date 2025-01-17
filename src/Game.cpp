@@ -33,10 +33,9 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   registry.emplace<Transform>(player, float(0), float(0));
   registry.emplace<KeyboardController>(player);
 
-  mapLoader = new MapLoader();
-  mapLoader->LoadMap("assets/maps/level1.tmj");
+  MapData mapData = MapLoader::LoadMap("assets/maps/level1.tmj");
   const entt::entity map = registry.create();
-  registry.emplace<Map>(map, &mapLoader->mapData, TILE_SIZE);
+  registry.emplace<Map>(map, &mapData, TILE_SIZE);
 
   return true;
 }

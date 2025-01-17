@@ -13,10 +13,7 @@ struct MapData {
 
 class MapLoader {
 public:
-  MapData mapData;
+  MapLoader() = delete;
 
-  MapLoader();
-  ~MapLoader();
-
-  void LoadMap(const char *mapFile);
+  static MapData LoadMap(const char *mapFile);
 };
