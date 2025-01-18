@@ -1,15 +1,10 @@
 #include "Game.h"
-#include "Components/KeyboardController.h"
-#include "Components/Map.h"
-#include "Components/Sprite.h"
-#include "Components/Transform.h"
+#include "Components/Components.h"
 #include "Constants.h"
 #include "MapLoader.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_render.h"
 #include <iostream>
-
-MapLoader *mapLoader;
 
 SDL_Renderer *Game::renderer = nullptr;
 SDL_Event Game::event;
@@ -88,9 +83,14 @@ void Game::clean() {
     auto &sprite = view.get<Sprite>(entity);
     sprite.clean();
   }
+  // Clean up maps
+  auto mapView = registry.view<Map>();
+  for (auto mapEntity : mapView) {
+    auto &map = mapView.get<Map>(mapEntity);
+    map.clean();
+  }
   registry.clear();
 
-  delete mapLoader;
   // No need to destroy window and renderer as they are managed outside
   SDL_Quit();
 }

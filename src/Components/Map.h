@@ -52,4 +52,6 @@ public:
       TextureManager::Draw(tile.texture, srcRect, destRect);
     }
   }
+
+  void clean() { SDL_DestroyTexture(tileMapTex); }
 };
