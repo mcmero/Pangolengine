@@ -35,7 +35,8 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
 
   MapData mapData = MapLoader::LoadMap("assets/maps/level1.tmj");
   const entt::entity map = registry.create();
-  registry.emplace<Map>(map, &mapData, TILE_SIZE);
+  registry.emplace<Map>(map, &mapData, "assets/tilesets/TilemapOutdoor.png",
+                        TILE_SIZE);
 
   return true;
 }
