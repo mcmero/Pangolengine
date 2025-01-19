@@ -1,13 +1,18 @@
 #include "Game.h"
 #include "Components/Components.h"
 #include "Constants.h"
-#include "MapLoader.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_render.h"
 #include <iostream>
 
 SDL_Renderer *Game::renderer = nullptr;
 SDL_Event Game::event;
+SDL_Rect Game::camera = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
+
+entt::entity Game::player = entt::null;
+MapData Game::mapData;
+int mapPixelHeight = 0;
+int mapPixelWidth = 0;
 
 Game::Game() : running(true), window(nullptr) {}
 
@@ -23,12 +28,15 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   }
   SDL_Log("Game started successfully!");
 
-  const entt::entity player = registry.create();
-  registry.emplace<Sprite>(player, "assets/characters/player.png", 32, 32);
+  player = registry.create();
+  registry.emplace<Sprite>(player, "assets/characters/player.png", PLAYER_WIDTH,
+                           PLAYER_HEIGHT);
   registry.emplace<Transform>(player, float(0), float(0));
   registry.emplace<KeyboardController>(player);
 
-  MapData mapData = MapLoader::LoadMap("assets/maps/level1.tmj");
+  mapData = MapLoader::LoadMap("assets/maps/level1.tmj");
+  mapPixelHeight = mapData.height * TILE_SIZE;
+  mapPixelWidth = mapData.width * TILE_SIZE;
   const entt::entity map = registry.create();
   registry.emplace<Map>(map, &mapData, "assets/tilesets/TilemapOutdoor.png",
                         TILE_SIZE);
@@ -46,7 +54,38 @@ void Game::handleEvents(SDL_Event *event) {
   }
 }
 
+void Game::updateCamera() {
+  // Update camera position based on player position
+  auto view = registry.view<Transform>();
+  auto &playerTransform = view.get<Transform>(player);
+  camera.x = static_cast<int>(playerTransform.position.x +
+                              float(PLAYER_WIDTH) / float(2) -
+                              float(SCREEN_WIDTH) / float(2));
+  camera.y = static_cast<int>(playerTransform.position.y +
+                              float(PLAYER_HEIGHT) / float(2) -
+                              float(SCREEN_HEIGHT) / float(2));
+
+  // Keep the camera within bounds of the world
+  if (camera.x < 0) {
+    camera.x = 0;
+  }
+  if (camera.y < 0) {
+    camera.y = 0;
+  }
+  if (camera.x > mapPixelWidth - camera.w) {
+    camera.x = mapPixelWidth - camera.w;
+  }
+  if (camera.y > mapPixelHeight - camera.h) {
+    camera.y = mapPixelHeight - camera.h;
+  }
+
+  std::cout << "Player: (" << playerTransform.position.x << ","
+            << playerTransform.position.y << ")" << std::endl;
+  std::cout << "Camera: (" << camera.x << "," << camera.y << ")" << std::endl;
+}
+
 void Game::update() {
+  // Update sprite and transform components
   auto view = registry.view<Sprite, Transform>();
   for (auto entity : view) {
     auto &sprite = view.get<Sprite>(entity);
@@ -55,6 +94,15 @@ void Game::update() {
       sprite.update(transform);
     }
   }
+
+  // Update maps
+  auto mapView = registry.view<Map>();
+  for (auto mapEntity : mapView) {
+    auto &map = mapView.get<Map>(mapEntity);
+    map.update();
+  }
+
+  updateCamera();
 }
 
 void Game::render() {

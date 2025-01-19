@@ -1,13 +1,16 @@
 #pragma once
 
+#include "../Game.h"
 #include "../MapLoader.h"
 #include "../TextureManager.h"
+#include "../Vector2D.h"
 #include "SDL3/SDL_render.h"
 
 class Map {
 public:
   struct Tile {
-    int x, y;
+    Vector2D position;
+    Vector2D mapPosition;
     int width, height;
     int index;
     SDL_Texture *texture;
@@ -38,7 +41,9 @@ public:
     for (int row = 0; row < mapData->height; row++) {
       for (int col = 0; col < mapData->width; col++) {
         index = mapData->map[row][col] - 1;
-        tiles.push_back({col, row, tileSize, tileSize, index, tileMapTex});
+        tiles.push_back({Vector2D(float(col), float(row)),
+                         Vector2D(float(col), float(row)), tileSize, tileSize,
+                         index, tileMapTex});
       }
     }
   }
@@ -47,9 +52,16 @@ public:
     for (auto &tile : tiles) {
       srcRect.x = float(tile.index * tile.width);
       srcRect.y = float(0);
-      destRect.x = float(tile.x * tile.width);
-      destRect.y = float(tile.y * tile.height);
+      destRect.x = float(tile.position.x * tile.width);
+      destRect.y = float(tile.position.y * tile.height);
       TextureManager::Draw(tile.texture, srcRect, destRect);
+    }
+  }
+
+  void update() {
+    for (auto &tile : tiles) {
+      tile.position.x = tile.mapPosition.x - static_cast<int>(Game::camera.x);
+      tile.position.y = tile.mapPosition.y - static_cast<int>(Game::camera.y);
     }
   }
 
