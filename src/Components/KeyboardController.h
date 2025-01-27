@@ -13,19 +13,19 @@ public:
     if (event->type == SDL_EVENT_KEY_DOWN) {
       switch (event->key.key) {
       case SDLK_W:
-        sprite.play();
+        sprite.play("walk");
         transform.position.y -= PLAYER_SPEED;
         break;
       case SDLK_A:
-        sprite.play();
+        sprite.play("walk");
         transform.position.x -= PLAYER_SPEED;
         break;
       case SDLK_D:
-        sprite.play();
+        sprite.play("walk");
         transform.position.x += PLAYER_SPEED;
         break;
       case SDLK_S:
-        sprite.play();
+        sprite.play("walk");
         transform.position.y += PLAYER_SPEED;
         break;
       default:

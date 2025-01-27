@@ -29,8 +29,9 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   SDL_Log("Game started successfully!");
 
   player = registry.create();
+  std::vector<Animation> player_anims = {{"walk", 0, 4, 200}};
   registry.emplace<Sprite>(player, "assets/characters/player_anim.png",
-                           PLAYER_WIDTH, PLAYER_HEIGHT);
+                           PLAYER_WIDTH, PLAYER_HEIGHT, player_anims);
   registry.emplace<Transform>(player, float(0), float(0));
   registry.emplace<Animation>(player, "walk", 0, 4, 200);
   registry.emplace<KeyboardController>(player);
@@ -89,8 +90,7 @@ void Game::update() {
     auto &sprite = view.get<Sprite>(entity);
     if (registry.all_of<Transform>(entity)) {
       auto &transform = view.get<Transform>(entity);
-      auto &animation = view.get<Animation>(entity);
-      sprite.update(transform, animation);
+      sprite.update(transform);
     }
   }
 
