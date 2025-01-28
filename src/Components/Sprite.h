@@ -1,15 +1,18 @@
 #pragma once
 
-#include "../Game.h"
 #include "../TextureManager.h"
 #include "Animation.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
+#include "SDL3/SDL_surface.h"
+#include "SDL3/SDL_timer.h"
 #include "Transform.h"
-#include <cstring>
+#include <vector>
 
 class Sprite {
 public:
+  SDL_FlipMode spriteFlip = SDL_FLIP_NONE;
+
   Sprite(const char *texturePath, int width, int height,
          std::vector<Animation> anims = {}) {
     srcRect.x = 0;
@@ -37,7 +40,7 @@ public:
   }
 
   void render() {
-    SDL_RenderTexture(Game::renderer, texture, &srcRect, &destRect);
+    TextureManager::Draw(texture, srcRect, destRect, spriteFlip);
   }
 
   void play(const char *animName) {

@@ -5,6 +5,7 @@
 #include "../TextureManager.h"
 #include "../Vector2D.h"
 #include "SDL3/SDL_render.h"
+#include "SDL3/SDL_surface.h"
 
 class Map {
 public:
@@ -54,7 +55,7 @@ public:
       srcRect.y = float(0);
       destRect.x = float(tile.position.x * tile.width);
       destRect.y = float(tile.position.y * tile.height);
-      TextureManager::Draw(tile.texture, srcRect, destRect);
+      TextureManager::Draw(tile.texture, srcRect, destRect, SDL_FLIP_NONE);
     }
   }
 

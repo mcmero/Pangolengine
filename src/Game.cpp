@@ -29,11 +29,12 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   SDL_Log("Game started successfully!");
 
   player = registry.create();
-  std::vector<Animation> player_anims = {{"walk", 0, 4, 200}};
+  std::vector<Animation> player_anims = {{"walk_front", 0, 4, 200},
+                                         {"walk_side", 1, 4, 200},
+                                         {"walk_back", 2, 4, 200}};
   registry.emplace<Sprite>(player, "assets/characters/player_anim.png",
                            PLAYER_WIDTH, PLAYER_HEIGHT, player_anims);
   registry.emplace<Transform>(player, float(0), float(0));
-  registry.emplace<Animation>(player, "walk", 0, 4, 200);
   registry.emplace<KeyboardController>(player);
 
   mapData = MapLoader::LoadMap("assets/maps/level1.tmj");
@@ -85,7 +86,7 @@ void Game::updateCamera() {
 
 void Game::update() {
   // Update sprite and transform components
-  auto view = registry.view<Sprite, Transform, Animation>();
+  auto view = registry.view<Sprite, Transform>();
   for (auto entity : view) {
     auto &sprite = view.get<Sprite>(entity);
     if (registry.all_of<Transform>(entity)) {
