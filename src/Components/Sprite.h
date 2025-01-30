@@ -25,14 +25,30 @@ public:
   }
 
   void update(Transform &transform) {
-    if (animated && !animations.empty()) {
-      // TODO: put a check here to make sure that we have played at least one
-      // cycle of the animation; we also need to start the animation at the
-      // first frame
-      srcRect.x = srcRect.w * static_cast<int>(
-                                  (SDL_GetTicks() / animations[animIdx].speed) %
-                                  animations[animIdx].frames);
-      animStart = false;
+    if ((animated || animUnfinished) && !animations.empty()) {
+      // If we just started this animation, calculate an
+      // offset to ensure we always start on frame 0
+      if (animStart) {
+        animFrameOffset = ((SDL_GetTicks() / animations[animIdx].speed) %
+                           animations[animIdx].frames);
+        animStart = false;
+      }
+
+      int drawFrame = ((SDL_GetTicks() / animations[animIdx].speed) %
+                       animations[animIdx].frames) -
+                      animFrameOffset;
+
+      if (drawFrame < 0) {
+        drawFrame += animations[animIdx].frames;
+      }
+
+      srcRect.x = srcRect.w * drawFrame;
+
+      // if we've reached the first frame again, mark
+      // animation as finished
+      if (drawFrame == 0 && !animated) {
+        animUnfinished = false;
+      }
     }
     srcRect.y = animations[animIdx].index * srcRect.h;
 
@@ -47,15 +63,19 @@ public:
   }
 
   void play(const char *animName) {
-    animStart = true;
     for (int i = 0; i < animations.size(); i++) {
       if (strcmp(animations[i].name, animName) == 0) {
         animIdx = i;
         animated = true;
+        animStart = true;
+        animUnfinished = true;
       }
     }
   }
-  void stop() { animated = false; }
+  void stop() {
+    animated = false;
+    animStart = 0;
+  }
 
   void clean() { SDL_DestroyTexture(texture); }
 
@@ -64,6 +84,8 @@ private:
   SDL_FRect srcRect, destRect;
   bool animated = false;
   bool animStart = false;
+  bool animUnfinished = false;
+  int animFrameOffset = 0;
   std::vector<Animation> animations;
   int animIdx = 0;
 };
