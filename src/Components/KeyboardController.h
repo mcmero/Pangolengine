@@ -14,21 +14,25 @@ public:
       switch (event->key.key) {
       case SDLK_W:
         sprite.play("walk_back");
-        transform.position.y -= PLAYER_SPEED;
+        setPlayerMovement(UP, transform.position);
+        lastDirection = UP;
         break;
       case SDLK_A:
         sprite.play("walk_side");
+        setPlayerMovement(LEFT, transform.position);
         sprite.spriteFlip = SDL_FLIP_HORIZONTAL;
-        transform.position.x -= PLAYER_SPEED;
+        lastDirection = LEFT;
         break;
       case SDLK_D:
         sprite.play("walk_side");
+        setPlayerMovement(RIGHT, transform.position);
         sprite.spriteFlip = SDL_FLIP_NONE;
-        transform.position.x += PLAYER_SPEED;
+        lastDirection = RIGHT;
         break;
       case SDLK_S:
         sprite.play("walk_front");
-        transform.position.y += PLAYER_SPEED;
+        setPlayerMovement(DOWN, transform.position);
+        lastDirection = DOWN;
         break;
       default:
         break;
@@ -53,5 +57,31 @@ public:
       }
     }
   }
-  int dummy; // prevent void error for now
+
+private:
+  enum Direction { UP, DOWN, LEFT, RIGHT, NONE };
+  Direction lastDirection = NONE;
+
+  void setPlayerMovement(Direction dir, Vector2D &tfVec) {
+    // Set player movement vector if the direction is the same
+    // as the current direction, otherwise do not modify vector
+    if (lastDirection == dir) {
+      switch (dir) {
+      case UP:
+        tfVec.Subtract(Vector2D(0, PLAYER_SPEED));
+        break;
+      case DOWN:
+        tfVec.Add(Vector2D(0, PLAYER_SPEED));
+        break;
+      case LEFT:
+        tfVec.Subtract(Vector2D(PLAYER_SPEED, 0));
+        break;
+      case RIGHT:
+        tfVec.Add(Vector2D(PLAYER_SPEED, 0));
+        break;
+      default:
+        break;
+      }
+    }
+  }
 };

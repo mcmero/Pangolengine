@@ -26,12 +26,15 @@ public:
 
   void update(Transform &transform) {
     if (animated && !animations.empty()) {
-      srcRect.x =
-          srcRect.w *
-          static_cast<int>((SDL_GetTicks() / animations[anim_idx].speed) %
-                           animations[anim_idx].frames);
+      // TODO: put a check here to make sure that we have played at least one
+      // cycle of the animation; we also need to start the animation at the
+      // first frame
+      srcRect.x = srcRect.w * static_cast<int>(
+                                  (SDL_GetTicks() / animations[animIdx].speed) %
+                                  animations[animIdx].frames);
+      animStart = false;
     }
-    srcRect.y = animations[anim_idx].index * srcRect.h;
+    srcRect.y = animations[animIdx].index * srcRect.h;
 
     destRect.x = float(transform.position.x);
     destRect.y = float(transform.position.y);
@@ -44,9 +47,10 @@ public:
   }
 
   void play(const char *animName) {
+    animStart = true;
     for (int i = 0; i < animations.size(); i++) {
       if (strcmp(animations[i].name, animName) == 0) {
-        anim_idx = i;
+        animIdx = i;
         animated = true;
       }
     }
@@ -59,6 +63,7 @@ private:
   SDL_Texture *texture;
   SDL_FRect srcRect, destRect;
   bool animated = false;
+  bool animStart = false;
   std::vector<Animation> animations;
-  int anim_idx = 0;
+  int animIdx = 0;
 };
