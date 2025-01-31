@@ -54,7 +54,6 @@ void Game::handleEvents(SDL_Event *event) {
     auto &transform = view.get<Transform>(entity);
     auto &sprite = view.get<Sprite>(entity);
     controller.update(event, transform, sprite);
-    transform.update();
   }
 }
 
@@ -92,6 +91,7 @@ void Game::update() {
     if (registry.all_of<Transform>(entity)) {
       auto &transform = view.get<Transform>(entity);
       sprite.update(transform);
+      transform.update();
     }
   }
 
