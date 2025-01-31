@@ -10,6 +10,7 @@ SDL_Event Game::event;
 SDL_Rect Game::camera = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
 
 entt::entity Game::player = entt::null;
+entt::entity Game::npc = entt::null;
 MapData Game::mapData;
 int mapPixelHeight = 0;
 int mapPixelWidth = 0;
@@ -28,15 +29,23 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   }
   SDL_Log("Game started successfully!");
 
+  // Set up player character
   player = registry.create();
   std::vector<Animation> player_anims = {{"walk_front", 0, 4, 200},
                                          {"walk_side", 1, 4, 200},
                                          {"walk_back", 2, 4, 200}};
   registry.emplace<Sprite>(player, "assets/characters/player_anim.png",
                            PLAYER_WIDTH, PLAYER_HEIGHT, player_anims);
-  registry.emplace<Transform>(player, float(0), float(0));
+  registry.emplace<Transform>(player, float(0), float(0), true);
   registry.emplace<KeyboardController>(player);
 
+  // Set up NPCs
+  npc = registry.create();
+  registry.emplace<Sprite>(npc, "assets/characters/npc.png", PLAYER_WIDTH,
+                           PLAYER_HEIGHT);
+  registry.emplace<Transform>(npc, float(208), float(76));
+
+  // Set up map data
   mapData = MapLoader::LoadMap("assets/maps/level1.tmj");
   mapPixelHeight = mapData.height * TILE_SIZE;
   mapPixelWidth = mapData.width * TILE_SIZE;

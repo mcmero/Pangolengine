@@ -33,4 +33,5 @@ private:
   SDL_Window *window;
   entt::registry registry;
   static entt::entity player;
+  static entt::entity npc;
 };

@@ -50,7 +50,12 @@ public:
         animUnfinished = false;
       }
     }
-    srcRect.y = animations[animIdx].index * srcRect.h;
+
+    if (!animations.empty()) {
+      srcRect.y = animations[animIdx].index * srcRect.h;
+    } else {
+      srcRect.y = 0;
+    }
 
     destRect.x = float(transform.position.x);
     destRect.y = float(transform.position.y);
