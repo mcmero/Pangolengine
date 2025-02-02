@@ -4,6 +4,7 @@
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_render.h"
 #include <iostream>
+#include <ostream>
 
 SDL_Renderer *Game::renderer = nullptr;
 SDL_Event Game::event;
@@ -77,6 +78,8 @@ void Game::updateCamera() {
                               float(PLAYER_HEIGHT) / 2.0f -
                               float(SCREEN_HEIGHT) / 2.0f);
 
+  std::cout << "Camera x: " << camera.x << " Camera y: " << camera.y
+            << std::endl;
   // Keep the camera within bounds of the world
   if (camera.x < 0) {
     camera.x = 0;

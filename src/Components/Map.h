@@ -1,11 +1,13 @@
 #pragma once
 
+#include "../Constants.h"
 #include "../Game.h"
 #include "../MapLoader.h"
 #include "../TextureManager.h"
 #include "../Vector2D.h"
 #include "SDL3/SDL_render.h"
 #include "SDL3/SDL_surface.h"
+#include <iostream>
 
 class Map {
 public:
@@ -61,8 +63,10 @@ public:
 
   void update() {
     for (auto &tile : tiles) {
-      tile.position.x = tile.mapPosition.x - static_cast<int>(Game::camera.x);
-      tile.position.y = tile.mapPosition.y - static_cast<int>(Game::camera.y);
+      tile.position.x =
+          tile.mapPosition.x - static_cast<int>(Game::camera.x / TILE_SIZE);
+      tile.position.y =
+          tile.mapPosition.y - static_cast<int>(Game::camera.y / TILE_SIZE);
     }
   }
 

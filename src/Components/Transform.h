@@ -4,6 +4,7 @@
 #include "../Game.h"
 #include "../Vector2D.h"
 #include <SDL3/SDL_stdinc.h>
+#include <iostream>
 
 class Transform {
 public:
@@ -45,8 +46,15 @@ public:
       }
     }
     if (!isPlayer) {
-      position.x = mapPosition.x - static_cast<int>(Game::camera.x);
-      position.y = mapPosition.y - static_cast<int>(Game::camera.y);
+      // Update non-player positions relative to the tile map
+      // to ensure moving the camera also moves the sprite
+      position.x = mapPosition.x -
+                   static_cast<int>(Game::camera.x / TILE_SIZE) * TILE_SIZE;
+      position.y = mapPosition.y -
+                   static_cast<int>(Game::camera.y / TILE_SIZE) * TILE_SIZE;
+    } else {
+      std::cout << "Player x: " << position.x << " Player y: " << position.y
+                << std::endl;
     }
   }
 
