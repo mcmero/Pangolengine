@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Game.h"
 #include "../TextureManager.h"
 #include "Animation.h"
 #include "SDL3/SDL_rect.h"
@@ -58,11 +59,9 @@ public:
     }
 
     // update sprite position relative to camera ensuring sprite
-    // remains on fixed position on the tile map
-    int cameraOffsetX = (Game::camera.x / TILE_SIZE) * TILE_SIZE;
-    int cameraOffsetY = (Game::camera.y / TILE_SIZE) * TILE_SIZE;
-    destRect.x = float(transform.position.x - cameraOffsetX);
-    destRect.y = float(transform.position.y - cameraOffsetY);
+    // remains on fixed position on the tile grid
+    destRect.x = float(transform.position.x - Game::camera.x);
+    destRect.y = float(transform.position.y - Game::camera.y);
     destRect.w = srcRect.w;
     destRect.h = srcRect.h;
   }

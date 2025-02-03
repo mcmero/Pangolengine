@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../Constants.h"
-#include "../Game.h"
 #include "../Vector2D.h"
 #include <SDL3/SDL_stdinc.h>
 
