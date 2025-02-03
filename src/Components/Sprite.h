@@ -28,8 +28,9 @@ public:
   void update(Transform &transform) {
     if ((animated || animUnfinished) && !animations.empty()) {
       // If we just started this animation, calculate an
-      // offset to ensure we always start on frame 0
-      if (animStart) {
+      // offset to ensure we always start on frame 0.
+      // Only need this offset when moving from stationary
+      if (animStart && !transform.isMoving) {
         animFrameOffset = ((SDL_GetTicks() / animations[animIdx].speed) %
                            animations[animIdx].frames);
         animStart = false;
