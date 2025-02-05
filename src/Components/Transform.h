@@ -6,18 +6,25 @@
 
 class Transform {
 public:
+  float width;
+  float height;
+
   Vector2D position;
   Vector2D targetPosition;
   Vector2D mapPosition;
+
   float moveProgress; // between 0 and 1
   bool isMoving = false;
   bool isPlayer = false;
 
   Transform() { position = Vector2D(); }
 
-  Transform(float x, float y, bool isPlayer = false) {
+  Transform(float x, float y, float width, float height,
+            bool isPlayer = false) {
     position = Vector2D(x, y);
     mapPosition = Vector2D(x, y);
+    this->width = width;
+    this->height = height;
     this->isPlayer = isPlayer;
   }
 

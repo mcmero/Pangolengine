@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "Collision.h"
 #include "Components/Components.h"
 #include "Constants.h"
 #include "SDL3/SDL_events.h"
@@ -37,14 +38,16 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
                                          {"walk_back", 2, 4, 200}};
   registry.emplace<Sprite>(player, "assets/characters/player_anim.png",
                            PLAYER_WIDTH, PLAYER_HEIGHT, player_anims);
-  registry.emplace<Transform>(player, float(0), float(0), true);
+  registry.emplace<Transform>(player, 8.0f, 0.0f, 32.0f, 32.0f, true);
+  registry.emplace<Collider>(player, 8.0f, 0.0f, 32.0f, 32.0f);
   registry.emplace<KeyboardController>(player);
 
   // Set up NPCs
   npc = registry.create();
   registry.emplace<Sprite>(npc, "assets/characters/npc.png", PLAYER_WIDTH,
                            PLAYER_HEIGHT);
-  registry.emplace<Transform>(npc, float(208), float(76));
+  registry.emplace<Transform>(npc, 216.0f, 76.0f, 32.0f, 32.0f);
+  registry.emplace<Collider>(npc, 216.0f, 76.0f, 32.0f, 32.0f);
 
   // Set up map data
   mapData = MapLoader::LoadMap("assets/maps/level1.tmj");
@@ -95,13 +98,20 @@ void Game::updateCamera() {
 
 void Game::update() {
   // Update sprite and transform components
-  auto view = registry.view<Sprite, Transform>();
+  auto view = registry.view<Sprite, Transform, Collider>();
+  auto &playerCollider = view.get<Collider>(player);
   for (auto entity : view) {
     auto &sprite = view.get<Sprite>(entity);
-    if (registry.all_of<Transform>(entity)) {
-      auto &transform = view.get<Transform>(entity);
-      sprite.update(transform);
-      transform.update();
+    auto &transform = view.get<Transform>(entity);
+    auto &collider = view.get<Collider>(entity);
+    sprite.update(transform);
+    transform.update();
+    collider.update(transform);
+    if (entity != player) {
+      if (Collision::AABB(playerCollider, collider)) {
+
+        std::cout << "Player collision!" << std::endl;
+      }
     }
   }
 

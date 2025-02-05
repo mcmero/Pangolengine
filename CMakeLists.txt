@@ -36,6 +36,7 @@ PRIVATE
     src/TextureManager.cpp
     src/MapLoader.cpp
     src/Vector2D.cpp
+    src/Collision.cpp
     src/Components/Components.h
     src/iosLaunchScreen.storyboard
 )

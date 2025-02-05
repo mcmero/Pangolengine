@@ -1,5 +1,6 @@
 #pragma once
 #include "Animation.h"
+#include "Collider.h"
 #include "KeyboardController.h"
 #include "Map.h"
 #include "Sprite.h"
