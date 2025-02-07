@@ -38,16 +38,18 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
                                          {"walk_back", 2, 4, 200}};
   registry.emplace<Sprite>(player, "assets/characters/player_anim.png",
                            PLAYER_WIDTH, PLAYER_HEIGHT, player_anims);
-  registry.emplace<Transform>(player, 8.0f, 0.0f, 32.0f, 32.0f, true);
-  registry.emplace<Collider>(player, 8.0f, 0.0f, 32.0f, 32.0f);
+  registry.emplace<Transform>(player, 0.0f, 0.0f, 32.0f, 32.0f, true);
+  registry.emplace<Collider>(player, 0.0f, 0.0f, 32.0f, 32.0f,
+                             Offset{17, 17, -17, -17});
   registry.emplace<KeyboardController>(player);
 
   // Set up NPCs
   npc = registry.create();
   registry.emplace<Sprite>(npc, "assets/characters/npc.png", PLAYER_WIDTH,
                            PLAYER_HEIGHT);
-  registry.emplace<Transform>(npc, 216.0f, 76.0f, 32.0f, 32.0f);
-  registry.emplace<Collider>(npc, 216.0f, 76.0f, 32.0f, 32.0f);
+  registry.emplace<Transform>(npc, 208.0f, 80.0f, 32.0f, 32.0f);
+  registry.emplace<Collider>(npc, 208.0f, 80.0f, 32.0f, 32.0f,
+                             Offset{17, 17, -17, -17});
 
   // Set up map data
   mapData = MapLoader::LoadMap("assets/maps/level1.tmj");
@@ -109,7 +111,6 @@ void Game::update() {
     collider.update(transform);
     if (entity != player) {
       if (Collision::AABB(playerCollider, collider)) {
-
         std::cout << "Player collision!" << std::endl;
       }
     }

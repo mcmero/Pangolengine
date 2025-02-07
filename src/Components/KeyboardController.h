@@ -65,7 +65,7 @@ private:
   void setPlayerMovement(Direction dir, Transform &transform) {
     // Set player movement vector if the direction is the same
     // as the current direction, otherwise do not modify vector
-    if (lastDirection == dir) {
+    if (lastDirection == dir && !transform.isMoving) {
       switch (dir) {
       case UP:
         transform.initiateMove(Vector2D(0, -1.0f * TILE_SIZE));

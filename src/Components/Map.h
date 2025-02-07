@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../Constants.h"
 #include "../Game.h"
 #include "../MapLoader.h"
 #include "../TextureManager.h"
