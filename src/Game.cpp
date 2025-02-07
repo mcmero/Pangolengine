@@ -102,18 +102,20 @@ void Game::update() {
   // Update sprite and transform components
   auto view = registry.view<Sprite, Transform, Collider>();
   auto &playerCollider = view.get<Collider>(player);
+  auto &playerTransform = view.get<Transform>(player);
   for (auto entity : view) {
     auto &sprite = view.get<Sprite>(entity);
     auto &transform = view.get<Transform>(entity);
     auto &collider = view.get<Collider>(entity);
-    sprite.update(transform);
     transform.update();
     collider.update(transform);
     if (entity != player) {
       if (Collision::AABB(playerCollider, collider)) {
         std::cout << "Player collision!" << std::endl;
+        playerTransform.abortMove();
       }
     }
+    sprite.update(transform);
   }
 
   // Update maps

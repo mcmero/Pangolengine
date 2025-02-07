@@ -11,7 +11,7 @@ public:
 
   Vector2D position;
   Vector2D targetPosition;
-  Vector2D mapPosition;
+  Vector2D startPosition;
 
   float moveProgress; // between 0 and 1
   bool isMoving = false;
@@ -22,7 +22,7 @@ public:
   Transform(float x, float y, float width, float height,
             bool isPlayer = false) {
     position = Vector2D(x, y);
-    mapPosition = Vector2D(x, y);
+    startPosition = Vector2D(x, y);
     this->width = width;
     this->height = height;
     this->isPlayer = isPlayer;
@@ -53,9 +53,18 @@ public:
   }
 
   void initiateMove(Vector2D pos) {
+    startPosition.x = position.x;
+    startPosition.y = position.y;
     targetPosition.x = position.x + pos.x;
     targetPosition.y = position.y + pos.y;
     isMoving = true;
     moveProgress = 0.0f;
+  }
+
+  void abortMove() {
+    position.x = startPosition.x;
+    position.y = startPosition.y;
+    isMoving = false;
+    moveProgress = 1.0f;
   }
 };
