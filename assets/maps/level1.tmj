@@ -25,7 +25,7 @@
             2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
          "height":20,
          "id":1,
-         "name":"Tile Layer 1",
+         "name":"Tiles",
          "opacity":1,
          "type":"tilelayer",
          "visible":true,
@@ -35,20 +35,42 @@
         }, 
         {
          "draworder":"topdown",
-         "id":2,
-         "name":"Object Layer 1",
+         "id":4,
+         "name":"Collision",
          "objects":[
                 {
-                 "height":0,
-                 "id":4,
+                 "height":123.559462991565,
+                 "id":8,
                  "name":"",
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":0,
-                 "x":369.333,
-                 "y":158.667
+                 "width":141.047879291909,
+                 "x":176.7850778187,
+                 "y":1.1405488891529
                 }, 
+                {
+                 "height":20.1496970417013,
+                 "id":9,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":76.7969585362956,
+                 "x":241.035998574314,
+                 "y":125.840560769871
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "id":2,
+         "name":"Sprites",
+         "objects":[
                 {
                  "gid":5,
                  "height":180,
@@ -63,12 +85,12 @@
                 }],
          "opacity":1,
          "type":"objectgroup",
-         "visible":false,
+         "visible":true,
          "x":0,
          "y":0
         }],
- "nextlayerid":4,
- "nextobjectid":8,
+ "nextlayerid":5,
+ "nextobjectid":10,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.0",
@@ -76,11 +98,11 @@
  "tilesets":[
         {
          "firstgid":1,
-         "source":"..\/..\/..\/uni-game\/maps\/TilemapOutdoor.tsx"
+         "source":"..\/tilesets\/TilemapOutdoor.tsx"
         }, 
         {
          "firstgid":5,
-         "source":"..\/..\/..\/uni-game\/maps\/building_test.tsx"
+         "source":"..\/tilesets\/SpritesheetBuilding.tsx"
         }],
  "tilewidth":16,
  "type":"map",

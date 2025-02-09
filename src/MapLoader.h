@@ -16,4 +16,7 @@ public:
   MapLoader() = delete;
 
   static MapData LoadMap(const char *mapFile);
+
+private:
+  static std::string getTilesetSource(int tilesetID, const json &mapDataJson);
 };
