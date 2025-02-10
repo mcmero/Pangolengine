@@ -56,8 +56,7 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   mapPixelHeight = mapData.height * TILE_SIZE;
   mapPixelWidth = mapData.width * TILE_SIZE;
   const entt::entity map = registry.create();
-  registry.emplace<Map>(map, &mapData, "assets/tilesets/TilemapOutdoor.png",
-                        TILE_SIZE);
+  registry.emplace<Map>(map, &mapData, mapData.tilesetImg.c_str(), TILE_SIZE);
 
   return true;
 }
