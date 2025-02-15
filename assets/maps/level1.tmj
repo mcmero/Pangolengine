@@ -75,7 +75,7 @@
                  "gid":5,
                  "height":180,
                  "id":7,
-                 "name":"",
+                 "name":"ClockTower",
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -90,7 +90,7 @@
          "y":0
         }],
  "nextlayerid":5,
- "nextobjectid":10,
+ "nextobjectid":13,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.0",
