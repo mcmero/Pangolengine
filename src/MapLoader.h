@@ -19,7 +19,8 @@ class MapLoader {
 public:
   MapLoader() = delete;
 
-  static MapData LoadMap(const char *mapFile);
+  static MapData LoadMap(const char *mapFile,
+                         std::string tileLayerName = "Tiles");
 
 private:
   static std::string getTilesetSource(int tilesetID, const json &mapDataJson);

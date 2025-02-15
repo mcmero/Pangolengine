@@ -51,10 +51,17 @@ std::string MapLoader::getTilesetSource(int tilesetID,
   return "";
 }
 
-MapData MapLoader::LoadMap(const char *mapFile) {
+MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName) {
   std::ifstream f(mapFile);
   json mapDataJson = json::parse(f);
-  json &tileData = mapDataJson["layers"][0];
+  json tileData;
+  json &layers = mapDataJson["layers"];
+
+  for (int i = 0; i < layers.size(); i++) {
+    if (layers[i]["name"] == tileLayerName) {
+      tileData = layers[i];
+    }
+  }
 
   int tilesetID = static_cast<int>(tileData["id"]);
   fs::path tilesetFile =
