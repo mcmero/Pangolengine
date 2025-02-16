@@ -34,4 +34,5 @@ private:
   entt::registry registry;
   static entt::entity player;
   static entt::entity npc;
+  static std::vector<entt::entity> mapSprites;
 };

@@ -13,6 +13,7 @@ SDL_Rect Game::camera = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
 
 entt::entity Game::player = entt::null;
 entt::entity Game::npc = entt::null;
+std::vector<entt::entity> Game::mapSprites = {};
 MapData Game::mapData;
 int mapPixelHeight = 0;
 int mapPixelWidth = 0;
@@ -47,17 +48,31 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   npc = registry.create();
   registry.emplace<Sprite>(npc, "assets/characters/npc.png", PLAYER_WIDTH,
                            PLAYER_HEIGHT);
-  registry.emplace<Transform>(npc, 208.0f, 80.0f, 32.0f, 32.0f);
-  registry.emplace<Collider>(npc, 208.0f, 80.0f, 32.0f, 32.0f,
+  registry.emplace<Transform>(npc, 208.0f, 112.0f, 32.0f, 32.0f);
+  registry.emplace<Collider>(npc, 208.0f, 112.0f, 32.0f, 32.0f,
                              Offset{17, 17, -17, -17});
 
   // Set up map data
   mapData = MapLoader::LoadMap("assets/maps/level1.tmj");
-  mapPixelHeight = mapData.height * TILE_SIZE;
-  mapPixelWidth = mapData.width * TILE_SIZE;
+  mapPixelHeight = static_cast<int>(mapData.height) * TILE_SIZE;
+  mapPixelWidth = static_cast<int>(mapData.width) * TILE_SIZE;
   const entt::entity map = registry.create();
   registry.emplace<Map>(map, &mapData, mapData.tilesetImg.c_str(), TILE_SIZE);
 
+  // Set up map sprites
+  for (auto sprite : mapData.spriteVector) {
+    entt::entity spriteEntity = registry.create();
+    mapSprites.push_back(spriteEntity);
+    std::cout << "Sprite entity " << sprite.texPath << " x: " << sprite.xpos
+              << " y: " << sprite.ypos << std::endl;
+    registry.emplace<Sprite>(spriteEntity, sprite.texPath.c_str(), sprite.width,
+                             sprite.height);
+    registry.emplace<Transform>(spriteEntity, sprite.xpos, sprite.ypos,
+                                sprite.width, sprite.height);
+    // TODO: remove reliance on a collider
+    registry.emplace<Collider>(spriteEntity, sprite.xpos, sprite.ypos,
+                               sprite.width, sprite.height);
+  }
   return true;
 }
 

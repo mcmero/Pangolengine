@@ -87,10 +87,12 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
     // Set up tile set dimensions
     mapData.height = tileData["height"];
     mapData.width = tileData["width"];
-    for (int i = 0; i < mapData.height; i++) {
+    int h = static_cast<int>(mapData.height);
+    int w = static_cast<int>(mapData.width);
+    for (int i = 0; i < h; i++) {
       std::vector<int> row;
-      for (int j = 0; j < mapData.width; j++) {
-        row.push_back(tileData["data"][i * mapData.width + j]);
+      for (int j = 0; j < w; j++) {
+        row.push_back(tileData["data"][i * w + j]);
       }
       mapData.map.push_back(row);
     }
@@ -111,7 +113,8 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
       spriteData.width = object["width"];
       spriteData.xpos = object["x"];
       spriteData.ypos = object["y"];
-      spriteData.texPath = spritesetTex.string();
+      spriteData.ypos = spriteData.ypos - spriteData.height; // correct y coord
+      spriteData.texPath = fs::canonical(spritesetTex).string();
       mapData.spriteVector.push_back(spriteData);
     }
   }

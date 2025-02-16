@@ -8,21 +8,23 @@
 #include "SDL3/SDL_surface.h"
 #include "SDL3/SDL_timer.h"
 #include "Transform.h"
+#include <iostream>
 #include <vector>
 
 class Sprite {
 public:
   SDL_FlipMode spriteFlip = SDL_FLIP_NONE;
 
-  Sprite(const char *texturePath, int width, int height,
+  Sprite(const char *texturePath, float width, float height,
          std::vector<Animation> anims = {}) {
     srcRect.x = 0;
     srcRect.y = 0;
-    srcRect.h = float(width);
-    srcRect.w = float(height);
+    srcRect.h = width;
+    srcRect.w = height;
 
     texture = TextureManager::LoadTexture(texturePath);
     animations = anims;
+    std::cout << texturePath << std::endl;
   }
 
   void update(Transform &transform) {

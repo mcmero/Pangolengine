@@ -9,24 +9,24 @@ namespace fs = std::filesystem;
 using namespace nlohmann;
 
 struct ColliderData {
-  int width;
-  int height;
-  int xpos;
-  int ypos;
+  float width;
+  float height;
+  float xpos;
+  float ypos;
 };
 
 struct SpriteData {
   std::string texPath;
-  int width;
-  int height;
-  int xpos;
-  int ypos;
+  float width;
+  float height;
+  float xpos;
+  float ypos;
 };
 
 struct MapData {
   std::vector<std::vector<int>> map;
-  int height;
-  int width;
+  float height;
+  float width;
   std::string tilesetImg;
   std::vector<SpriteData> spriteVector;
   std::vector<ColliderData> colliderVector;
