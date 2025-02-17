@@ -14,6 +14,7 @@ SDL_Rect Game::camera = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
 entt::entity Game::player = entt::null;
 entt::entity Game::npc = entt::null;
 std::vector<entt::entity> Game::mapSprites = {};
+std::vector<entt::entity> Game::mapColliders = {};
 MapData Game::mapData;
 int mapPixelHeight = 0;
 int mapPixelWidth = 0;
@@ -63,15 +64,22 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   for (auto sprite : mapData.spriteVector) {
     entt::entity spriteEntity = registry.create();
     mapSprites.push_back(spriteEntity);
-    std::cout << "Sprite entity " << sprite.texPath << " x: " << sprite.xpos
-              << " y: " << sprite.ypos << std::endl;
     registry.emplace<Sprite>(spriteEntity, sprite.texPath.c_str(), sprite.width,
                              sprite.height);
     registry.emplace<Transform>(spriteEntity, sprite.xpos, sprite.ypos,
                                 sprite.width, sprite.height);
-    // TODO: remove reliance on a collider
-    registry.emplace<Collider>(spriteEntity, sprite.xpos, sprite.ypos,
-                               sprite.width, sprite.height);
+  }
+
+  // Set up map colliders
+  for (auto collider : mapData.colliderVector) {
+    entt::entity colliderEntity = registry.create();
+    mapColliders.push_back(colliderEntity);
+    std::cout << "Collider entity " << " x: " << collider.xpos
+              << " y: " << collider.ypos << std::endl;
+    registry.emplace<Collider>(colliderEntity, collider.xpos, collider.ypos,
+                               collider.width, collider.height);
+    registry.emplace<Transform>(colliderEntity, collider.xpos, collider.ypos,
+                                collider.width, collider.height);
   }
   return true;
 }
@@ -113,21 +121,45 @@ void Game::updateCamera() {
 }
 
 void Game::update() {
-  // Update sprite and transform components
-  auto view = registry.view<Sprite, Transform, Collider>();
-  auto &playerCollider = view.get<Collider>(player);
-  auto &playerTransform = view.get<Transform>(player);
-  for (auto entity : view) {
-    auto &sprite = view.get<Sprite>(entity);
-    auto &transform = view.get<Transform>(entity);
-    auto &collider = view.get<Collider>(entity);
+  // Define view for sprites with colliders
+  auto spriteView = registry.view<Sprite, Transform, Collider>();
+
+  // Player collider and transform components
+  auto &playerCollider = spriteView.get<Collider>(player);
+  auto &playerTransform = spriteView.get<Transform>(player);
+
+  // Update all sprites without colliders
+  auto bgSpriteView = registry.view<Sprite, Transform>(entt::exclude<Collider>);
+  for (auto entity : bgSpriteView) {
+    auto &sprite = bgSpriteView.get<Sprite>(entity);
+    auto &transform = bgSpriteView.get<Transform>(entity);
+    transform.update();
+    sprite.update(transform);
+  }
+
+  // Update all colliders without sprites
+  auto colliderView = registry.view<Collider, Transform>(entt::exclude<Sprite>);
+  for (auto entity : colliderView) {
+    auto &collider = colliderView.get<Collider>(entity);
+    auto &transform = bgSpriteView.get<Transform>(entity);
+    transform.update();
+    if (Collision::AABB(playerCollider, collider)) {
+      std::cout << "Player collision!" << std::endl;
+      playerTransform.abortMove();
+    }
+    collider.update(transform);
+  }
+
+  // Update sprites that have colliders
+  for (auto entity : spriteView) {
+    auto &sprite = spriteView.get<Sprite>(entity);
+    auto &transform = spriteView.get<Transform>(entity);
+    auto &collider = spriteView.get<Collider>(entity);
     transform.update();
     collider.update(transform);
-    if (entity != player) {
-      if (Collision::AABB(playerCollider, collider)) {
-        std::cout << "Player collision!" << std::endl;
-        playerTransform.abortMove();
-      }
+    if (entity != player && Collision::AABB(playerCollider, collider)) {
+      std::cout << "Player collision!" << std::endl;
+      playerTransform.abortMove();
     }
     sprite.update(transform);
   }

@@ -24,7 +24,6 @@ public:
 
     texture = TextureManager::LoadTexture(texturePath);
     animations = anims;
-    std::cout << texturePath << std::endl;
   }
 
   void update(Transform &transform) {

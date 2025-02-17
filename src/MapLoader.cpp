@@ -58,26 +58,26 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
   std::ifstream f(mapFile);
   MapData mapData;
   json mapDataJson = json::parse(f);
-  json tileData, spriteData, collisionData;
+  json tileDataJson, spriteDataJson, collisionDataJson;
   json &layers = mapDataJson["layers"];
 
   // Find tile, sprite and collision layers by name
   for (int i = 0; i < layers.size(); i++) {
     if (layers[i]["name"] == tileLayerName) {
-      tileData = layers[i];
+      tileDataJson = layers[i];
     } else if (layers[i]["name"] == spriteLayerName) {
-      spriteData = layers[i];
+      spriteDataJson = layers[i];
     } else if (layers[i]["name"] == collisionLayerName) {
-      collisionData = layers[i];
+      collisionDataJson = layers[i];
     }
   }
 
   // Load tile map data
-  if (tileData.size() == 0) {
+  if (tileDataJson.size() == 0) {
     std::cerr << "Tile layer not found." << std::endl;
   } else {
     // Get image path for tile set
-    int tilesetID = static_cast<int>(tileData["id"]);
+    int tilesetID = static_cast<int>(tileDataJson["id"]);
     fs::path tilesetFile =
         fs::path(MapLoader::getTilesetSource(tilesetID, mapDataJson));
     tilesetFile = fs::path(mapFile).parent_path() / tilesetFile;
@@ -85,24 +85,24 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
     mapData.tilesetImg = fs::canonical(tilesetImgPath).string();
 
     // Set up tile set dimensions
-    mapData.height = tileData["height"];
-    mapData.width = tileData["width"];
+    mapData.height = tileDataJson["height"];
+    mapData.width = tileDataJson["width"];
     int h = static_cast<int>(mapData.height);
     int w = static_cast<int>(mapData.width);
     for (int i = 0; i < h; i++) {
       std::vector<int> row;
       for (int j = 0; j < w; j++) {
-        row.push_back(tileData["data"][i * w + j]);
+        row.push_back(tileDataJson["data"][i * w + j]);
       }
       mapData.map.push_back(row);
     }
   }
 
   // Load sprite data
-  if (spriteData.size() == 0) {
+  if (spriteDataJson.size() == 0) {
     std::cerr << "Sprite layer not found." << std::endl;
   } else {
-    for (auto object : spriteData["objects"]) {
+    for (auto object : spriteDataJson["objects"]) {
       int spritesetID = static_cast<int>(object["gid"]);
       SpriteData spriteData;
       fs::path spritesetFile =
@@ -116,6 +116,20 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
       spriteData.ypos = spriteData.ypos - spriteData.height; // correct y coord
       spriteData.texPath = fs::canonical(spritesetTex).string();
       mapData.spriteVector.push_back(spriteData);
+    }
+  }
+
+  // Load the collider data
+  if (collisionDataJson.size() == 0) {
+    std::cerr << "Collision layer not found." << std::endl;
+  } else {
+    for (auto object : collisionDataJson["objects"]) {
+      ColliderData colliderData;
+      colliderData.height = object["height"];
+      colliderData.width = object["width"];
+      colliderData.xpos = object["x"];
+      colliderData.ypos = object["y"];
+      mapData.colliderVector.push_back(colliderData);
     }
   }
 
