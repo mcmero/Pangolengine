@@ -119,48 +119,32 @@ void Game::updateCamera() {
 }
 
 void Game::update() {
-  // Define view for sprites with colliders
-  auto spriteView = registry.view<Sprite, Transform, Collider>();
-
-  // Player collider and transform components
-  auto &playerCollider = spriteView.get<Collider>(player);
-  auto &playerTransform = spriteView.get<Transform>(player);
-
-  // Update all sprites without colliders
-  auto bgSpriteView = registry.view<Sprite, Transform>(entt::exclude<Collider>);
-  for (auto entity : bgSpriteView) {
-    auto &sprite = bgSpriteView.get<Sprite>(entity);
-    auto &transform = bgSpriteView.get<Transform>(entity);
-    transform.update();
-    sprite.update(transform);
-  }
-
-  // Update all colliders without sprites
   // TODO: Fix player getting stuck on level geometry
   // TODO: Fix jerky movement when moving towards a collision object
-  auto colliderView = registry.view<Collider, Transform>(entt::exclude<Sprite>);
+
+  // Get player collider and transform components
+  auto view = registry.view<Sprite, Transform, Collider>();
+  auto &playerCollider = view.get<Collider>(player);
+  auto &playerTransform = view.get<Transform>(player);
+
+  // Update all colliders
+  auto colliderView = registry.view<Collider, Transform>();
   for (auto entity : colliderView) {
     auto &collider = colliderView.get<Collider>(entity);
-    auto &transform = bgSpriteView.get<Transform>(entity);
+    auto &transform = colliderView.get<Transform>(entity);
     transform.update();
-    if (Collision::AABB(playerCollider, collider)) {
-      std::cout << "Player collision!" << std::endl;
-      playerTransform.abortMove();
-    }
-    collider.update(transform);
-  }
-
-  // Update sprites that have colliders
-  for (auto entity : spriteView) {
-    auto &sprite = spriteView.get<Sprite>(entity);
-    auto &transform = spriteView.get<Transform>(entity);
-    auto &collider = spriteView.get<Collider>(entity);
-    transform.update();
-    collider.update(transform);
     if (entity != player && Collision::AABB(playerCollider, collider)) {
       std::cout << "Player collision!" << std::endl;
       playerTransform.abortMove();
     }
+    collider.update(transform);
+  }
+
+  // Update all sprites
+  auto spriteView = registry.view<Sprite, Transform>();
+  for (auto entity : spriteView) {
+    auto &sprite = spriteView.get<Sprite>(entity);
+    auto &transform = spriteView.get<Transform>(entity);
     sprite.update(transform);
   }
 
