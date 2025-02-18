@@ -41,8 +41,7 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   registry.emplace<Sprite>(player, "assets/characters/player_anim.png",
                            PLAYER_WIDTH, PLAYER_HEIGHT, player_anims);
   registry.emplace<Transform>(player, 0.0f, 0.0f, 32.0f, 32.0f, true);
-  registry.emplace<Collider>(player, 0.0f, 0.0f, 32.0f, 32.0f,
-                             Offset{17, 17, -17, -17});
+  registry.emplace<Collider>(player, 0.0f, 0.0f, 15.0f, 15.0f, Offset{17, 17});
   registry.emplace<KeyboardController>(player);
 
   // Set up NPCs
@@ -50,8 +49,7 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   registry.emplace<Sprite>(npc, "assets/characters/npc.png", PLAYER_WIDTH,
                            PLAYER_HEIGHT);
   registry.emplace<Transform>(npc, 208.0f, 112.0f, 32.0f, 32.0f);
-  registry.emplace<Collider>(npc, 208.0f, 112.0f, 32.0f, 32.0f,
-                             Offset{17, 17, -17, -17});
+  registry.emplace<Collider>(npc, 208.0f, 112.0f, 15.0f, 15.0f, Offset{17, 17});
 
   // Set up map data
   mapData = MapLoader::LoadMap("assets/maps/level1.tmj");
@@ -138,6 +136,8 @@ void Game::update() {
   }
 
   // Update all colliders without sprites
+  // TODO: Fix player getting stuck on level geometry
+  // TODO: Fix jerky movement when moving towards a collision object
   auto colliderView = registry.view<Collider, Transform>(entt::exclude<Sprite>);
   for (auto entity : colliderView) {
     auto &collider = colliderView.get<Collider>(entity);

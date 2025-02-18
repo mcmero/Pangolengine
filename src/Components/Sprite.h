@@ -8,7 +8,6 @@
 #include "SDL3/SDL_surface.h"
 #include "SDL3/SDL_timer.h"
 #include "Transform.h"
-#include <iostream>
 #include <vector>
 
 class Sprite {
