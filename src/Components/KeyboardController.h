@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Constants.h"
+#include "Interactable.h"
 #include "SDL3/SDL_events.h"
 #include "Sprite.h"
 #include "Transform.h"

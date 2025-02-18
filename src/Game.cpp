@@ -50,6 +50,8 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
                            PLAYER_HEIGHT);
   registry.emplace<Transform>(npc, 208.0f, 112.0f, 32.0f, 32.0f);
   registry.emplace<Collider>(npc, 208.0f, 112.0f, 15.0f, 15.0f, Offset{17, 17});
+  registry.emplace<Interactable>(npc, 208.0f, 112.0f, 48.0f, 48.0f,
+                                 Offset{-16, -16});
 
   // Set up map data
   mapData = MapLoader::LoadMap("assets/maps/level1.tmj");
@@ -72,8 +74,6 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   for (auto collider : mapData.colliderVector) {
     entt::entity colliderEntity = registry.create();
     mapColliders.push_back(colliderEntity);
-    std::cout << "Collider entity " << " x: " << collider.xpos
-              << " y: " << collider.ypos << std::endl;
     registry.emplace<Collider>(colliderEntity, collider.xpos, collider.ypos,
                                collider.width, collider.height);
     registry.emplace<Transform>(colliderEntity, collider.xpos, collider.ypos,
@@ -138,6 +138,20 @@ void Game::update() {
       playerTransform.abortMove();
     }
     collider.update(transform);
+  }
+
+  // Update all Interactable
+  auto interactView = registry.view<Interactable, Transform>();
+  for (auto entity : interactView) {
+    auto &interact = interactView.get<Interactable>(entity);
+    auto &transform = interactView.get<Transform>(entity);
+    interact.canInteract = false;
+    if (entity != player &&
+        Collision::AABB(playerCollider.collider, interact.interactArea)) {
+      std::cout << "Player can interact!" << std::endl;
+      interact.canInteract = true;
+    }
+    interact.update(transform);
   }
 
   // Update all sprites
