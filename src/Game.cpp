@@ -4,6 +4,7 @@
 #include "Constants.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_render.h"
+#include <cstddef>
 #include <iostream>
 #include <ostream>
 
@@ -83,13 +84,22 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
 }
 
 void Game::handleEvents(SDL_Event *event) {
-  auto view = registry.view<Transform, Sprite, KeyboardController>();
-  for (auto entity : view) {
-    auto &controller = view.get<KeyboardController>(entity);
-    auto &transform = view.get<Transform>(entity);
-    auto &sprite = view.get<Sprite>(entity);
-    controller.update(event, transform, sprite);
+  auto &controller = registry.get<KeyboardController>(player);
+  auto &transform = registry.get<Transform>(player);
+  auto &sprite = registry.get<Sprite>(player);
+
+  // Iterate through interactable components to check if any can be
+  // interacted with
+  auto interactView = registry.view<Interactable>();
+  Interactable *intObject = nullptr;
+  for (auto intEntity : interactView) {
+    auto &interactable = interactView.get<Interactable>(intEntity);
+    if (interactable.canInteract) {
+      intObject = &interactable;
+      break; // only one object should be interactable at any one time
+    }
   }
+  controller.update(event, transform, sprite, intObject);
 }
 
 void Game::updateCamera() {
@@ -148,8 +158,9 @@ void Game::update() {
     interact.canInteract = false;
     if (entity != player &&
         Collision::AABB(playerCollider.collider, interact.interactArea)) {
-      std::cout << "Player can interact!" << std::endl;
       interact.canInteract = true;
+    } else {
+      interact.canInteract = false;
     }
     interact.update(transform);
   }

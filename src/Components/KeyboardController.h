@@ -5,12 +5,14 @@
 #include "SDL3/SDL_events.h"
 #include "Sprite.h"
 #include "Transform.h"
+#include <cstddef>
 
 class KeyboardController {
 public:
   KeyboardController() = default;
 
-  void update(SDL_Event *event, Transform &transform, Sprite &sprite) {
+  void update(SDL_Event *event, Transform &transform, Sprite &sprite,
+              Interactable *intObject = nullptr) {
     if (event->type == SDL_EVENT_KEY_DOWN) {
       switch (event->key.key) {
       case SDLK_W:
@@ -52,6 +54,10 @@ public:
         break;
       case SDLK_S:
         sprite.stop();
+        break;
+      case SDLK_E:
+        if (intObject != nullptr)
+          intObject->interact();
         break;
       default:
         break;
