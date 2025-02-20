@@ -14,6 +14,9 @@ project(sdl-min)
 # Set the name of the executable
 set(EXECUTABLE_NAME ${PROJECT_NAME})
 
+# Set asset directory
+set(ASSETS_DIR "${CMAKE_SOURCE_DIR}/assets")
+
 # Include directories
 include_directories(include)
 include_directories(include/third_party)
@@ -41,6 +44,14 @@ PRIVATE
     src/iosLaunchScreen.storyboard
     include/third_party/tinyxml2/tinyxml2.cpp
 )
+
+# Copy assets to the build directory
+add_custom_command(
+    TARGET ${EXECUTABLE_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${ASSETS_DIR} $<TARGET_FILE_DIR:${EXECUTABLE_NAME}>/assets
+)
+
 # What is iosLaunchScreen.storyboard? This file describes what Apple's mobile platforms
 # should show the user while the application is starting up. If you don't include one,
 # then you get placed in a compatibility mode that does not allow HighDPI.
@@ -105,4 +116,3 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
     )
 endif()
 install(TARGETS ${EXECUTABLE_NAME} BUNDLE DESTINATION ./install)
-

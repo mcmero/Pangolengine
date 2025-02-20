@@ -4,9 +4,11 @@
 #include "Constants.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_render.h"
-#include <cstddef>
+#include <filesystem>
 #include <iostream>
 #include <ostream>
+
+namespace fs = std::filesystem;
 
 SDL_Renderer *Game::renderer = nullptr;
 SDL_Event Game::event;
@@ -34,20 +36,27 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   }
   SDL_Log("Game started successfully!");
 
+  // Define paths to assets
+  fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
+  std::string playerSpriteSheet =
+      (assetsPath / "characters" / "player_anim.png").string();
+  std::string npcSpriteSheet = (assetsPath / "characters" / "npc.png").string();
+  std::string level1Map = (assetsPath / "maps" / "level1.tmj").string();
+
   // Set up player character
   player = registry.create();
-  std::vector<Animation> player_anims = {{"walk_front", 0, 4, 200},
-                                         {"walk_side", 1, 4, 200},
-                                         {"walk_back", 2, 4, 200}};
-  registry.emplace<Sprite>(player, "assets/characters/player_anim.png",
-                           PLAYER_WIDTH, PLAYER_HEIGHT, player_anims);
+  std::vector<Animation> playerAnims = {{"walk_front", 0, 4, 200},
+                                        {"walk_side", 1, 4, 200},
+                                        {"walk_back", 2, 4, 200}};
+  registry.emplace<Sprite>(player, playerSpriteSheet.c_str(), PLAYER_WIDTH,
+                           PLAYER_HEIGHT, playerAnims);
   registry.emplace<Transform>(player, 0.0f, 0.0f, 32.0f, 32.0f, true);
   registry.emplace<Collider>(player, 0.0f, 0.0f, 15.0f, 15.0f, Offset{17, 17});
   registry.emplace<KeyboardController>(player);
 
   // Set up NPCs
   npc = registry.create();
-  registry.emplace<Sprite>(npc, "assets/characters/npc.png", PLAYER_WIDTH,
+  registry.emplace<Sprite>(npc, npcSpriteSheet.c_str(), PLAYER_WIDTH,
                            PLAYER_HEIGHT);
   registry.emplace<Transform>(npc, 208.0f, 112.0f, 32.0f, 32.0f);
   registry.emplace<Collider>(npc, 208.0f, 112.0f, 15.0f, 15.0f, Offset{17, 17});
@@ -55,7 +64,7 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
                                  Offset{-16, -16});
 
   // Set up map data
-  mapData = MapLoader::LoadMap("assets/maps/level1.tmj");
+  mapData = MapLoader::LoadMap(level1Map.c_str());
   mapPixelHeight = static_cast<int>(mapData.height) * TILE_SIZE;
   mapPixelWidth = static_cast<int>(mapData.width) * TILE_SIZE;
   const entt::entity map = registry.create();
