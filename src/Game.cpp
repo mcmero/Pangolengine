@@ -4,6 +4,7 @@
 #include "Constants.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_render.h"
+#include "SDL3/SDL_video.h"
 #include <filesystem>
 #include <iostream>
 #include <ostream>
@@ -22,7 +23,7 @@ MapData Game::mapData;
 int mapPixelHeight = 0;
 int mapPixelWidth = 0;
 
-Game::Game() : running(true), window(nullptr) {}
+Game::Game() : running(true) {}
 
 Game::~Game() { clean(); }
 
@@ -89,6 +90,10 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
     registry.emplace<Transform>(colliderEntity, collider.xpos, collider.ypos,
                                 collider.width, collider.height);
   }
+
+  // Set up the up the UI manager
+  uiManager = new Manager();
+
   return true;
 }
 
@@ -97,8 +102,8 @@ void Game::handleEvents(SDL_Event *event) {
   auto &transform = registry.get<Transform>(player);
   auto &sprite = registry.get<Sprite>(player);
 
-  // Iterate through interactable components to check if any can be
-  // interacted with
+  // Iterate through interactable components to check
+  // if any can be interacted with
   auto interactView = registry.view<Interactable>();
   Interactable *intObject = nullptr;
   for (auto intEntity : interactView) {
@@ -109,6 +114,7 @@ void Game::handleEvents(SDL_Event *event) {
     }
   }
   controller.update(event, transform, sprite, intObject);
+  uiManager->update(*event);
 }
 
 void Game::updateCamera() {
@@ -209,6 +215,8 @@ void Game::render() {
     sprite.render();
   }
   SDL_RenderPresent(renderer);
+
+  uiManager->render(SDL_GetWindowSurface(window));
 }
 
 void Game::clean() {
@@ -225,6 +233,8 @@ void Game::clean() {
     map.clean();
   }
   registry.clear();
+
+  delete uiManager;
 
   // No need to destroy window and renderer as they are managed outside
   SDL_Quit();

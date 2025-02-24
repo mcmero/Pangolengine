@@ -41,6 +41,10 @@ PRIVATE
     src/Vector2D.cpp
     src/Collision.cpp
     src/Components/Components.h
+    src/UI/Manager.h
+    src/UI/Grid.h
+    src/UI/Component.h
+    src/UI/Panel.h
     src/iosLaunchScreen.storyboard
     include/third_party/tinyxml2/tinyxml2.cpp
 )

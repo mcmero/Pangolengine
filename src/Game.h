@@ -2,6 +2,7 @@
 
 #include "MapLoader.h"
 #include "SDL3/SDL_events.h"
+#include "UI/Manager.h"
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 #include <third_party/entt/entt.hpp>
@@ -25,6 +26,7 @@ public:
   static SDL_Rect camera;
   static MapData mapData;
 
+  Manager *uiManager;
   int mapPixelHeight;
   int mapPixelWidth;
 
