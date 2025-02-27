@@ -3,7 +3,9 @@
 #include "Components/Components.h"
 #include "Constants.h"
 #include "SDL3/SDL_events.h"
+#include "SDL3/SDL_oldnames.h"
 #include "SDL3/SDL_render.h"
+#include "SDL3/SDL_surface.h"
 #include "SDL3/SDL_video.h"
 #include <filesystem>
 #include <iostream>
@@ -214,9 +216,10 @@ void Game::render() {
     auto &sprite = view.get<Sprite>(entity);
     sprite.render();
   }
-  SDL_RenderPresent(renderer);
 
-  uiManager->render(SDL_GetWindowSurface(window));
+  uiManager->render(renderer);
+
+  SDL_RenderPresent(renderer);
 }
 
 void Game::clean() {

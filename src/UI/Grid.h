@@ -10,9 +10,9 @@ public:
     children.push_back(child);
   };
 
-  void render(SDL_Surface *surface) {
+  void render(SDL_Renderer *renderer) {
     for (auto &child : children) {
-      child->render(surface);
+      child->render(renderer);
     }
   }
 

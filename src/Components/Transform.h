@@ -3,6 +3,7 @@
 #include "../Constants.h"
 #include "../Vector2D.h"
 #include <SDL3/SDL_stdinc.h>
+#include <iostream>
 
 class Transform {
 public:
@@ -59,6 +60,8 @@ public:
     targetPosition.y = position.y + pos.y;
     isMoving = true;
     moveProgress = 0.0f;
+    std::cout << "Moving to (" << targetPosition.x << "," << targetPosition.y
+              << ")" << std::endl;
   }
 
   void abortMove() {
