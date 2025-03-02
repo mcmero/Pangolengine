@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Component.h"
+#include "IComponent.h"
 #include <memory>
 #include <vector>
 
 class Grid {
 public:
-  void addChild(std::shared_ptr<Component> child) {
+  void addChild(std::shared_ptr<IComponent> child) {
     children.push_back(child);
   };
 
@@ -23,5 +23,5 @@ public:
   }
 
 private:
-  std::vector<std::shared_ptr<Component>> children;
+  std::vector<std::shared_ptr<IComponent>> children;
 };

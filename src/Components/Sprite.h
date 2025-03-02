@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Game.h"
+#include "../Camera.h"
 #include "../TextureManager.h"
 #include "Animation.h"
 #include "SDL3/SDL_rect.h"
@@ -61,8 +61,8 @@ public:
 
     // update sprite position relative to camera ensuring sprite
     // remains on fixed position on the tile grid
-    destRect.x = float(transform.position.x - Game::camera.x);
-    destRect.y = float(transform.position.y - Game::camera.y);
+    destRect.x = float(transform.position.x - Camera::position.x);
+    destRect.y = float(transform.position.y - Camera::position.y);
     destRect.w = srcRect.w;
     destRect.h = srcRect.h;
   }

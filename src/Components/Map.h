@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Game.h"
+#include "../Camera.h"
 #include "../MapLoader.h"
 #include "../TextureManager.h"
 #include "../Vector2D.h"
@@ -61,8 +61,8 @@ public:
 
   void update() {
     for (auto &tile : tiles) {
-      tile.position.x = tile.mapPosition.x - Game::camera.x;
-      tile.position.y = tile.mapPosition.y - Game::camera.y;
+      tile.position.x = tile.mapPosition.x - Camera::position.x;
+      tile.position.y = tile.mapPosition.y - Camera::position.y;
     }
   }
 

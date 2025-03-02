@@ -36,14 +36,15 @@ PRIVATE
     src/main.cpp
     src/Game.cpp
     src/Constants.h
+    src/Camera.cpp
     src/TextureManager.cpp
     src/MapLoader.cpp
     src/Vector2D.cpp
     src/Collision.cpp
     src/Components/Components.h
-    src/UI/Manager.h
+    src/UI/UIManager.h
     src/UI/Grid.h
-    src/UI/Component.h
+    src/UI/IComponent.h
     src/UI/Panel.h
     src/iosLaunchScreen.storyboard
     include/third_party/tinyxml2/tinyxml2.cpp

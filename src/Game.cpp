@@ -1,11 +1,10 @@
 #include "Game.h"
+#include "Camera.h"
 #include "Collision.h"
 #include "Components/Components.h"
 #include "Constants.h"
 #include "SDL3/SDL_events.h"
-#include "SDL3/SDL_oldnames.h"
 #include "SDL3/SDL_render.h"
-#include "SDL3/SDL_surface.h"
 #include "SDL3/SDL_video.h"
 #include <filesystem>
 #include <iostream>
@@ -15,15 +14,15 @@ namespace fs = std::filesystem;
 
 SDL_Renderer *Game::renderer = nullptr;
 SDL_Event Game::event;
-SDL_Rect Game::camera = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
 
 entt::entity Game::player = entt::null;
 entt::entity Game::npc = entt::null;
 std::vector<entt::entity> Game::mapSprites = {};
 std::vector<entt::entity> Game::mapColliders = {};
+
 MapData Game::mapData;
-int mapPixelHeight = 0;
-int mapPixelWidth = 0;
+int Game::mapPixelHeight = 0;
+int Game::mapPixelWidth = 0;
 
 Game::Game() : running(true) {}
 
@@ -94,7 +93,7 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   }
 
   // Set up the up the UI manager
-  uiManager = new Manager();
+  uiManager = new UIManager();
 
   return true;
 }
@@ -123,26 +122,13 @@ void Game::updateCamera() {
   // Update camera position based on player position
   auto view = registry.view<Transform>();
   auto &playerTransform = view.get<Transform>(player);
-  camera.x =
+  int xpos =
       static_cast<int>(playerTransform.position.x + float(PLAYER_WIDTH) / 2.0f -
                        float(SCREEN_WIDTH) / 2.0f);
-  camera.y = static_cast<int>(playerTransform.position.y +
+  int ypos = static_cast<int>(playerTransform.position.y +
                               float(PLAYER_HEIGHT) / 2.0f -
                               float(SCREEN_HEIGHT) / 2.0f);
-
-  // Keep the camera within bounds of the world
-  if (camera.x < 0) {
-    camera.x = 0;
-  }
-  if (camera.y < 0) {
-    camera.y = 0;
-  }
-  if (camera.x > mapPixelWidth - camera.w) {
-    camera.x = mapPixelWidth - camera.w;
-  }
-  if (camera.y > mapPixelHeight - camera.h) {
-    camera.y = mapPixelHeight - camera.h;
-  }
+  Camera::update(xpos, ypos, mapPixelWidth, mapPixelHeight);
 }
 
 void Game::update() {

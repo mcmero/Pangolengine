@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Game.h"
+#include "../Camera.h"
 #include "../TextureManager.h"
 #include "Transform.h"
 
@@ -32,8 +32,8 @@ public:
     collider.x = transform.position.x + offset.x;
     collider.y = transform.position.y + offset.y;
 
-    destRect.x = collider.x - Game::camera.x;
-    destRect.y = collider.y - Game::camera.y;
+    destRect.x = collider.x - Camera::position.x;
+    destRect.y = collider.y - Camera::position.y;
   }
 
   void draw() { TextureManager::Draw(tex, srcRect, destRect, SDL_FLIP_NONE); }

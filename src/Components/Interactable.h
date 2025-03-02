@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Game.h"
+#include "../Camera.h"
 #include "Collider.h"
 #include "Transform.h"
 #include <iostream>
@@ -25,8 +25,8 @@ public:
     interactArea.x = transform.position.x + offset.x;
     interactArea.y = transform.position.y + offset.y;
 
-    destRect.x = interactArea.x - Game::camera.x;
-    destRect.y = interactArea.y - Game::camera.y;
+    destRect.x = interactArea.x - Camera::position.x;
+    destRect.y = interactArea.y - Camera::position.y;
   }
 
   void interact() {
