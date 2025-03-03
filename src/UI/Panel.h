@@ -11,14 +11,20 @@ public:
       : rect{xpos, ypos, width, height} {}
 
   void render(SDL_Renderer *renderer) override {
-
-    SDL_SetRenderDrawColor(renderer, 0, 255, 255, SDL_ALPHA_OPAQUE);
-    SDL_RenderRect(renderer, &rect);
-    SDL_RenderFillRect(renderer, &rect);
+    if (show) {
+      SDL_SetRenderDrawColor(renderer, 0, 255, 255, SDL_ALPHA_OPAQUE);
+      SDL_RenderRect(renderer, &rect);
+      SDL_RenderFillRect(renderer, &rect);
+    }
   }
 
-  void update(const SDL_Event &event) override {}
+  void update(const SDL_Event &event, Interactable *interactable) override {
+    if (interactable != nullptr && interactable->isActive) {
+      show = true;
+    }
+  }
 
 private:
   SDL_FRect rect;
+  bool show = false;
 };

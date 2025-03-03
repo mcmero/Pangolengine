@@ -15,7 +15,9 @@ public:
   ~UIManager() {}
 
   void render(SDL_Renderer *renderer) { grid.render(renderer); }
-  void update(const SDL_Event &event) { grid.update(event); };
+  void update(const SDL_Event &event, Interactable *interactable) {
+    grid.update(event, interactable);
+  };
 
 private:
   Grid grid;

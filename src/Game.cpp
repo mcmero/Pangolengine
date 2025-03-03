@@ -115,7 +115,7 @@ void Game::handleEvents(SDL_Event *event) {
     }
   }
   controller.update(event, transform, sprite, intObject);
-  uiManager->update(*event);
+  uiManager->update(*event, intObject);
 }
 
 void Game::updateCamera() {
