@@ -26,6 +26,10 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     return SDL_Fail();
   }
 
+  if (not TTF_Init()) {
+    return SDL_Fail();
+  }
+
   // create a window
   SDL_Window *window =
       SDL_CreateWindow("Window", SCREEN_WIDTH * RENDER_SCALE,

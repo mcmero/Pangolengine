@@ -52,8 +52,9 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
                                         {"walk_back", 2, 4, 200}};
   registry.emplace<Sprite>(player, playerSpriteSheet.c_str(), PLAYER_WIDTH,
                            PLAYER_HEIGHT, playerAnims);
-  registry.emplace<Transform>(player, 0.0f, 0.0f, 32.0f, 32.0f, true);
-  registry.emplace<Collider>(player, 0.0f, 0.0f, 15.0f, 15.0f, Offset{17, 17});
+  registry.emplace<Transform>(player, 192.0f, 128.0f, 32.0f, 32.0f, true);
+  registry.emplace<Collider>(player, 192.0f, 128.0f, 15.0f, 15.0f,
+                             Offset{17, 17});
   registry.emplace<KeyboardController>(player);
 
   // Set up NPCs

@@ -82,13 +82,24 @@ endif()
 # pollute upwards into our configuration.
 add_subdirectory(SDL EXCLUDE_FROM_ALL)
 
-# Link SDL to our executable. This also makes its include directory available to us. 
-target_link_libraries(${EXECUTABLE_NAME} PUBLIC SDL3::SDL3)
-target_compile_definitions(${EXECUTABLE_NAME} PUBLIC SDL_MAIN_USE_CALLBACKS)
+# Add SDL_ttf
+set(SDLTTF_VENDORED ON) # tell SDL_ttf to build its own dependencies
+add_subdirectory(SDL_ttf EXCLUDE_FROM_ALL)
 
 # Add SDL_image submodule and link it
+set(SDLIMAGE_VENDORED ON)
+set(SDLIMAGE_AVIF OFF)	# disable formats we don't use to make the build faster and smaller.
+set(SDLIMAGE_BMP OFF)
+set(SDLIMAGE_JPEG OFF)
+set(SDLIMAGE_WEBP OFF)
 add_subdirectory(SDL_image EXCLUDE_FROM_ALL)
-target_link_libraries(${EXECUTABLE_NAME} PUBLIC SDL3_image::SDL3_image)
+
+# Link SDL to our executable. This also makes its include directory available to us. 
+target_link_libraries(${EXECUTABLE_NAME} PUBLIC 
+  SDL3_ttf::SDL3_ttf
+  SDL3_image::SDL3_image
+  SDL3::SDL3)
+target_compile_definitions(${EXECUTABLE_NAME} PUBLIC SDL_MAIN_USE_CALLBACKS)
 
 # set some extra configs for each platform
 set_target_properties(${EXECUTABLE_NAME} PROPERTIES 
