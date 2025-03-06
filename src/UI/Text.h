@@ -1,20 +1,19 @@
 #pragma once
 
+#include "../TextureManager.h"
 #include "IComponent.h"
-#include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
 
-class Panel : public IComponent {
+class Text : public IComponent {
 public:
-  Panel(float xpos, float ypos, float width, float height)
-      : rect{xpos, ypos, width, height} {}
+  Text(float xpos, float ypos, float width, float height, float pointsize)
+      : pointsize(pointsize), rect{xpos, ypos, width, height} {}
 
   void render(SDL_Renderer *renderer) override {
     if (show) {
-      SDL_SetRenderDrawColor(renderer, 0, 255, 255, SDL_ALPHA_OPAQUE);
-      SDL_RenderRect(renderer, &rect);
-      SDL_RenderFillRect(renderer, &rect);
+      const std::string_view text = "Hey man, fancy seeing you here.";
+      TextureManager::Text(text, pointsize, rect.x, rect.y);
     }
   }
 
@@ -26,5 +25,6 @@ public:
 
 private:
   bool show = false;
+  float pointsize;
   SDL_FRect rect;
 };
