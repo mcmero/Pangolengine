@@ -47,6 +47,8 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
 
   // Set up player character
   player = registry.create();
+  // TODO: the animation is a bit jerky when walking -- can it be fixed by
+  // animation speed?
   std::vector<Animation> playerAnims = {{"walk_front", 0, 4, 200},
                                         {"walk_side", 1, 4, 200},
                                         {"walk_back", 2, 4, 200}};
