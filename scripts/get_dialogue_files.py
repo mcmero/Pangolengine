@@ -73,15 +73,26 @@ def process_dialogue(data):
     # Nest responses under each dialogue line
     processed_data = []
     for i, item in enumerate(data):
-        if item["id"] == "":
-            if processed_data:
-                processed_data[-1]["responses"].append(
-                    {"response": item["responses"], "next": item["next"]})
+        # Set default next node to 0 if blank
+        if item["next"] == "":
+            item["next"] = 0
+
+        # Append responses to previous for items with blank IDs
+        if item["id"] == "" and processed_data:
+            processed_data[-1]["responses"].append(
+                {"response": item["responses"], "next": item["next"]})
+            continue
+
+        if "responses" not in item:
+            continue
+
+        # Set/append responses if blank or first response
+        if item["responses"] == "" or item["responses"] is None:
+            item["responses"] = []
         else:
-            if "responses" in item and item["responses"]:
-                item["responses"] = [
-                    {"response": item["responses"], "next": item["next"]}]
-            processed_data.append(item)
+            item["responses"] = [
+                {"response": item["responses"], "next": item["next"]}]
+        processed_data.append(item)
 
     return processed_data
 
