@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../Camera.h"
 #include "Collider.h"
 #include "Transform.h"
 #include <iostream>
@@ -8,8 +7,6 @@
 class Interactable {
 public:
   SDL_FRect interactArea;
-
-  SDL_FRect srcRect, destRect;
   Offset offset;
   bool canInteract = false;
   bool isActive = false;
@@ -25,9 +22,6 @@ public:
   void update(Transform &transform) {
     interactArea.x = transform.position.x + offset.x;
     interactArea.y = transform.position.y + offset.y;
-
-    destRect.x = interactArea.x - Camera::position.x;
-    destRect.y = interactArea.y - Camera::position.y;
   }
 
   void interact() {

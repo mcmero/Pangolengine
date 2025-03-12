@@ -44,11 +44,14 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
       (assetsPath / "characters" / "player_anim.png").string();
   std::string npcSpriteSheet = (assetsPath / "characters" / "npc.png").string();
   std::string level1Map = (assetsPath / "maps" / "level1.tmj").string();
+  std::string s001_dialogue =
+      (assetsPath / "scenes" / "S001_Test.json").string();
 
   // Set up player character
   player = registry.create();
   // TODO: the animation is a bit jerky when walking -- can it be fixed by
   // animation speed?
+  // TODO: initialise collision component using transform values
   std::vector<Animation> playerAnims = {{"walk_front", 0, 4, 200},
                                         {"walk_side", 1, 4, 200},
                                         {"walk_back", 2, 4, 200}};
@@ -67,6 +70,7 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   registry.emplace<Collider>(npc, 208.0f, 112.0f, 15.0f, 15.0f, Offset{17, 17});
   registry.emplace<Interactable>(npc, 208.0f, 112.0f, 48.0f, 48.0f,
                                  Offset{-16, -16});
+  registry.emplace<Dialogue>(npc, s001_dialogue.c_str());
 
   // Set up map data
   mapData = MapLoader::LoadMap(level1Map.c_str());
@@ -110,15 +114,17 @@ void Game::handleEvents(SDL_Event *event) {
   // if any can be interacted with
   auto interactView = registry.view<Interactable>();
   Interactable *intObject = nullptr;
+  Dialogue *dialogue = nullptr;
   for (auto intEntity : interactView) {
     auto &interactable = interactView.get<Interactable>(intEntity);
     if (interactable.canInteract) {
       intObject = &interactable;
+      dialogue = registry.try_get<Dialogue>(intEntity);
       break; // only one object should be interactable at any one time
     }
   }
   controller.update(event, transform, sprite, intObject);
-  uiManager->update(*event, intObject);
+  uiManager->update(*event, intObject, dialogue);
 }
 
 void Game::updateCamera() {

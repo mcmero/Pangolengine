@@ -12,14 +12,21 @@ public:
 
   void render(SDL_Renderer *renderer) override {
     if (show) {
-      const std::string_view text = "Hey man, fancy seeing you here.";
+      // const std::string_view text = "Hey man, fancy seeing you here.";
+      const std::string_view text = dialogueLine;
       TextureManager::Text(text, pointsize, rect.x, rect.y);
     }
   }
 
-  void update(const SDL_Event &event, Interactable *interactable) override {
+  void update(const SDL_Event &event, Interactable *interactable,
+              Dialogue *dialogue) override {
     if (interactable != nullptr && interactable->isActive) {
       show = true;
+      if (!dialogue->active) {
+        dialogue->active = true;
+        dialogue->beginDialogue();
+      }
+      dialogueLine = dialogue->getLine();
     }
   }
 
@@ -27,4 +34,5 @@ private:
   bool show = false;
   float pointsize;
   SDL_FRect rect;
+  std::string dialogueLine;
 };

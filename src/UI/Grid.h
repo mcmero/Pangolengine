@@ -16,9 +16,9 @@ public:
     }
   }
 
-  void update(const SDL_Event &e, Interactable *i) {
+  void update(const SDL_Event &e, Interactable *i, Dialogue *d) {
     for (auto &child : children) {
-      child->update(e, i);
+      child->update(e, i, d);
     }
   }
 

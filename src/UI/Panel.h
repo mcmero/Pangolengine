@@ -18,7 +18,8 @@ public:
     }
   }
 
-  void update(const SDL_Event &event, Interactable *interactable) override {
+  void update(const SDL_Event &event, Interactable *interactable,
+              Dialogue *dialogue) override {
     if (interactable != nullptr && interactable->isActive) {
       show = true;
     }

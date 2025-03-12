@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Components/Transform.h"
+#include "../Components/Dialogue.h"
 #include "Grid.h"
 #include "Panel.h"
 #include "SDL3/SDL_events.h"
@@ -17,8 +17,9 @@ public:
   ~UIManager() {}
 
   void render(SDL_Renderer *renderer) { grid.render(renderer); }
-  void update(const SDL_Event &event, Interactable *interactable) {
-    grid.update(event, interactable);
+  void update(const SDL_Event &event, Interactable *interactable,
+              Dialogue *dialogue) {
+    grid.update(event, interactable, dialogue);
   };
 
 private:
