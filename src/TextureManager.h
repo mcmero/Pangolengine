@@ -14,5 +14,5 @@ public:
   static void Draw(SDL_Texture *tex, SDL_FRect srcRect, SDL_FRect destRect,
                    SDL_FlipMode flip);
   static void Text(const std::string_view text, float pointsize, float xpos,
-                   float ypos);
+                   float ypos, int wraplength, SDL_Color colour = {0, 0, 0});
 };

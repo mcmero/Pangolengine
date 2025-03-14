@@ -7,14 +7,17 @@
 
 class Text : public IComponent {
 public:
-  Text(float xpos, float ypos, float width, float height, float pointsize)
-      : pointsize(pointsize), rect{xpos, ypos, width, height} {}
+  Text(float xpos, float ypos, float width, float height, float pointsize,
+       SDL_Color fontColour)
+      : pointsize(pointsize), fontColour(fontColour),
+        rect{xpos, ypos, width, height} {}
 
   void render(SDL_Renderer *renderer) override {
     if (show) {
       // const std::string_view text = "Hey man, fancy seeing you here.";
       const std::string_view text = dialogueLine;
-      TextureManager::Text(text, pointsize, rect.x, rect.y);
+      TextureManager::Text(text, pointsize, rect.x, rect.y,
+                           static_cast<int>(rect.w), fontColour);
     }
   }
 
@@ -33,6 +36,7 @@ public:
 private:
   bool show = false;
   float pointsize;
+  SDL_Color fontColour;
   SDL_FRect rect;
   std::string dialogueLine;
 };

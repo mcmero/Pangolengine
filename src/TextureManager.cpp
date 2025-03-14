@@ -23,7 +23,8 @@ void TextureManager::Draw(SDL_Texture *tex, SDL_FRect srcRect,
 }
 
 void TextureManager::Text(const std::string_view text, float pointsize,
-                          float xpos, float ypos) {
+                          float xpos, float ypos, int wraplength,
+                          SDL_Color colour) {
   // Load font
   TTF_Font *font = TTF_OpenFont(fontPath.string().c_str(), pointsize);
   if (!font) {
@@ -32,15 +33,14 @@ void TextureManager::Text(const std::string_view text, float pointsize,
   }
 
   // Make surface then load texture from it
-  SDL_Surface *surfaceMessage =
-      TTF_RenderText_Solid(font, text.data(), text.length(), {0, 0, 0});
+  SDL_Surface *surfaceMessage = TTF_RenderText_Solid_Wrapped(
+      font, text.data(), text.length(), colour, wraplength);
   SDL_Texture *messageTex =
       SDL_CreateTextureFromSurface(Game::renderer, surfaceMessage);
   SDL_SetTextureScaleMode(messageTex, SDL_SCALEMODE_NEAREST);
   SDL_DestroySurface(surfaceMessage);
 
-  // get the on-screen dimensions of the text. this is necessary for
-  // rendering it
+  // Get on-screen dimensions of the text, necessary for rendering
   auto texprops = SDL_GetTextureProperties(messageTex);
   SDL_FRect text_rect{.x = xpos,
                       .y = ypos,
