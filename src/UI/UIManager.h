@@ -10,12 +10,16 @@
 
 class UIManager {
 public:
-  SDL_Color fontColour = {0, 0, 0};
+  SDL_Color fontColour = {255, 255, 255};
+  SDL_Color dialogueBorderColour = {0, 0, 0};
+  SDL_Color dialogueBoxColour = {51, 64, 113};
 
   UIManager() {
 
-    grid.addChild(std::make_shared<Panel>(32.0f, 120.0f, 256.0f, 40.0f));
-    grid.addChild(std::make_shared<Text>(37.0f, 125.0f, 256.0f, 40.0f, 14.0f,
+    grid.addChild(std::make_shared<Panel>(80.0f, 130.0f, 215.0f, 40.0f, 2.0f,
+                                          dialogueBorderColour,
+                                          dialogueBoxColour));
+    grid.addChild(std::make_shared<Text>(85.0f, 132.0f, 210.0f, 35.0f, 14.0f,
                                          fontColour));
   }
   ~UIManager() {}

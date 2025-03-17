@@ -7,14 +7,26 @@
 
 class Panel : public IComponent {
 public:
-  Panel(float xpos, float ypos, float width, float height)
-      : rect{xpos, ypos, width, height} {}
+  Panel(float xpos, float ypos, float width, float height,
+        float borderThickness, SDL_Color borderColour, SDL_Color innerColour)
+      : borderRect(xpos - borderThickness, ypos - borderThickness,
+                   width + 2 * borderThickness, height + 2 * borderThickness),
+        innerRect{xpos, ypos, width, height}, borderColour(borderColour),
+        innerColour(innerColour) {}
 
   void render(SDL_Renderer *renderer) override {
     if (show) {
-      SDL_SetRenderDrawColor(renderer, 0, 255, 255, SDL_ALPHA_OPAQUE);
-      SDL_RenderRect(renderer, &rect);
-      SDL_RenderFillRect(renderer, &rect);
+      // Draw border rect
+      SDL_SetRenderDrawColor(renderer, borderColour.r, borderColour.g,
+                             borderColour.b, SDL_ALPHA_OPAQUE);
+      SDL_RenderRect(renderer, &borderRect);
+      SDL_RenderFillRect(renderer, &borderRect);
+
+      // Draw inner rect
+      SDL_SetRenderDrawColor(renderer, innerColour.r, innerColour.g,
+                             innerColour.b, SDL_ALPHA_OPAQUE);
+      SDL_RenderRect(renderer, &innerRect);
+      SDL_RenderFillRect(renderer, &innerRect);
     }
   }
 
@@ -27,5 +39,8 @@ public:
 
 private:
   bool show = false;
-  SDL_FRect rect;
+  SDL_FRect borderRect;
+  SDL_FRect innerRect;
+  SDL_Color borderColour;
+  SDL_Color innerColour;
 };
