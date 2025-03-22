@@ -5,6 +5,8 @@
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_render.h"
 
+enum ComponentType { DIALOGUE, RESPONSE };
+
 class IComponent {
 public:
   virtual ~IComponent() = default;

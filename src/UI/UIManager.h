@@ -1,11 +1,12 @@
 #pragma once
 
 #include "../Components/Dialogue.h"
+#include "DialoguePanel.h"
+#include "DialogueText.h"
 #include "Grid.h"
-#include "Panel.h"
+#include "IComponent.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_render.h"
-#include "Text.h"
 #include <memory>
 
 class UIManager {
@@ -15,12 +16,16 @@ public:
   SDL_Color dialogueBoxColour = {51, 64, 113};
 
   UIManager() {
-
-    grid.addChild(std::make_shared<Panel>(80.0f, 130.0f, 215.0f, 40.0f, 2.0f,
-                                          dialogueBorderColour,
-                                          dialogueBoxColour));
-    grid.addChild(std::make_shared<Text>(85.0f, 132.0f, 210.0f, 35.0f, 14.0f,
-                                         fontColour));
+    grid.addChild(std::make_shared<DialoguePanel>(80.0f, 130.0f, 215.0f, 40.0f,
+                                                  2.0f, dialogueBorderColour,
+                                                  dialogueBoxColour, DIALOGUE));
+    grid.addChild(std::make_shared<DialoguePanel>(80.0f, 10.0f, 215.0f, 40.0f,
+                                                  2.0f, dialogueBorderColour,
+                                                  dialogueBoxColour, RESPONSE));
+    grid.addChild(std::make_shared<DialogueText>(85.0f, 132.0f, 210.0f, 35.0f,
+                                                 14.0f, fontColour, DIALOGUE));
+    grid.addChild(std::make_shared<DialogueText>(85.0f, 12.0f, 215.0f, 35.0f,
+                                                 14.0f, fontColour, RESPONSE));
   }
   ~UIManager() {}
 

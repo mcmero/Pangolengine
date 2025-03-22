@@ -5,14 +5,15 @@
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
 
-class Panel : public IComponent {
+class DialoguePanel : public IComponent {
 public:
-  Panel(float xpos, float ypos, float width, float height,
-        float borderThickness, SDL_Color borderColour, SDL_Color innerColour)
+  DialoguePanel(float xpos, float ypos, float width, float height,
+                float borderThickness, SDL_Color borderColour,
+                SDL_Color innerColour, ComponentType compType)
       : borderRect(xpos - borderThickness, ypos - borderThickness,
                    width + 2 * borderThickness, height + 2 * borderThickness),
         innerRect{xpos, ypos, width, height}, borderColour(borderColour),
-        innerColour(innerColour) {}
+        innerColour(innerColour), compType(compType) {}
 
   void render(SDL_Renderer *renderer) override {
     if (show) {
@@ -32,6 +33,7 @@ public:
 
   void update(const SDL_Event &event, Interactable *interactable,
               Dialogue *dialogue) override {
+    // TODO: specific code to dialogue box (not response)
     if (interactable != nullptr && interactable->isActive) {
       show = true;
     }
@@ -43,4 +45,5 @@ private:
   SDL_FRect innerRect;
   SDL_Color borderColour;
   SDL_Color innerColour;
+  ComponentType compType;
 };

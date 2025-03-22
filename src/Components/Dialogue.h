@@ -20,7 +20,7 @@ struct DialogueNode {
 class Dialogue {
 public:
   std::vector<DialogueNode> dialogueTree = {};
-  int currentNode = 0;
+  DialogueNode currentNode;
   bool active = false;
 
   Dialogue(const char *dialogueFile) {
@@ -43,15 +43,10 @@ public:
 
   void beginDialogue() {
     if (dialogueTree.size() > 0)
-      currentNode = dialogueTree.front().id;
+      currentNode = dialogueTree.front();
   }
 
-  std::string getLine() {
-    for (DialogueNode dnode : dialogueTree) {
-      if (currentNode == dnode.id) {
-        return (dnode.line);
-      }
-    }
-    return (std::string());
-  }
+  std::string getLine() { return (currentNode.line); }
+
+  std::vector<Response> getResponses() { return (currentNode.responses); }
 };
