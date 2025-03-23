@@ -32,6 +32,23 @@ public:
   void render(SDL_Renderer *renderer) { grid.render(renderer); }
   void update(const SDL_Event &event, Interactable *interactable,
               Dialogue *dialogue) {
+
+    // handle UI events
+    if (event.type == SDL_EVENT_KEY_UP) {
+      switch (event.key.key) {
+      case SDLK_Q:
+        std::cout << "Quit dialogue!" << std::endl;
+        if (dialogue != nullptr) {
+          dialogue->active = false;
+        }
+        if (interactable != nullptr) {
+          interactable->active = false;
+        }
+        break;
+      default:
+        break;
+      }
+    }
     grid.update(event, interactable, dialogue);
   };
 

@@ -12,7 +12,12 @@ public:
 
   void update(SDL_Event *event, Transform &transform, Sprite &sprite,
               Interactable *intObject = nullptr) {
-    if (event->type == SDL_EVENT_KEY_DOWN) {
+    if (intObject != nullptr && intObject->active)
+      canMove = false;
+    else
+      canMove = true;
+
+    if (event->type == SDL_EVENT_KEY_DOWN && canMove) {
       switch (event->key.key) {
       case SDLK_W:
         sprite.play("walk_back");
@@ -55,8 +60,10 @@ public:
         sprite.stop();
         break;
       case SDLK_E:
-        if (intObject != nullptr)
+        if (intObject != nullptr) {
           intObject->interact();
+          canMove = false;
+        }
         break;
       default:
         break;
@@ -67,6 +74,7 @@ public:
 private:
   enum Direction { UP, DOWN, LEFT, RIGHT, NONE };
   Direction lastDirection = NONE;
+  bool canMove = true;
 
   void setPlayerMovement(Direction dir, Transform &transform) {
     // Set player movement vector if the direction is the same

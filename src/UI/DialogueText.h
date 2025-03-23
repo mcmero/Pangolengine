@@ -16,6 +16,10 @@ public:
 
   void render(SDL_Renderer *renderer) override {
     if (show) {
+      // TODO: we will need to have access to the array of responses here,
+      // because selected lines will be a different colour, so these will
+      // have to be different objects drawn by the TextureManager
+      // perhaps one response = one call to Text
       const std::string_view text = dialogueLine;
       TextureManager::Text(text, pointsize, rect.x, rect.y,
                            static_cast<int>(rect.w), fontColour);
@@ -24,8 +28,10 @@ public:
 
   void update(const SDL_Event &event, Interactable *interactable,
               Dialogue *dialogue) override {
-    if (interactable != nullptr && interactable->isActive) {
+    if (interactable != nullptr && interactable->active) {
       show = true;
+
+      // TODO: we can handle dialogue selection and events here
       if (compType == DIALOGUE) {
         if (!dialogue->active) {
           dialogue->active = true;
@@ -42,6 +48,8 @@ public:
           dialogueLine = ss.str();
         }
       }
+    } else {
+      show = false;
     }
   }
 

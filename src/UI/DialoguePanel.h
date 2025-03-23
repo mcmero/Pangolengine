@@ -34,8 +34,10 @@ public:
   void update(const SDL_Event &event, Interactable *interactable,
               Dialogue *dialogue) override {
     // TODO: specific code to dialogue box (not response)
-    if (interactable != nullptr && interactable->isActive) {
+    if (interactable != nullptr && interactable->active) {
       show = true;
+    } else {
+      show = false;
     }
   }
 

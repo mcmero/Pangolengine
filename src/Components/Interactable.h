@@ -9,7 +9,7 @@ public:
   SDL_FRect interactArea;
   Offset offset;
   bool canInteract = false;
-  bool isActive = false;
+  bool active = false;
 
   Interactable(float xpos, float ypos, float width, float height,
                Offset offset = {}) {
@@ -27,11 +27,11 @@ public:
   void interact() {
     if (canInteract) {
       std::cout << "Interacted with entity!" << std::endl;
-      isActive = true;
+      active = true;
     }
   }
 
-  void endInteraction() { isActive = false; }
+  void endInteraction() { active = false; }
 
 private:
 };
