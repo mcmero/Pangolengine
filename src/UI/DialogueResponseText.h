@@ -38,10 +38,32 @@ public:
               Dialogue *dialogue) override {
     if (interactable != nullptr && interactable->active &&
         dialogue != nullptr && dialogue->active) {
-      responses = dialogue->getResponses();
       show = true;
+      responses = dialogue->getResponses();
+      handleDialogueSelect(event);
     } else {
       show = false;
+    }
+  }
+
+  void handleDialogueSelect(const SDL_Event &event) {
+    if (event.type == SDL_EVENT_KEY_DOWN) {
+      switch (event.key.key) {
+      case SDLK_DOWN:
+        if ((selectedResponse + 1) >= responses.size())
+          selectedResponse = 0;
+        else
+          selectedResponse++;
+        break;
+      case SDLK_UP:
+        if ((selectedResponse - 1) < 0)
+          selectedResponse = responses.size() - 1;
+        else
+          selectedResponse--;
+        break;
+      default:
+        break;
+      }
     }
   }
 
