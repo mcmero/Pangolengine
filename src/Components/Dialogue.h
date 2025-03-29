@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fstream>
+#include <iostream>
 #include <third_party/nlohmann/json.hpp>
 
 using namespace nlohmann;
@@ -20,7 +21,7 @@ struct DialogueNode {
 class Dialogue {
 public:
   std::vector<DialogueNode> dialogueTree = {};
-  DialogueNode currentNode;
+  int currentNode = 0;
   bool active = false;
 
   Dialogue(const char *dialogueFile) {
@@ -43,10 +44,48 @@ public:
 
   void beginDialogue() {
     if (dialogueTree.size() > 0)
-      currentNode = dialogueTree.front();
+      currentNode = dialogueTree.front().id;
   }
 
-  std::string getLine() { return (currentNode.line); }
+  std::string getLine() {
+    DialogueNode *node = getNodeFromId(currentNode);
+    if (!(node == nullptr)) {
+      // std::cout << "Node ID " << currentNode << std::endl;
+      return node->line;
+    }
+    // TODO: handle case/error
+    return "";
+  }
 
-  std::vector<Response> getResponses() { return (currentNode.responses); }
+  std::vector<Response> getResponses() {
+    DialogueNode *node = getNodeFromId(currentNode);
+    if (!(node == nullptr)) {
+      return node->responses;
+    }
+    // TODO: handle case/error
+    return std::vector<Response>();
+  }
+
+  // Returns true if dialogue continues and false otherwise
+  bool progressToNode(int nextNodeId) {
+    for (auto &node : dialogueTree) {
+      if (node.id == nextNodeId) {
+        currentNode = node.id;
+        std::cout << "Progressed to node " << currentNode << std::endl;
+        return true;
+      }
+    }
+    active = false;
+    return false; // end dialogue
+  }
+
+private:
+  DialogueNode *getNodeFromId(int id) {
+    for (auto &node : dialogueTree) {
+      if (node.id == id) {
+        return &node;
+      }
+    }
+    return nullptr;
+  }
 };

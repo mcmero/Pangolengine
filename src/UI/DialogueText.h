@@ -28,6 +28,7 @@ public:
       if (!dialogue->active) {
         dialogue->active = true;
         dialogue->beginDialogue();
+        std::cout << "Begin dialogue" << std::endl;
       }
       dialogueLine = dialogue->getLine();
     } else

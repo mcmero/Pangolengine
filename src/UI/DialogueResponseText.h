@@ -2,8 +2,10 @@
 
 #include "../TextureManager.h"
 #include "IComponent.h"
+#include "SDL3/SDL_keycode.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
+#include <cassert>
 #include <ostream>
 #include <sstream>
 #include <string_view>
@@ -40,13 +42,30 @@ public:
         dialogue != nullptr && dialogue->active) {
       show = true;
       responses = dialogue->getResponses();
-      handleDialogueSelect(event);
+      handleDialogueSelect(event, dialogue, interactable);
     } else {
       show = false;
     }
   }
 
-  void handleDialogueSelect(const SDL_Event &event) {
+private:
+  bool show = false;
+  float pointsize;
+  const float lineSpacing = 15.0f;
+
+  SDL_Color fontColour;
+  SDL_Color selectColour;
+  SDL_FRect rect;
+
+  std::vector<Response> responses;
+  int selectedResponse = 0;
+  int nextNodeId = 0;
+
+  void handleDialogueSelect(const SDL_Event &event, Dialogue *dialogue,
+                            Interactable *interactable) {
+    assert(dialogue != nullptr && "Cannot handle dialogue with no dialogue "
+                                  "object!");
+    bool continueDialogue = true;
     if (event.type == SDL_EVENT_KEY_DOWN) {
       switch (event.key.key) {
       case SDLK_DOWN:
@@ -61,19 +80,23 @@ public:
         else
           selectedResponse--;
         break;
+      case SDLK_RETURN:
+        nextNodeId = getNextNode();
+        continueDialogue = dialogue->progressToNode(nextNodeId);
+        if (!continueDialogue)
+          interactable->active = false;
+        break;
       default:
         break;
       }
     }
   }
 
-private:
-  bool show = false;
-  float pointsize;
-  SDL_Color fontColour;
-  SDL_Color selectColour;
-  SDL_FRect rect;
-  std::vector<Response> responses;
-  int selectedResponse = 0;
-  const float lineSpacing = 15.0f;
+  int getNextNode() {
+    for (int idx = 0; idx < responses.size(); idx++) {
+      if (idx == selectedResponse)
+        return responses[idx].next;
+    }
+    return 0;
+  }
 };
