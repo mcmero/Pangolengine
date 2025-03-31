@@ -25,66 +25,72 @@ public:
   bool active = false;
 
   Dialogue(const char *dialogueFile) {
-    // load dialogue
-    std::ifstream f(dialogueFile);
-    json dialogueJson = json::parse(f);
-
-    // parse into dialogue tree
-    for (auto jnode : dialogueJson) {
-      std::vector<Response> responses = {};
-      if (jnode["responses"].size() > 0) {
-        for (auto jresp : jnode["responses"]) {
-          responses.push_back({jresp["response"], jresp["next"]});
-        }
+    try {
+      // Load dialogue file
+      std::ifstream f(dialogueFile);
+      if (!f.is_open()) {
+        throw std::runtime_error("Failed to open dialogue file.");
       }
-      dialogueTree.push_back(
-          {jnode["id"], jnode["speaker"], jnode["line"], responses});
+      json dialogueJson = json::parse(f);
+
+      // Parse into dialogue tree
+      for (const auto &jnode : dialogueJson) {
+        std::vector<Response> responses = {};
+        if (jnode.contains("responses") && jnode["responses"].is_array()) {
+          for (const auto &jresp : jnode["responses"]) {
+            responses.push_back({jresp["response"], jresp["next"]});
+          }
+        }
+        dialogueTree.push_back(
+            {jnode["id"], jnode["speaker"], jnode["line"], responses});
+      }
+    } catch (const std::exception &e) {
+      std::cerr << "Error loading dialogue: " << e.what() << std::endl;
+      throw;
     }
   }
 
   void beginDialogue() {
-    if (dialogueTree.size() > 0)
+    if (!dialogueTree.empty()) {
       currentNode = dialogueTree.front().id;
+      active = true;
+    } else {
+      throw std::runtime_error("Dialogue tree is empty.");
+    }
   }
-
   std::string getLine() {
     DialogueNode *node = getNodeFromId(currentNode);
-    if (!(node == nullptr)) {
-      // std::cout << "Node ID " << currentNode << std::endl;
+    if (node != nullptr) {
       return node->line;
     }
-    // TODO: handle case/error
-    return "";
+    throw std::runtime_error("Current node is not valid.");
   }
 
   std::vector<Response> getResponses() {
     DialogueNode *node = getNodeFromId(currentNode);
-    if (!(node == nullptr)) {
+    if (node != nullptr) {
       return node->responses;
     }
-    // TODO: handle case/error
-    return std::vector<Response>();
+    throw std::runtime_error("Current node is not valid.");
   }
 
   // Returns true if dialogue continues and false otherwise
   bool progressToNode(int nextNodeId) {
-    for (auto &node : dialogueTree) {
-      if (node.id == nextNodeId) {
-        currentNode = node.id;
-        std::cout << "Progressed to node " << currentNode << std::endl;
-        return true;
-      }
+    DialogueNode *node = getNodeFromId(nextNodeId);
+    if (node != nullptr) {
+      currentNode = node->id;
+      std::cout << "Progressed to node " << currentNode << std::endl;
+      return true;
     }
     active = false;
-    return false; // end dialogue
+    return false; // End dialogue
   }
 
 private:
   DialogueNode *getNodeFromId(int id) {
     for (auto &node : dialogueTree) {
-      if (node.id == id) {
+      if (node.id == id)
         return &node;
-      }
     }
     return nullptr;
   }
