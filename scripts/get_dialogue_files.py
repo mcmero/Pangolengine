@@ -27,7 +27,7 @@ config_file = os.path.join(os.path.expanduser("~"), "gdocs_config.json")
 
 # Scope for accessing Google Sheets and Google Drive
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly",
-          "https://www.googleapis.com/auth/drive.metadata.readonly"
+          "https://www.googleapis.com/auth/drive.metadata.readonly",
           "https://www.googleapis.com/auth/drive.readonly"]
 
 
@@ -75,7 +75,7 @@ def process_dialogue(data):
     for i, item in enumerate(data):
         # Set default next node to 0 if blank
         if item["next"] == "":
-            item["next"] = 0
+            item["next"] = -1
 
         # Append responses to previous for items with blank IDs
         if item["id"] == "" and processed_data:

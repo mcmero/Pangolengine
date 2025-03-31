@@ -21,7 +21,7 @@ struct DialogueNode {
 class Dialogue {
 public:
   std::vector<DialogueNode> dialogueTree = {};
-  int currentNode = 0;
+  int currentNode = -1;
   bool active = false;
 
   Dialogue(const char *dialogueFile) {
