@@ -40,8 +40,13 @@ public:
               Dialogue *dialogue) override {
     if (interactable != nullptr && interactable->active &&
         dialogue != nullptr && dialogue->active) {
-      show = true;
       responses = dialogue->getResponses();
+      if (responses.empty()) {
+        std::cout << "No respones!" << std::endl;
+        show = false;
+      } else {
+        show = true;
+      }
       handleDialogueSelect(event, dialogue, interactable);
     } else {
       show = false;
@@ -65,6 +70,8 @@ private:
                             Interactable *interactable) {
     assert(dialogue != nullptr && "Cannot handle dialogue with no dialogue "
                                   "object!");
+    // TODO: need to make sure you can't select dialogue line if there's
+    // no responses displayed
     bool continueDialogue = true;
     if (event.type == SDL_EVENT_KEY_DOWN) {
       switch (event.key.key) {

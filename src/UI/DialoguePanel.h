@@ -33,9 +33,17 @@ public:
 
   void update(const SDL_Event &event, Interactable *interactable,
               Dialogue *dialogue) override {
-    // TODO: specific code to dialogue box (not response)
-    if (interactable != nullptr && interactable->active) {
-      show = true;
+    // TODO: we need to mark the dialogue as active before we
+    // draw the text, as this is causing a delay in the panel
+    // appearing under the dialogue test
+    if (interactable != nullptr && interactable->active &&
+        dialogue != nullptr && dialogue->active) {
+      if (compType == RESPONSE && dialogue->getResponses().empty()) {
+        // No responses to show
+        show = false;
+      } else {
+        show = true;
+      }
     } else {
       show = false;
     }
