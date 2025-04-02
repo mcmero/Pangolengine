@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
 #include <filesystem>
@@ -15,4 +16,6 @@ public:
                    SDL_FlipMode flip);
   static void Text(const std::string_view text, float pointsize, float xpos,
                    float ypos, int wraplength, SDL_Color colour = {0, 0, 0});
+  static void Panel(SDL_FRect borderRect, SDL_FRect innerRect,
+                    SDL_Color borderColour, SDL_Color innerColour);
 };

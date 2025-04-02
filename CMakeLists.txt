@@ -46,8 +46,7 @@ PRIVATE
     src/UI/Grid.h
     src/UI/IComponent.h
     src/UI/DialoguePanel.h
-    src/UI/DialogueText.h
-    src/UI/DialogueResponseText.h
+    src/UI/DialogueResponsePanel.h
     src/iosLaunchScreen.storyboard
     include/third_party/tinyxml2/tinyxml2.cpp
 )

@@ -1,6 +1,7 @@
 #include "TextureManager.h"
 #include "Game.h"
 #include "SDL3/SDL_filesystem.h"
+#include "SDL3/SDL_rect.h"
 #include "SDL3_image/SDL_image.h"
 #include "SDL3_ttf/SDL_ttf.h"
 
@@ -49,4 +50,19 @@ void TextureManager::Text(const std::string_view text, float pointsize,
                       .h = float(SDL_GetNumberProperty(
                           texprops, SDL_PROP_TEXTURE_HEIGHT_NUMBER, 0))};
   SDL_RenderTexture(Game::renderer, messageTex, NULL, &text_rect);
+}
+
+void TextureManager::Panel(SDL_FRect borderRect, SDL_FRect innerRect,
+                           SDL_Color borderColour, SDL_Color innerColour) {
+  // Draw border rect
+  SDL_SetRenderDrawColor(Game::renderer, borderColour.r, borderColour.g,
+                         borderColour.b, SDL_ALPHA_OPAQUE);
+  SDL_RenderRect(Game::renderer, &borderRect);
+  SDL_RenderFillRect(Game::renderer, &borderRect);
+
+  // Draw inner rect
+  SDL_SetRenderDrawColor(Game::renderer, innerColour.r, innerColour.g,
+                         innerColour.b, SDL_ALPHA_OPAQUE);
+  SDL_RenderRect(Game::renderer, &innerRect);
+  SDL_RenderFillRect(Game::renderer, &innerRect);
 }

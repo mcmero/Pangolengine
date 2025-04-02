@@ -42,7 +42,7 @@
             },
             {
                 "response": "Actually, I'm not interested.",
-                "next": 0
+                "next": -1
             }
         ],
         "next": 3

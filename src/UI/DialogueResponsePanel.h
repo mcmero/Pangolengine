@@ -10,16 +10,23 @@
 #include <sstream>
 #include <string_view>
 
-class DialogueResponseText : public IComponent {
+class DialogueResponsePanel : public IComponent {
 public:
-  DialogueResponseText(float xpos, float ypos, float width, float height,
-                       float pointsize, SDL_Color fontColour,
-                       SDL_Color selectColour)
-      : pointsize(pointsize), fontColour(fontColour),
-        selectColour(selectColour), rect{xpos, ypos, width, height} {}
+  DialogueResponsePanel(float xpos, float ypos, float width, float height,
+                        float borderThickness, SDL_Color borderColour,
+                        SDL_Color innerColour, float pointsize,
+                        SDL_Color fontColour, SDL_Color selectColour)
+      : borderRect{xpos - borderThickness, ypos - borderThickness,
+                   width + 2 * borderThickness, height + 2 * borderThickness},
+        innerRect{xpos, ypos, width, height}, borderColour(borderColour),
+        innerColour(innerColour),
+        textRect(xpos + 5.0f, ypos + 2.0f, width - 5.0f, height - 5.0f),
+        fontColour(fontColour), selectColour(selectColour),
+        pointsize(pointsize) {}
 
   void render(SDL_Renderer *renderer) override {
     if (show) {
+      TextureManager::Panel(borderRect, innerRect, borderColour, innerColour);
       SDL_Color textColour = fontColour;
       for (int idx = 0; idx < responses.size(); idx++) {
         if (idx == selectedResponse)
@@ -30,8 +37,8 @@ public:
         ss << idx + 1 << ". " << responses[idx].response << std::endl;
         std::string line = ss.str();
         TextureManager::Text(static_cast<std::string_view>(line), pointsize,
-                             rect.x, rect.y + (lineSpacing * idx),
-                             static_cast<int>(rect.w), textColour);
+                             textRect.x, textRect.y + (lineSpacing * idx),
+                             static_cast<int>(textRect.w), textColour);
       }
     }
   }
@@ -55,12 +62,17 @@ public:
 
 private:
   bool show = false;
-  float pointsize;
   const float lineSpacing = 15.0f;
 
+  SDL_FRect borderRect;
+  SDL_FRect innerRect;
+  SDL_Color borderColour;
+  SDL_Color innerColour;
+
+  SDL_FRect textRect;
   SDL_Color fontColour;
   SDL_Color selectColour;
-  SDL_FRect rect;
+  float pointsize;
 
   std::vector<Response> responses;
   int selectedResponse = 0;
