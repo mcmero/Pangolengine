@@ -4,7 +4,6 @@
 #include "DialoguePanel.h"
 #include "DialogueResponsePanel.h"
 #include "Grid.h"
-#include "IComponent.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_render.h"
 #include <memory>

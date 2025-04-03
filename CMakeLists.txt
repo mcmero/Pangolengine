@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.5)
 
 # set the output directory for built objects.
 # This makes sure that the dynamic library goes into the build directory automatically.
@@ -45,6 +45,7 @@ PRIVATE
     src/UI/UIManager.h
     src/UI/Grid.h
     src/UI/IComponent.h
+    src/UI/PanelHelper.h
     src/UI/DialoguePanel.h
     src/UI/DialogueResponsePanel.h
     src/iosLaunchScreen.storyboard

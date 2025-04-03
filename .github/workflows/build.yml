@@ -19,7 +19,7 @@ jobs:
             if: matrix.arch == 'x64'
             run: choco install nasm yasm -y
           - name: Configure
-            run: cmake -DCMAKE_SYSTEM_NAME=${{ matrix.target }} -DCMAKE_SYSTEM_VERSION="10.0" -A${{ matrix.arch }} -S . -B build
+            run: cmake -DBUILD_SHARED_LIBS=ON -DCMAKE_SYSTEM_NAME=${{ matrix.target }} -DCMAKE_SYSTEM_VERSION="10.0" -A${{ matrix.arch }} -S . -B build
           - name: Build
             run: cmake --build build --target sdl-min --config Release
           - name: Upload Build

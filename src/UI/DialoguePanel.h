@@ -2,6 +2,7 @@
 
 #include "../TextureManager.h"
 #include "IComponent.h"
+#include "PanelHelper.h"
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
@@ -11,11 +12,11 @@ public:
   DialoguePanel(float xpos, float ypos, float width, float height,
                 float borderThickness, SDL_Color borderColour,
                 SDL_Color innerColour, float pointsize, SDL_Color fontColour)
-      : borderRect{xpos - borderThickness, ypos - borderThickness,
-                   width + 2 * borderThickness, height + 2 * borderThickness},
-        innerRect{xpos, ypos, width, height}, borderColour(borderColour),
-        innerColour(innerColour),
-        textRect(xpos + 5.0f, ypos + 2.0f, width - 5.0f, height - 5.0f),
+      : borderRect(PanelHelper::getBorderRect(xpos, ypos, width, height,
+                                              borderThickness)),
+        innerRect(PanelHelper::getInnerRect(xpos, ypos, width, height)),
+        borderColour(borderColour), innerColour(innerColour),
+        textRect(PanelHelper::getTextRect(xpos, ypos, width, height)),
         fontColour(fontColour), pointsize(pointsize) {}
 
   void render(SDL_Renderer *renderer) override {

@@ -2,6 +2,7 @@
 
 #include "../TextureManager.h"
 #include "IComponent.h"
+#include "PanelHelper.h"
 #include "SDL3/SDL_keycode.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
@@ -16,11 +17,11 @@ public:
                         float borderThickness, SDL_Color borderColour,
                         SDL_Color innerColour, float pointsize,
                         SDL_Color fontColour, SDL_Color selectColour)
-      : borderRect{xpos - borderThickness, ypos - borderThickness,
-                   width + 2 * borderThickness, height + 2 * borderThickness},
-        innerRect{xpos, ypos, width, height}, borderColour(borderColour),
-        innerColour(innerColour),
-        textRect(xpos + 5.0f, ypos + 2.0f, width - 5.0f, height - 5.0f),
+      : borderRect(PanelHelper::getBorderRect(xpos, ypos, width, height,
+                                              borderThickness)),
+        innerRect(PanelHelper::getInnerRect(xpos, ypos, width, height)),
+        borderColour(borderColour), innerColour(innerColour),
+        textRect(PanelHelper::getTextRect(xpos, ypos, width, height)),
         fontColour(fontColour), selectColour(selectColour),
         pointsize(pointsize) {}
 
