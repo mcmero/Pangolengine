@@ -81,10 +81,23 @@ private:
 
   void handleDialogueSelect(const SDL_Event &event, Dialogue *dialogue,
                             Interactable *interactable) {
-    assert(dialogue != nullptr && "Cannot handle dialogue with no dialogue "
-                                  "object!");
-    // TODO: need to make sure you can't select dialogue line if there's
-    // no responses displayed
+    if (dialogue == nullptr) {
+      std::cout << "No dialogue to select!" << std::endl;
+      return;
+    } else if (!dialogue->active) {
+      std::cout << "Dialogue not active!" << std::endl;
+      return;
+    } else if (interactable == nullptr) {
+      std::cout << "No interactable object!" << std::endl;
+      return;
+    } else if (!interactable->active) {
+      std::cout << "Interactable object not active!" << std::endl;
+      return;
+    } else if (selectedResponse < 0) {
+      std::cout << "No valid selected respoes!" << std::endl;
+      return;
+    }
+
     bool continueDialogue = true;
     if (event.type == SDL_EVENT_KEY_DOWN) {
       switch (event.key.key) {
@@ -101,10 +114,17 @@ private:
           selectedResponse--;
         break;
       case SDLK_RETURN:
-        nextNodeId = getNextNode();
-        continueDialogue = dialogue->progressToNode(nextNodeId);
-        if (!continueDialogue)
+        if (responses.size() > 0) {
+          nextNodeId = getNextNode();
+          continueDialogue = dialogue->progressToNode(nextNodeId);
+          if (!continueDialogue)
+            interactable->active = false;
+          selectedResponse = 0; // Reset selected response
+        } else {
+          // We've run out of responses, end the dialogue
+          dialogue->active = false;
           interactable->active = false;
+        }
         break;
       default:
         break;
