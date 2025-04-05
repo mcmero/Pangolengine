@@ -50,6 +50,9 @@ void TextureManager::Text(const std::string_view text, float pointsize,
                       .h = float(SDL_GetNumberProperty(
                           texprops, SDL_PROP_TEXTURE_HEIGHT_NUMBER, 0))};
   SDL_RenderTexture(Game::renderer, messageTex, NULL, &text_rect);
+
+  // Close the font to free memory
+  TTF_CloseFont(font);
 }
 
 void TextureManager::Panel(SDL_FRect borderRect, SDL_FRect innerRect,
