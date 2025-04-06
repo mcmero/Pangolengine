@@ -4,8 +4,14 @@
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
 #include <filesystem>
+#include <unordered_map>
 
 namespace fs = std::filesystem;
+
+struct MessageTexture {
+  SDL_Texture *tex;
+  SDL_Color colour;
+};
 
 class TextureManager {
 
@@ -20,4 +26,8 @@ public:
                                          SDL_Color colour = {0, 0, 0});
   static void Panel(SDL_FRect borderRect, SDL_FRect innerRect,
                     SDL_Color borderColour, SDL_Color innerColour);
+  static SDL_Texture *GetMessageTexture(
+      std::unordered_map<std::string, MessageTexture> &msgTextures,
+      const SDL_FRect &textRect, const std::string &text, float pointsize,
+      SDL_Color colour);
 };

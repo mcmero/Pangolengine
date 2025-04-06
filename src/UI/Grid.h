@@ -22,6 +22,12 @@ public:
     }
   }
 
+  void clean() {
+    for (auto &child : children) {
+      child->clean();
+    }
+  }
+
 private:
   std::vector<std::shared_ptr<IComponent>> children;
 };

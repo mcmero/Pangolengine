@@ -4,6 +4,7 @@
 #include "SDL3/SDL_rect.h"
 #include "SDL3_image/SDL_image.h"
 #include "SDL3_ttf/SDL_ttf.h"
+#include <unordered_map>
 
 fs::path TextureManager::fontPath = fs::path(SDL_GetBasePath()) / "assets" /
                                     "fonts" / "AtlantisInternational-jen0.ttf";
@@ -61,4 +62,28 @@ void TextureManager::Panel(SDL_FRect borderRect, SDL_FRect innerRect,
                          innerColour.b, SDL_ALPHA_OPAQUE);
   SDL_RenderRect(Game::renderer, &innerRect);
   SDL_RenderFillRect(Game::renderer, &innerRect);
+}
+
+SDL_Texture *TextureManager::GetMessageTexture(
+    std::unordered_map<std::string, MessageTexture> &msgTextures,
+    const SDL_FRect &textRect, const std::string &text, float pointsize,
+    SDL_Color colour) {
+  auto it = msgTextures.find(text);
+  if (it != msgTextures.end()) {
+    // Return the texture if it has the same colour values
+    if (it->second.colour.a == colour.a && it->second.colour.b == colour.b &&
+        it->second.colour.g == colour.g && it->second.colour.r == colour.r) {
+      return it->second.tex;
+    } else {
+      // We have to destroy the texture as it has changed colour
+      // and let it be recreated
+      SDL_DestroyTexture(it->second.tex);
+    }
+  }
+  SDL_Texture *texture = TextureManager::LoadMessageTexture(
+      static_cast<std::string_view>(text), pointsize, textRect.x, textRect.y,
+      static_cast<int>(textRect.w), colour);
+  msgTextures[text].tex = texture;
+  msgTextures[text].colour = colour;
+  return texture;
 }

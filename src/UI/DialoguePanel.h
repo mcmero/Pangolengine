@@ -22,7 +22,8 @@ public:
   void render(SDL_Renderer *renderer) override {
     if (show) {
       TextureManager::Panel(borderRect, innerRect, borderColour, innerColour);
-      SDL_Texture *messageTex = getTextTexture(dialogueLine, fontColour);
+      SDL_Texture *messageTex = TextureManager::GetMessageTexture(
+          msgTextures, textRect, dialogueLine, pointsize, fontColour);
 
       // Get on-screen dimensions of the text, necessary for rendering
       auto texprops = SDL_GetTextureProperties(messageTex);
@@ -63,19 +64,5 @@ private:
   float pointsize;
   std::string dialogueLine;
 
-  std::unordered_map<std::string, SDL_Texture *> textTextures;
-
-  // TODO: get rid of redundancy in definition across dialogue
-  // panel and dialogue response panel
-  SDL_Texture *getTextTexture(const std::string &text, SDL_Color color) {
-    auto it = textTextures.find(text);
-    if (it != textTextures.end()) {
-      return it->second;
-    }
-    SDL_Texture *texture = TextureManager::LoadMessageTexture(
-        static_cast<std::string_view>(text), pointsize, textRect.x, textRect.y,
-        static_cast<int>(textRect.w), color);
-    textTextures[text] = texture;
-    return texture;
-  }
+  std::unordered_map<std::string, MessageTexture> msgTextures;
 };

@@ -24,7 +24,7 @@ public:
         80.0f, 10.0f, 220.0f, 40.0f, 2.0f, dialogueBorderColour,
         dialogueBoxColour, pointsize, fontColour, selectColour));
   }
-  ~UIManager() {}
+  ~UIManager() { grid.clean(); }
 
   void render(SDL_Renderer *renderer) { grid.render(renderer); }
   void update(const SDL_Event &event, Interactable *interactable,

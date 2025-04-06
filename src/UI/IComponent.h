@@ -11,4 +11,5 @@ public:
   virtual void update(const SDL_Event &event, Interactable *interactable,
                       Dialogue *dialogue) {}
   virtual void render(SDL_Renderer *renderer) {}
+  virtual void clean() {}
 };
