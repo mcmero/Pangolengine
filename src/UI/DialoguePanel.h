@@ -22,9 +22,16 @@ public:
   void render(SDL_Renderer *renderer) override {
     if (show) {
       TextureManager::Panel(borderRect, innerRect, borderColour, innerColour);
-      const std::string_view text = dialogueLine;
-      TextureManager::Text(text, pointsize, textRect.x, textRect.y,
-                           static_cast<int>(textRect.w), fontColour);
+      SDL_Texture *messageTex = getTextTexture(dialogueLine, fontColour);
+
+      // Get on-screen dimensions of the text, necessary for rendering
+      auto texprops = SDL_GetTextureProperties(messageTex);
+      SDL_FRect dest = {textRect.x, textRect.y,
+                        float(SDL_GetNumberProperty(
+                            texprops, SDL_PROP_TEXTURE_WIDTH_NUMBER, 0)),
+                        float(SDL_GetNumberProperty(
+                            texprops, SDL_PROP_TEXTURE_HEIGHT_NUMBER, 0))};
+      SDL_RenderTexture(renderer, messageTex, NULL, &dest);
     }
   }
 
@@ -55,4 +62,20 @@ private:
   SDL_Color fontColour;
   float pointsize;
   std::string dialogueLine;
+
+  std::unordered_map<std::string, SDL_Texture *> textTextures;
+
+  // TODO: get rid of redundancy in definition across dialogue
+  // panel and dialogue response panel
+  SDL_Texture *getTextTexture(const std::string &text, SDL_Color color) {
+    auto it = textTextures.find(text);
+    if (it != textTextures.end()) {
+      return it->second;
+    }
+    SDL_Texture *texture = TextureManager::LoadMessageTexture(
+        static_cast<std::string_view>(text), pointsize, textRect.x, textRect.y,
+        static_cast<int>(textRect.w), color);
+    textTextures[text] = texture;
+    return texture;
+  }
 };

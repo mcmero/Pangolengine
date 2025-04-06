@@ -37,9 +37,20 @@ public:
         std::stringstream ss;
         ss << idx + 1 << ". " << responses[idx].response << std::endl;
         std::string line = ss.str();
-        TextureManager::Text(static_cast<std::string_view>(line), pointsize,
-                             textRect.x, textRect.y + (lineSpacing * idx),
-                             static_cast<int>(textRect.w), textColour);
+        // TextureManager::Text(static_cast<std::string_view>(line), pointsize,
+        //                      textRect.x, textRect.y + (lineSpacing * idx),
+        //                      static_cast<int>(textRect.w), textColour);
+        SDL_Texture *messageTex = getTextTexture(line, textColour);
+
+        // Get on-screen dimensions of the text, necessary for rendering
+        auto texprops = SDL_GetTextureProperties(messageTex);
+        SDL_FRect dest = {textRect.x, textRect.y + (lineSpacing * idx),
+                          float(SDL_GetNumberProperty(
+                              texprops, SDL_PROP_TEXTURE_WIDTH_NUMBER, 0)),
+                          float(SDL_GetNumberProperty(
+                              texprops, SDL_PROP_TEXTURE_HEIGHT_NUMBER, 0))};
+
+        SDL_RenderTexture(renderer, messageTex, NULL, &dest);
       }
     }
   }
@@ -61,6 +72,8 @@ public:
     }
   }
 
+  ~DialogueResponsePanel() { clearTextures(); }
+
 private:
   bool show = false;
   const float lineSpacing = 15.0f;
@@ -78,6 +91,13 @@ private:
   std::vector<Response> responses;
   int selectedResponse = 0;
   int nextNodeId = 0;
+
+  struct textTexture {
+    SDL_Texture *tex;
+    SDL_Color colour;
+  };
+
+  std::unordered_map<std::string, textTexture> textTextures;
 
   void handleDialogueSelect(const SDL_Event &event, Dialogue *dialogue,
                             Interactable *interactable) {
@@ -138,5 +158,33 @@ private:
         return responses[idx].next;
     }
     return 0;
+  }
+
+  SDL_Texture *getTextTexture(const std::string &text, SDL_Color colour) {
+    auto it = textTextures.find(text);
+    if (it != textTextures.end()) {
+      // Return the texture if it has the same colour values
+      if (it->second.colour.a == colour.a && it->second.colour.b == colour.b &&
+          it->second.colour.g == colour.g && it->second.colour.r == colour.r) {
+        return it->second.tex;
+      } else {
+        // We have to destroy the texture as it has changed colour
+        // and let it be recreated
+        SDL_DestroyTexture(it->second.tex);
+      }
+    }
+    SDL_Texture *texture = TextureManager::LoadMessageTexture(
+        static_cast<std::string_view>(text), pointsize, textRect.x, textRect.y,
+        static_cast<int>(textRect.w), colour);
+    textTextures[text].tex = texture;
+    textTextures[text].colour = colour;
+    return texture;
+  }
+
+  void clearTextures() {
+    for (auto &pair : textTextures) {
+      SDL_DestroyTexture(pair.second.tex);
+    }
+    textTextures.clear();
   }
 };

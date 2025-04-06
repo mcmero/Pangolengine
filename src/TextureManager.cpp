@@ -23,14 +23,15 @@ void TextureManager::Draw(SDL_Texture *tex, SDL_FRect srcRect,
                            flip);
 }
 
-void TextureManager::Text(const std::string_view text, float pointsize,
-                          float xpos, float ypos, int wraplength,
-                          SDL_Color colour) {
+SDL_Texture *TextureManager::LoadMessageTexture(const std::string_view text,
+                                                float pointsize, float xpos,
+                                                float ypos, int wraplength,
+                                                SDL_Color colour) {
   // Load font
   TTF_Font *font = TTF_OpenFont(fontPath.string().c_str(), pointsize);
   if (!font) {
     SDL_Log("TTF_OpenFont: %s\n", SDL_GetError());
-    return;
+    return nullptr;
   }
 
   // Make surface then load texture from it
@@ -41,18 +42,10 @@ void TextureManager::Text(const std::string_view text, float pointsize,
   SDL_SetTextureScaleMode(messageTex, SDL_SCALEMODE_NEAREST);
   SDL_DestroySurface(surfaceMessage);
 
-  // Get on-screen dimensions of the text, necessary for rendering
-  auto texprops = SDL_GetTextureProperties(messageTex);
-  SDL_FRect text_rect{.x = xpos,
-                      .y = ypos,
-                      .w = float(SDL_GetNumberProperty(
-                          texprops, SDL_PROP_TEXTURE_WIDTH_NUMBER, 0)),
-                      .h = float(SDL_GetNumberProperty(
-                          texprops, SDL_PROP_TEXTURE_HEIGHT_NUMBER, 0))};
-  SDL_RenderTexture(Game::renderer, messageTex, NULL, &text_rect);
-
   // Close the font to free memory
   TTF_CloseFont(font);
+
+  return messageTex;
 }
 
 void TextureManager::Panel(SDL_FRect borderRect, SDL_FRect innerRect,

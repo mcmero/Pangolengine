@@ -66,5 +66,10 @@ public:
     }
   }
 
-  void clean() { SDL_DestroyTexture(tileMapTex); }
+  void clean() {
+    SDL_DestroyTexture(tileMapTex);
+    tiles.clear();
+  }
+
+  ~Map() { clean(); }
 };
