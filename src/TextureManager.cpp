@@ -87,3 +87,19 @@ SDL_Texture *TextureManager::GetMessageTexture(
   msgTextures[text].colour = colour;
   return texture;
 }
+
+/**
+ * Get message texture dimensions (width and height)
+ */
+std::tuple<float, float>
+TextureManager::GetMessageTextureDimensions(SDL_Texture *messageTex) {
+  assert(messageTex != nullptr && "Message texture does not exist!");
+
+  auto texprops = SDL_GetTextureProperties(messageTex);
+  float textWidth =
+      float(SDL_GetNumberProperty(texprops, SDL_PROP_TEXTURE_WIDTH_NUMBER, 0));
+  float textHeight =
+      float(SDL_GetNumberProperty(texprops, SDL_PROP_TEXTURE_HEIGHT_NUMBER, 0));
+
+  return {textWidth, textHeight};
+}

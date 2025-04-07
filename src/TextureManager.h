@@ -4,6 +4,7 @@
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
 #include <filesystem>
+#include <tuple>
 #include <unordered_map>
 
 namespace fs = std::filesystem;
@@ -30,4 +31,6 @@ public:
       std::unordered_map<std::string, MessageTexture> &msgTextures,
       const SDL_FRect &textRect, const std::string &text, float pointsize,
       SDL_Color colour);
+  static std::tuple<float, float>
+  GetMessageTextureDimensions(SDL_Texture *messageTex);
 };

@@ -39,13 +39,10 @@ public:
         SDL_Texture *messageTex = TextureManager::GetMessageTexture(
             msgTextures, textRect, line, pointsize, textColour);
 
-        // Get on-screen dimensions of the text, necessary for rendering
-        auto texprops = SDL_GetTextureProperties(messageTex);
+        auto messageDims =
+            TextureManager::GetMessageTextureDimensions(messageTex);
         SDL_FRect dest = {textRect.x, textRect.y + (lineSpacing * idx),
-                          float(SDL_GetNumberProperty(
-                              texprops, SDL_PROP_TEXTURE_WIDTH_NUMBER, 0)),
-                          float(SDL_GetNumberProperty(
-                              texprops, SDL_PROP_TEXTURE_HEIGHT_NUMBER, 0))};
+                          std::get<0>(messageDims), std::get<1>(messageDims)};
 
         SDL_RenderTexture(renderer, messageTex, NULL, &dest);
       }
