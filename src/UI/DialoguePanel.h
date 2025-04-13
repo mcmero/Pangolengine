@@ -27,8 +27,10 @@ public:
 
       auto messageDims =
           TextureManager::GetMessageTextureDimensions(messageTex);
-      SDL_FRect dest = {textRect.x, textRect.y, std::get<0>(messageDims),
-                        std::get<1>(messageDims)};
+      SDL_FRect dest = {textRect.x, textRect.y, messageDims.width,
+                        messageDims.height};
+
+      // TODO: clip text using a source rect to implement scrolling
       SDL_RenderTexture(renderer, messageTex, NULL, &dest);
     }
   }

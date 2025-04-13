@@ -7,7 +7,7 @@
 using namespace nlohmann;
 
 struct Response {
-  std::string response;
+  std::string line;
   int next;
 };
 
@@ -49,6 +49,8 @@ public:
       throw;
     }
   }
+
+  ~Dialogue() {}
 
   void beginDialogue() {
     if (!dialogueTree.empty()) {

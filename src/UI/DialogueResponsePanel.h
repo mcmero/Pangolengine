@@ -24,27 +24,41 @@ public:
         fontColour(fontColour), selectColour(selectColour),
         pointsize(pointsize) {}
 
+  ~DialogueResponsePanel() { clean(); }
+
   void render(SDL_Renderer *renderer) override {
+    int yOffset = -scrollOffset;
     if (show) {
       TextureManager::Panel(borderRect, innerRect, borderColour, innerColour);
-      SDL_Color textColour = fontColour;
+
       for (int idx = 0; idx < responses.size(); idx++) {
+
+        std::string line = responses[idx].line;
+        ResponseTexture &curLine = msgTextures[line];
+
+        SDL_Texture *tex = nullptr;
         if (idx == selectedResponse)
-          textColour = selectColour;
+          tex = curLine.activeTex;
         else
-          textColour = fontColour;
-        std::stringstream ss;
-        ss << idx + 1 << ". " << responses[idx].response << std::endl;
-        std::string line = ss.str();
-        SDL_Texture *messageTex = TextureManager::GetMessageTexture(
-            msgTextures, textRect, line, pointsize, textColour);
+          tex = curLine.inactiveTex;
 
-        auto messageDims =
-            TextureManager::GetMessageTextureDimensions(messageTex);
-        SDL_FRect dest = {textRect.x, textRect.y + (lineSpacing * idx),
-                          std::get<0>(messageDims), std::get<1>(messageDims)};
+        SDL_FRect dest = {textRect.x, textRect.y + yOffset, curLine.width,
+                          curLine.height};
 
-        SDL_RenderTexture(renderer, messageTex, NULL, &dest);
+        if (yOffset + textRect.y < textRect.y) {
+          // Skip lines above view area
+          yOffset += curLine.height;
+          continue;
+        }
+
+        if (yOffset + textRect.y + curLine.height > textRect.y + textRect.h) {
+          // Stop rendering if lines below view area
+          break;
+        }
+
+        SDL_RenderTexture(renderer, tex, NULL, &dest);
+
+        yOffset += curLine.height;
       }
     }
   }
@@ -58,6 +72,9 @@ public:
         std::cout << "No respones!" << std::endl;
         show = false;
       } else {
+        // TODO: consider more efficient way than reloading
+        // textures every time
+        loadResponseTextures();
         show = true;
       }
       handleDialogueSelect(event, dialogue, interactable);
@@ -66,18 +83,10 @@ public:
     }
   }
 
-  void clean() override {
-    for (auto &pair : msgTextures) {
-      SDL_DestroyTexture(pair.second.tex);
-    }
-    msgTextures.clear();
-  }
-
-  ~DialogueResponsePanel() { clean(); }
+  void clean() override { msgTextures.clear(); }
 
 private:
   bool show = false;
-  const float lineSpacing = 15.0f;
 
   SDL_FRect borderRect;
   SDL_FRect innerRect;
@@ -93,7 +102,19 @@ private:
   int selectedResponse = 0;
   int nextNodeId = 0;
 
-  std::unordered_map<std::string, MessageTexture> msgTextures;
+  struct ResponseTexture {
+    SDL_Texture *activeTex;
+    SDL_Texture *inactiveTex;
+    bool active;
+    float height;
+    float width;
+    int idx;
+  };
+  std::unordered_map<std::string, ResponseTexture> msgTextures;
+
+  // variables for scroll offsetting
+  float scrollOffset;
+  enum Direction { UP, DOWN };
 
   void handleDialogueSelect(const SDL_Event &event, Dialogue *dialogue,
                             Interactable *interactable) {
@@ -122,12 +143,14 @@ private:
           selectedResponse = 0;
         else
           selectedResponse++;
+        calculateScrollOffset(DOWN);
         break;
       case SDLK_UP:
         if ((selectedResponse - 1) < 0)
           selectedResponse = responses.size() - 1;
         else
           selectedResponse--;
+        calculateScrollOffset(UP);
         break;
       case SDLK_RETURN:
         if (responses.size() > 0) {
@@ -155,23 +178,39 @@ private:
     }
     return 0;
   }
-  /*
-    SDL_Texture *getTextTexture(const std::string &text, SDL_Color colour) {
-      auto it = msgTextures.find(text);
-      if (it != msgTextures.end()) {
-        // Return the texture if it has the same colour values
-        if (it->second.colour.a == colour.a && it->second.colour.b == colour.b
-    && it->second.colour.g == colour.g && it->second.colour.r == colour.r) {
-          return it->second.tex;
-        } else {
-          // We have to destroy the texture as it has changed colour
-          // and let it be recreated
-          SDL_DestroyTexture(it->second.tex);
-        }
-      }
-      SDL_Texture *texture = TextureManager::LoadMessageTexture(
-          static_cast<std::string_view>(text), pointsize, textRect.x,
-    textRect.y, static_cast<int>(textRect.w), colour); msgTextures[text].tex =
-    texture; msgTextures[text].colour = colour; return texture;
-    }*/
+
+  void loadResponseTextures() {
+    msgTextures.clear();
+
+    for (int idx = 0; idx < responses.size(); idx++) {
+      std::string line = responses[idx].line;
+
+      std::stringstream ss;
+      ss << idx + 1 << ". " << line << std::endl;
+      std::string message = ss.str();
+
+      msgTextures[line].activeTex = TextureManager::LoadMessageTexture(
+          static_cast<std::string_view>(message), pointsize,
+          static_cast<int>(textRect.w), selectColour);
+
+      msgTextures[line].inactiveTex = TextureManager::LoadMessageTexture(
+          static_cast<std::string_view>(message), pointsize,
+          static_cast<int>(textRect.w), fontColour);
+
+      auto messageDims = TextureManager::GetMessageTextureDimensions(
+          msgTextures[line].activeTex);
+
+      msgTextures[line].height = messageDims.height;
+      msgTextures[line].width = messageDims.width;
+      msgTextures[line].idx = idx;
+      msgTextures[line].active = false;
+    }
+  }
+
+  void calculateScrollOffset(Direction dir) {
+    if (selectedResponse == 0) {
+      scrollOffset = 0;
+    }
+    // TODO: we need to handle all the cases here
+  }
 };

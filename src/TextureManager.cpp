@@ -25,8 +25,7 @@ void TextureManager::Draw(SDL_Texture *tex, SDL_FRect srcRect,
 }
 
 SDL_Texture *TextureManager::LoadMessageTexture(const std::string_view text,
-                                                float pointsize, float xpos,
-                                                float ypos, int wraplength,
+                                                float pointsize, int wraplength,
                                                 SDL_Color colour) {
   // Load font
   TTF_Font *font = TTF_OpenFont(fontPath.string().c_str(), pointsize);
@@ -40,10 +39,12 @@ SDL_Texture *TextureManager::LoadMessageTexture(const std::string_view text,
       font, text.data(), text.length(), colour, wraplength);
   SDL_Texture *messageTex =
       SDL_CreateTextureFromSurface(Game::renderer, surfaceMessage);
-  SDL_SetTextureScaleMode(messageTex, SDL_SCALEMODE_NEAREST);
-  SDL_DestroySurface(surfaceMessage);
 
-  // Close the font to free memory
+  // Set scale mode to ensure pixel-perfect rendering
+  SDL_SetTextureScaleMode(messageTex, SDL_SCALEMODE_NEAREST);
+
+  // Free memory
+  SDL_DestroySurface(surfaceMessage);
   TTF_CloseFont(font);
 
   return messageTex;
@@ -68,30 +69,22 @@ SDL_Texture *TextureManager::GetMessageTexture(
     std::unordered_map<std::string, MessageTexture> &msgTextures,
     const SDL_FRect &textRect, const std::string &text, float pointsize,
     SDL_Color colour) {
-  auto it = msgTextures.find(text);
-  if (it != msgTextures.end()) {
-    // Return the texture if it has the same colour values
-    if (it->second.colour.a == colour.a && it->second.colour.b == colour.b &&
-        it->second.colour.g == colour.g && it->second.colour.r == colour.r) {
-      return it->second.tex;
-    } else {
-      // We have to destroy the texture as it has changed colour
-      // and let it be recreated
-      SDL_DestroyTexture(it->second.tex);
-    }
-  }
+  // TODO: change params from textRect to wraplength
+  // also include height for scrolling
+
   SDL_Texture *texture = TextureManager::LoadMessageTexture(
-      static_cast<std::string_view>(text), pointsize, textRect.x, textRect.y,
+      static_cast<std::string_view>(text), pointsize,
       static_cast<int>(textRect.w), colour);
   msgTextures[text].tex = texture;
   msgTextures[text].colour = colour;
+
   return texture;
 }
 
 /**
  * Get message texture dimensions (width and height)
  */
-std::tuple<float, float>
+MessageDims
 TextureManager::GetMessageTextureDimensions(SDL_Texture *messageTex) {
   assert(messageTex != nullptr && "Message texture does not exist!");
 
