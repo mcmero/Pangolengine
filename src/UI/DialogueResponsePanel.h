@@ -31,10 +31,10 @@ public:
     if (show) {
       TextureManager::Panel(borderRect, innerRect, borderColour, innerColour);
 
-      for (int idx = 0; idx < responses.size(); idx++) {
+      for (int idx = 0; idx < responseTextures.size(); idx++) {
 
-        std::string line = responses[idx].line;
-        ResponseTexture &curLine = msgTextures[line];
+        ResponseTexture &curLine = responseTextures[idx];
+        curLine.active = false;
 
         SDL_Texture *tex = nullptr;
         if (idx == selectedResponse)
@@ -56,6 +56,7 @@ public:
           break;
         }
 
+        curLine.active = true;
         SDL_RenderTexture(renderer, tex, NULL, &dest);
 
         yOffset += curLine.height;
@@ -83,7 +84,7 @@ public:
     }
   }
 
-  void clean() override { msgTextures.clear(); }
+  void clean() override { responseTextures.clear(); }
 
 private:
   bool show = false;
@@ -110,7 +111,7 @@ private:
     float width;
     int idx;
   };
-  std::unordered_map<std::string, ResponseTexture> msgTextures;
+  std::vector<ResponseTexture> responseTextures;
 
   // variables for scroll offsetting
   float scrollOffset;
@@ -180,37 +181,48 @@ private:
   }
 
   void loadResponseTextures() {
-    msgTextures.clear();
+    responseTextures.clear();
 
     for (int idx = 0; idx < responses.size(); idx++) {
+      ResponseTexture rtex = {};
+
       std::string line = responses[idx].line;
 
       std::stringstream ss;
       ss << idx + 1 << ". " << line << std::endl;
       std::string message = ss.str();
 
-      msgTextures[line].activeTex = TextureManager::LoadMessageTexture(
+      rtex.activeTex = TextureManager::LoadMessageTexture(
           static_cast<std::string_view>(message), pointsize,
           static_cast<int>(textRect.w), selectColour);
 
-      msgTextures[line].inactiveTex = TextureManager::LoadMessageTexture(
+      rtex.inactiveTex = TextureManager::LoadMessageTexture(
           static_cast<std::string_view>(message), pointsize,
           static_cast<int>(textRect.w), fontColour);
 
-      auto messageDims = TextureManager::GetMessageTextureDimensions(
-          msgTextures[line].activeTex);
+      auto messageDims =
+          TextureManager::GetMessageTextureDimensions(rtex.activeTex);
 
-      msgTextures[line].height = messageDims.height;
-      msgTextures[line].width = messageDims.width;
-      msgTextures[line].idx = idx;
-      msgTextures[line].active = false;
+      rtex.height = messageDims.height;
+      rtex.width = messageDims.width;
+      rtex.idx = idx;
+      rtex.active = false;
+
+      responseTextures.push_back(rtex);
     }
   }
 
   void calculateScrollOffset(Direction dir) {
-    if (selectedResponse == 0) {
+    // We can reset the scroll offset if we are at the first response
+    if (selectedResponse == 0)
       scrollOffset = 0;
-    }
-    // TODO: we need to handle all the cases here
+
+    /*
+    if (!responseTextures[selectedResponse].active) {
+      // This means that the message is *not* being displayed but is selected
+      for (int idx = 0; idx < selectedResponse; idx++) {
+        scrollOffset += responseTextures[selectedResponse].height;
+      }
+    }*/
   }
 };
