@@ -7,6 +7,7 @@
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
 #include <cassert>
+#include <numbers>
 #include <ostream>
 #include <sstream>
 
@@ -69,8 +70,8 @@ public:
     if (interactable != nullptr && interactable->active &&
         dialogue != nullptr && dialogue->active) {
       if (responses.empty()) {
-        // check if there are new responses
-        // we should only do this at the start of a new dialogue
+        // check if there are new responses -- we only do this at the
+        // start of a new dialogue
         responses = dialogue->getResponses();
         if (responses.empty()) {
           std::cout << "No respones!" << std::endl;
@@ -220,14 +221,24 @@ private:
   }
 
   void calculateScrollOffset(Direction dir) {
-    // We can reset the scroll offset if we are at the first response
-    if (selectedResponse == 0)
+    // We can reset the scroll offset if we are at the first or last response
+    if (selectedResponse == 0 || selectedResponse == responses.size() - 1) {
       scrollOffset = 0;
+      dir = DOWN; // change the direction to down as we now need to add the
+                  // offset (not subtract)
+    }
 
     if (!responseTextures[selectedResponse].displayed) {
-      // This means that the message is *not* being displayed but is selected
-      for (int idx = 0; idx < selectedResponse; idx++) {
-        scrollOffset += responseTextures[selectedResponse].height;
+      // We need to scroll as the message is selected but not displayed
+      if (dir == DOWN) {
+        for (int idx = 0; idx < selectedResponse; idx++) {
+          scrollOffset += responseTextures[selectedResponse].height;
+        }
+      } else {
+        for (int idx = responseTextures.size() - 1; idx > selectedResponse;
+             idx--) {
+          scrollOffset -= responseTextures[selectedResponse].height;
+        }
       }
     }
   }
