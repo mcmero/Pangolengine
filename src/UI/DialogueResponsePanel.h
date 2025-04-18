@@ -34,7 +34,7 @@ public:
       for (int idx = 0; idx < responseTextures.size(); idx++) {
 
         ResponseTexture &curLine = responseTextures[idx];
-        curLine.active = false;
+        curLine.displayed = false;
 
         SDL_Texture *tex = nullptr;
         if (idx == selectedResponse)
@@ -56,7 +56,7 @@ public:
           break;
         }
 
-        curLine.active = true;
+        curLine.displayed = true;
         SDL_RenderTexture(renderer, tex, NULL, &dest);
 
         yOffset += curLine.height;
@@ -68,14 +68,18 @@ public:
               Dialogue *dialogue) override {
     if (interactable != nullptr && interactable->active &&
         dialogue != nullptr && dialogue->active) {
-      responses = dialogue->getResponses();
       if (responses.empty()) {
-        std::cout << "No respones!" << std::endl;
-        show = false;
+        // check if there are new responses
+        // we should only do this at the start of a new dialogue
+        responses = dialogue->getResponses();
+        if (responses.empty()) {
+          std::cout << "No respones!" << std::endl;
+          show = false;
+        } else {
+          loadResponseTextures();
+          show = true;
+        }
       } else {
-        // TODO: consider more efficient way than reloading
-        // textures every time
-        loadResponseTextures();
         show = true;
       }
       handleDialogueSelect(event, dialogue, interactable);
@@ -106,7 +110,7 @@ private:
   struct ResponseTexture {
     SDL_Texture *activeTex;
     SDL_Texture *inactiveTex;
-    bool active;
+    bool displayed;
     float height;
     float width;
     int idx;
@@ -160,10 +164,13 @@ private:
           if (!continueDialogue)
             interactable->active = false;
           selectedResponse = 0; // Reset selected response
+          responses = dialogue->getResponses();
+          loadResponseTextures();
         } else {
           // We've run out of responses, end the dialogue
           dialogue->active = false;
           interactable->active = false;
+          clean();
         }
         break;
       default:
@@ -206,7 +213,7 @@ private:
       rtex.height = messageDims.height;
       rtex.width = messageDims.width;
       rtex.idx = idx;
-      rtex.active = false;
+      rtex.displayed = false;
 
       responseTextures.push_back(rtex);
     }
@@ -217,12 +224,11 @@ private:
     if (selectedResponse == 0)
       scrollOffset = 0;
 
-    /*
-    if (!responseTextures[selectedResponse].active) {
+    if (!responseTextures[selectedResponse].displayed) {
       // This means that the message is *not* being displayed but is selected
       for (int idx = 0; idx < selectedResponse; idx++) {
         scrollOffset += responseTextures[selectedResponse].height;
       }
-    }*/
+    }
   }
 };
