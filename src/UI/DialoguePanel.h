@@ -3,9 +3,11 @@
 #include "../TextureManager.h"
 #include "IComponent.h"
 #include "PanelHelper.h"
+#include "SDL3/SDL_events.h"
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
+#include <algorithm>
 
 class DialoguePanel : public IComponent {
 public:
@@ -27,11 +29,26 @@ public:
 
       auto messageDims =
           TextureManager::GetMessageTextureDimensions(messageTex);
-      SDL_FRect dest = {textRect.x, textRect.y, messageDims.width,
-                        messageDims.height};
 
-      // TODO: clip text using a source rect to implement scrolling
-      SDL_RenderTexture(renderer, messageTex, NULL, &dest);
+      // Keep scroll offset within bounds so that we keep text visible
+      scrollOffset = std::max(scrollOffset, 0.0f);
+      scrollOffset = std::min(scrollOffset, messageDims.height - textRect.h);
+
+      // source rect used to clip the text based on offset
+      SDL_FRect dest;
+      SDL_FRect src;
+
+      if (messageDims.height > textRect.h) {
+        // scrolling is needed in this case
+        src = {0, scrollOffset, textRect.w, textRect.h};
+        dest = {textRect.x, textRect.y, textRect.w, textRect.h};
+      } else {
+        // message fits in window -- no scrolling
+        src = {0, 0, textRect.w, textRect.h};
+        dest = {textRect.x, textRect.y, messageDims.width, messageDims.height};
+      }
+
+      SDL_RenderTexture(renderer, messageTex, &src, &dest);
     }
   }
 
@@ -46,6 +63,21 @@ public:
         std::cout << "Begin dialogue" << std::endl;
       }
       dialogueLine = dialogue->getLine();
+
+      // Handle any scrolling
+      if (event.type == SDL_EVENT_KEY_DOWN) {
+        switch (event.key.key) {
+        case SDLK_S: // scroll down
+          scrollOffset += 5;
+          break;
+        case SDLK_W: // scroll up
+          scrollOffset -= 5;
+          break;
+        default:
+          break;
+        }
+        std::cout << "Scroll offset: " << scrollOffset << std::endl;
+      }
     } else
       show = false;
   }
@@ -64,4 +96,6 @@ private:
   std::string dialogueLine;
 
   std::unordered_map<std::string, MessageTexture> msgTextures;
+
+  float scrollOffset = 0;
 };
