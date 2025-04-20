@@ -71,28 +71,39 @@ public:
 
       handleDialogueSelect(event, dialogue, interactable);
       bool continueDialogue = false;
-      if (progressDialogue) {
-        progressDialogue = false;
+      if (state == PROGRESS) {
 
-        if (!newDialogue)
-          nextNodeId = getNextNode();
-        else
-          newDialogue = false;
-
+        nextNodeId = getNextNode();
         continueDialogue = dialogue->progressToNode(nextNodeId);
         if (!continueDialogue)
           interactable->active = false;
-
         selectedResponse = 0; // Reset selected response
-        responses = dialogue->getResponses();
-      }
 
-      if (responses.empty()) {
-        std::cout << "No respones!" << std::endl;
+        state = ACTIVE;
+      }
+      if (state == ACTIVE) {
+
+        nextNodeId = getNextNode();
+        responses = dialogue->getResponses();
+
+        if (responses.empty()) {
+          std::cout << "No respones!" << std::endl;
+          show = false;
+        } else {
+          loadResponseTextures();
+          show = true;
+        }
+      } else if (state == END) {
         show = false;
-      } else {
-        loadResponseTextures();
-        show = true;
+        interactable->active = false;
+        dialogue->active = false;
+
+        // Reset everything for new time
+        state = ACTIVE;
+        selectedResponse = 0;
+        nextNodeId = 0;
+        scrollOffset = 0;
+        clean();
       }
     } else {
       show = false;
@@ -103,8 +114,9 @@ public:
 
 private:
   bool show = false;
-  bool newDialogue = true;
-  bool progressDialogue = true;
+
+  enum DialogueState { ACTIVE, PROGRESS, END };
+  DialogueState state = ACTIVE;
 
   SDL_FRect borderRect;
   SDL_FRect innerRect;
@@ -171,20 +183,10 @@ private:
         break;
       case SDLK_RETURN:
         if (responses.size() > 0 && getNextNode() > 0) {
-          nextNodeId = getNextNode();
-          progressDialogue = true;
+          state = PROGRESS;
         } else {
           // We've run out of responses, end the dialogue
-          dialogue->active = false;
-          interactable->active = false;
-          show = false;
-
-          // Reset for our next interaction
-          newDialogue = true;
-          progressDialogue = true;
-          selectedResponse = 0;
-          nextNodeId = 0;
-          clean();
+          state = END;
         }
         break;
       default:
