@@ -68,21 +68,32 @@ public:
               Dialogue *dialogue) override {
     if (interactable != nullptr && interactable->active &&
         dialogue != nullptr && dialogue->active) {
-      if (responses.empty()) {
-        // check if there are new responses -- we only do this at the
-        // start of a new dialogue
+
+      handleDialogueSelect(event, dialogue, interactable);
+      bool continueDialogue = false;
+      if (progressDialogue) {
+        progressDialogue = false;
+
+        if (!newDialogue)
+          nextNodeId = getNextNode();
+        else
+          newDialogue = false;
+
+        continueDialogue = dialogue->progressToNode(nextNodeId);
+        if (!continueDialogue)
+          interactable->active = false;
+
+        selectedResponse = 0; // Reset selected response
         responses = dialogue->getResponses();
-        if (responses.empty()) {
-          std::cout << "No respones!" << std::endl;
-          show = false;
-        } else {
-          loadResponseTextures();
-          show = true;
-        }
+      }
+
+      if (responses.empty()) {
+        std::cout << "No respones!" << std::endl;
+        show = false;
       } else {
+        loadResponseTextures();
         show = true;
       }
-      handleDialogueSelect(event, dialogue, interactable);
     } else {
       show = false;
     }
@@ -92,6 +103,8 @@ public:
 
 private:
   bool show = false;
+  bool newDialogue = true;
+  bool progressDialogue = true;
 
   SDL_FRect borderRect;
   SDL_FRect innerRect;
@@ -140,7 +153,6 @@ private:
       return;
     }
 
-    bool continueDialogue = true;
     if (event.type == SDL_EVENT_KEY_DOWN) {
       switch (event.key.key) {
       case SDLK_DOWN:
@@ -148,28 +160,30 @@ private:
           selectedResponse = 0;
         else
           selectedResponse++;
-        calculateScrollOffset(DOWN);
+        setScrollOffset(DOWN);
         break;
       case SDLK_UP:
         if ((selectedResponse - 1) < 0)
           selectedResponse = responses.size() - 1;
         else
           selectedResponse--;
-        calculateScrollOffset(UP);
+        setScrollOffset(UP);
         break;
       case SDLK_RETURN:
-        if (responses.size() > 0) {
+        if (responses.size() > 0 && getNextNode() > 0) {
           nextNodeId = getNextNode();
-          continueDialogue = dialogue->progressToNode(nextNodeId);
-          if (!continueDialogue)
-            interactable->active = false;
-          selectedResponse = 0; // Reset selected response
-          responses = dialogue->getResponses();
-          loadResponseTextures();
+          progressDialogue = true;
         } else {
           // We've run out of responses, end the dialogue
           dialogue->active = false;
           interactable->active = false;
+          show = false;
+
+          // Reset for our next interaction
+          newDialogue = true;
+          progressDialogue = true;
+          selectedResponse = 0;
+          nextNodeId = 0;
           clean();
         }
         break;
@@ -219,7 +233,7 @@ private:
     }
   }
 
-  void calculateScrollOffset(Direction dir) {
+  void setScrollOffset(Direction dir) {
     // We can reset the scroll offset if we are at the first or last response
     if (selectedResponse == 0 || selectedResponse == responses.size() - 1) {
       scrollOffset = 0;
