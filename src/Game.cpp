@@ -6,6 +6,7 @@
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_render.h"
 #include "SDL3/SDL_video.h"
+#include "UI/UIManager.h"
 #include <filesystem>
 #include <iostream>
 #include <ostream>
@@ -114,17 +115,15 @@ void Game::handleEvents(SDL_Event *event) {
   // if any can be interacted with
   auto interactView = registry.view<Interactable>();
   Interactable *intObject = nullptr;
-  Dialogue *dialogue = nullptr;
   for (auto intEntity : interactView) {
     auto &interactable = interactView.get<Interactable>(intEntity);
     if (interactable.canInteract) {
       intObject = &interactable;
-      dialogue = registry.try_get<Dialogue>(intEntity);
       break; // only one object should be interactable at any one time
     }
   }
   controller.update(event, transform, sprite, intObject);
-  uiManager->update(*event, intObject, dialogue);
+  uiManager->handleEvents(*event);
 }
 
 void Game::updateCamera() {
@@ -164,6 +163,8 @@ void Game::update() {
 
   // Update all Interactable
   auto interactView = registry.view<Interactable, Transform>();
+  Interactable *intObject = nullptr;
+  Dialogue *dialogue = nullptr;
   for (auto entity : interactView) {
     auto &interact = interactView.get<Interactable>(entity);
     auto &transform = interactView.get<Transform>(entity);
@@ -171,6 +172,8 @@ void Game::update() {
     if (entity != player &&
         Collision::AABB(playerCollider.collider, interact.interactArea)) {
       interact.canInteract = true;
+      intObject = &interact;
+      dialogue = registry.try_get<Dialogue>(entity);
     } else {
       interact.canInteract = false;
     }
@@ -192,6 +195,7 @@ void Game::update() {
     map.update();
   }
 
+  uiManager->update(intObject, dialogue);
   updateCamera();
 }
 

@@ -64,17 +64,19 @@ public:
     }
   }
 
-  void update(const SDL_Event &event, Interactable *interactable,
-              Dialogue *dialogue) override {
+  void update(Interactable *interactable, Dialogue *dialogue) override {
     if (interactable != nullptr && interactable->active &&
         dialogue != nullptr && dialogue->active) {
 
-      handleDialogueSelect(event, dialogue, interactable);
-      bool continueDialogue = false;
-      if (state == PROGRESS) {
-
+      if (state == INACTIVE) {
+        // Reset vars to start new dialogue
+        state = ACTIVE;
+        selectedResponse = 0;
+        nextNodeId = 0;
+        scrollOffset = 0;
+      } else if (state == PROGRESS) {
         nextNodeId = getNextNode();
-        continueDialogue = dialogue->progressToNode(nextNodeId);
+        bool continueDialogue = dialogue->progressToNode(nextNodeId);
         if (!continueDialogue)
           interactable->active = false;
         selectedResponse = 0; // Reset selected response
@@ -82,12 +84,11 @@ public:
         state = ACTIVE;
       }
       if (state == ACTIVE) {
-
         nextNodeId = getNextNode();
         responses = dialogue->getResponses();
 
         if (responses.empty()) {
-          std::cout << "No respones!" << std::endl;
+          // std::cout << "No responses!" << std::endl;
           show = false;
         } else {
           loadResponseTextures();
@@ -97,16 +98,44 @@ public:
         show = false;
         interactable->active = false;
         dialogue->active = false;
-
-        // Reset everything for new time
-        state = ACTIVE;
-        selectedResponse = 0;
-        nextNodeId = 0;
-        scrollOffset = 0;
+        state = INACTIVE;
         clean();
       }
     } else {
       show = false;
+    }
+  }
+
+  void handleEvents(const SDL_Event &event) override {
+
+    // Dialogue selection events
+    if (state != INACTIVE && event.type == SDL_EVENT_KEY_DOWN) {
+      switch (event.key.key) {
+      case SDLK_DOWN:
+        if ((selectedResponse + 1) >= responses.size())
+          selectedResponse = 0;
+        else
+          selectedResponse++;
+        setScrollOffset(DOWN);
+        break;
+      case SDLK_UP:
+        if ((selectedResponse - 1) < 0)
+          selectedResponse = responses.size() - 1;
+        else
+          selectedResponse--;
+        setScrollOffset(UP);
+        break;
+      case SDLK_RETURN:
+        if (responses.size() > 0 && getNextNode() > 0) {
+          state = PROGRESS;
+        } else {
+          // We've run out of responses, end the dialogue
+          state = END;
+        }
+        break;
+      default:
+        break;
+      }
     }
   }
 
@@ -115,7 +144,7 @@ public:
 private:
   bool show = false;
 
-  enum DialogueState { ACTIVE, PROGRESS, END };
+  enum DialogueState { INACTIVE, ACTIVE, PROGRESS, END };
   DialogueState state = ACTIVE;
 
   SDL_FRect borderRect;
@@ -145,55 +174,6 @@ private:
   // variables for scroll offsetting
   float scrollOffset;
   enum Direction { UP, DOWN };
-
-  void handleDialogueSelect(const SDL_Event &event, Dialogue *dialogue,
-                            Interactable *interactable) {
-    if (dialogue == nullptr) {
-      std::cout << "No dialogue to select!" << std::endl;
-      return;
-    } else if (!dialogue->active) {
-      std::cout << "Dialogue not active!" << std::endl;
-      return;
-    } else if (interactable == nullptr) {
-      std::cout << "No interactable object!" << std::endl;
-      return;
-    } else if (!interactable->active) {
-      std::cout << "Interactable object not active!" << std::endl;
-      return;
-    } else if (selectedResponse < 0) {
-      std::cout << "No valid selected respoes!" << std::endl;
-      return;
-    }
-
-    if (event.type == SDL_EVENT_KEY_DOWN) {
-      switch (event.key.key) {
-      case SDLK_DOWN:
-        if ((selectedResponse + 1) >= responses.size())
-          selectedResponse = 0;
-        else
-          selectedResponse++;
-        setScrollOffset(DOWN);
-        break;
-      case SDLK_UP:
-        if ((selectedResponse - 1) < 0)
-          selectedResponse = responses.size() - 1;
-        else
-          selectedResponse--;
-        setScrollOffset(UP);
-        break;
-      case SDLK_RETURN:
-        if (responses.size() > 0 && getNextNode() > 0) {
-          state = PROGRESS;
-        } else {
-          // We've run out of responses, end the dialogue
-          state = END;
-        }
-        break;
-      default:
-        break;
-      }
-    }
-  }
 
   int getNextNode() {
     for (int idx = 0; idx < responses.size(); idx++) {

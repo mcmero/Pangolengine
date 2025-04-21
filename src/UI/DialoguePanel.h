@@ -52,8 +52,7 @@ public:
     }
   }
 
-  void update(const SDL_Event &event, Interactable *interactable,
-              Dialogue *dialogue) override {
+  void update(Interactable *interactable, Dialogue *dialogue) override {
     if (interactable != nullptr && interactable->active) {
       show = true;
 
@@ -63,23 +62,26 @@ public:
         std::cout << "Begin dialogue" << std::endl;
       }
       dialogueLine = dialogue->getLine();
-
-      // Handle any scrolling
-      if (event.type == SDL_EVENT_KEY_DOWN) {
-        switch (event.key.key) {
-        case SDLK_S: // scroll down
-          scrollOffset += 5;
-          break;
-        case SDLK_W: // scroll up
-          scrollOffset -= 5;
-          break;
-        default:
-          break;
-        }
-        std::cout << "Scroll offset: " << scrollOffset << std::endl;
-      }
     } else
       show = false;
+  }
+
+  void handleEvents(const SDL_Event &event) override {
+
+    // Handle panel scrolling
+    if (event.type == SDL_EVENT_KEY_DOWN) {
+      switch (event.key.key) {
+      case SDLK_S: // scroll down
+        scrollOffset += 5;
+        break;
+      case SDLK_W: // scroll up
+        scrollOffset -= 5;
+        break;
+      default:
+        break;
+      }
+      std::cout << "Scroll offset: " << scrollOffset << std::endl;
+    }
   }
 
 private:

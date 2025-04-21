@@ -27,10 +27,10 @@ public:
   ~UIManager() { grid.clean(); }
 
   void render(SDL_Renderer *renderer) { grid.render(renderer); }
-  void update(const SDL_Event &event, Interactable *interactable,
-              Dialogue *dialogue) {
-    grid.update(event, interactable, dialogue);
+  void update(Interactable *interactable, Dialogue *dialogue) {
+    grid.update(interactable, dialogue);
   };
+  void handleEvents(const SDL_Event &event) { grid.handleEvents(event); }
 
 private:
   Grid grid;
