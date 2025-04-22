@@ -25,8 +25,8 @@ public:
   void render(SDL_Renderer *renderer) override {
     if (show) {
       TextureManager::Panel(borderRect, innerRect, borderColour, innerColour);
-      SDL_Texture *messageTex = TextureManager::GetMessageTexture(
-          msgTextures, textRect, dialogueLine, pointsize, fontColour);
+      SDL_Texture *messageTex = TextureManager::LoadMessageTexture(
+          dialogueLine, pointsize, static_cast<int>(textRect.w), fontColour);
 
       auto messageDims =
           TextureManager::GetMessageTextureDimensions(messageTex);
@@ -102,8 +102,6 @@ private:
   SDL_Color fontColour;
   float pointsize;
   std::string dialogueLine;
-
-  std::unordered_map<std::string, MessageTexture> msgTextures;
 
   float scrollOffset = 0;
 };

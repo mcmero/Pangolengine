@@ -65,22 +65,6 @@ void TextureManager::Panel(SDL_FRect borderRect, SDL_FRect innerRect,
   SDL_RenderFillRect(Game::renderer, &innerRect);
 }
 
-SDL_Texture *TextureManager::GetMessageTexture(
-    std::unordered_map<std::string, MessageTexture> &msgTextures,
-    const SDL_FRect &textRect, const std::string &text, float pointsize,
-    SDL_Color colour) {
-  // TODO: change params from textRect to wraplength
-  // also include height for scrolling
-
-  SDL_Texture *texture = TextureManager::LoadMessageTexture(
-      static_cast<std::string_view>(text), pointsize,
-      static_cast<int>(textRect.w), colour);
-  msgTextures[text].tex = texture;
-  msgTextures[text].colour = colour;
-
-  return texture;
-}
-
 /**
  * Get message texture dimensions (width and height)
  */

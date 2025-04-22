@@ -35,10 +35,5 @@ public:
   static void Panel(SDL_FRect borderRect, SDL_FRect innerRect,
                     SDL_Color borderColour, SDL_Color innerColour);
 
-  static SDL_Texture *GetMessageTexture(
-      std::unordered_map<std::string, MessageTexture> &msgTextures,
-      const SDL_FRect &textRect, const std::string &text, float pointsize,
-      SDL_Color colour);
-
   static MessageDims GetMessageTextureDimensions(SDL_Texture *messageTex);
 };
