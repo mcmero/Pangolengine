@@ -36,6 +36,8 @@ public:
       show = false;
   }
 
+  void clean() override { SDL_DestroyTexture(portraitTex); }
+
 private:
   bool show = false;
 

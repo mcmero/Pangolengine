@@ -50,6 +50,7 @@ public:
       }
 
       SDL_RenderTexture(renderer, messageTex, &src, &dest);
+      SDL_DestroyTexture(messageTex); // Free texture
     }
   }
 

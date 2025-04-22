@@ -74,24 +74,32 @@ public:
         selectedResponse = 0;
         nextNodeId = 0;
         scrollOffset = 0;
+
+        responses = dialogue->getResponses();
+        clean(); // Clean before loading new textures
+        loadResponseTextures();
       } else if (state == PROGRESS) {
         nextNodeId = getNextNode();
         bool continueDialogue = dialogue->progressToNode(nextNodeId);
         if (!continueDialogue)
           interactable->active = false;
+
+        // Get responses
+        responses = dialogue->getResponses();
+        clean(); // Clean before loading new textures
+        loadResponseTextures();
+
         selectedResponse = 0; // Reset selected response
 
         state = ACTIVE;
       }
       if (state == ACTIVE) {
         nextNodeId = getNextNode();
-        responses = dialogue->getResponses();
 
         if (responses.empty()) {
           // std::cout << "No responses!" << std::endl;
           show = false;
         } else {
-          loadResponseTextures();
           show = true;
         }
       } else if (state == END) {
@@ -139,13 +147,25 @@ public:
     }
   }
 
-  void clean() override { responseTextures.clear(); }
+  void clean() override {
+    for (auto &responseTexture : responseTextures) {
+      if (responseTexture.activeTex) {
+        SDL_DestroyTexture(responseTexture.activeTex);
+        responseTexture.activeTex = nullptr;
+      }
+      if (responseTexture.inactiveTex) {
+        SDL_DestroyTexture(responseTexture.inactiveTex);
+        responseTexture.inactiveTex = nullptr;
+      }
+    }
+    responseTextures.clear();
+  }
 
 private:
   bool show = false;
 
   enum DialogueState { INACTIVE, ACTIVE, PROGRESS, END };
-  DialogueState state = ACTIVE;
+  DialogueState state = INACTIVE;
 
   SDL_FRect borderRect;
   SDL_FRect innerRect;
