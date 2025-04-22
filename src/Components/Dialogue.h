@@ -68,6 +68,14 @@ public:
     throw std::runtime_error("Current node is not valid.");
   }
 
+  std::string getSpeaker() {
+    DialogueNode *node = getNodeFromId(currentNode);
+    if (node != nullptr) {
+      return node->speaker;
+    }
+    throw std::runtime_error("Current node is not valid.");
+  }
+
   std::vector<Response> getResponses() {
     DialogueNode *node = getNodeFromId(currentNode);
     if (node != nullptr) {

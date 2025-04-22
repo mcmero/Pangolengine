@@ -8,6 +8,7 @@
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
 #include <algorithm>
+#include <sstream>
 
 class DialoguePanel : public IComponent {
 public:
@@ -61,7 +62,11 @@ public:
         dialogue->beginDialogue();
         std::cout << "Begin dialogue" << std::endl;
       }
-      dialogueLine = dialogue->getLine();
+
+      std::stringstream ss;
+      ss << dialogue->getSpeaker() << ": " << dialogue->getLine() << std::endl;
+      dialogueLine = ss.str();
+
     } else
       show = false;
   }
