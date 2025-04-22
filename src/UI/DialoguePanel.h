@@ -25,11 +25,6 @@ public:
   void render(SDL_Renderer *renderer) override {
     if (show) {
       TextureManager::Panel(borderRect, innerRect, borderColour, innerColour);
-      SDL_Texture *messageTex = TextureManager::LoadMessageTexture(
-          dialogueLine, pointsize, static_cast<int>(textRect.w), fontColour);
-
-      auto messageDims =
-          TextureManager::GetMessageTextureDimensions(messageTex);
 
       // Keep scroll offset within bounds so that we keep text visible
       scrollOffset = std::max(scrollOffset, 0.0f);
@@ -50,7 +45,6 @@ public:
       }
 
       SDL_RenderTexture(renderer, messageTex, &src, &dest);
-      SDL_DestroyTexture(messageTex); // Free texture
     }
   }
 
@@ -58,15 +52,30 @@ public:
     if (interactable != nullptr && interactable->active) {
       show = true;
 
+      // Begin dialogue if interact object is active
       if (!dialogue->active) {
         dialogue->active = true;
         dialogue->beginDialogue();
         std::cout << "Begin dialogue" << std::endl;
       }
 
-      std::stringstream ss;
-      ss << dialogue->getSpeaker() << ": " << dialogue->getLine() << std::endl;
-      dialogueLine = ss.str();
+      // Check if the line has changed
+      if (dialogue->getLine() != line) {
+        // Recreate message
+        std::stringstream ss;
+        ss << dialogue->getSpeaker() << ": " << dialogue->getLine()
+           << std::endl;
+        message = ss.str();
+
+        // Recreate texture
+        SDL_DestroyTexture(messageTex);
+        messageTex = TextureManager::LoadMessageTexture(
+            message, pointsize, static_cast<int>(textRect.w), fontColour);
+        messageDims = TextureManager::GetMessageTextureDimensions(messageTex);
+
+        // Update line
+        line = dialogue->getLine();
+      }
 
     } else
       show = false;
@@ -90,6 +99,8 @@ public:
     }
   }
 
+  void clean() override { SDL_DestroyTexture(messageTex); }
+
 private:
   bool show = false;
 
@@ -101,7 +112,11 @@ private:
   SDL_FRect textRect;
   SDL_Color fontColour;
   float pointsize;
-  std::string dialogueLine;
+
+  SDL_Texture *messageTex;
+  MessageDims messageDims;
+  std::string line;    // current line
+  std::string message; // message to print
 
   float scrollOffset = 0;
 };
