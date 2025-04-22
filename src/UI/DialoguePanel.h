@@ -75,6 +75,9 @@ public:
 
         // Update line
         line = dialogue->getLine();
+
+        // Reset scrolling
+        scrollOffset = 0;
       }
 
     } else
@@ -84,7 +87,7 @@ public:
   void handleEvents(const SDL_Event &event) override {
 
     // Handle panel scrolling
-    if (event.type == SDL_EVENT_KEY_DOWN) {
+    if (show && event.type == SDL_EVENT_KEY_DOWN) {
       switch (event.key.key) {
       case SDLK_S: // scroll down
         scrollOffset += 5;
