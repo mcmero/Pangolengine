@@ -9,6 +9,7 @@
 #include "SDL3/SDL_render.h"
 #include <algorithm>
 #include <sstream>
+#include <string>
 
 class DialoguePanel : public IComponent {
 public:
@@ -67,19 +68,32 @@ public:
            << std::endl;
         message = ss.str();
 
-        // Recreate texture
-        SDL_DestroyTexture(messageTex);
-        messageTex = TextureManager::LoadMessageTexture(
-            message, pointsize, static_cast<int>(textRect.w), fontColour);
-        messageDims = TextureManager::GetMessageTextureDimensions(messageTex);
-
         // Update line
         line = dialogue->getLine();
 
         // Reset scrolling
         scrollOffset = 0;
+
+        // Reset var for typewriter effect
+        messageIdx = 0;
+        finishedWriting = false;
       }
 
+      if (!finishedWriting) {
+        // Display only characters we are up to for typewriter effect
+        messageIdx++;
+        std::string currMessage = message.substr(0, messageIdx);
+
+        // Recreate texture
+        SDL_DestroyTexture(messageTex);
+        messageTex = TextureManager::LoadMessageTexture(
+            currMessage, pointsize, static_cast<int>(textRect.w), fontColour);
+        messageDims = TextureManager::GetMessageTextureDimensions(messageTex);
+
+        // Check if we've finished
+        if (messageIdx == message.size())
+          finishedWriting = true;
+      }
     } else
       show = false;
   }
@@ -122,4 +136,8 @@ private:
   std::string message; // message to print
 
   float scrollOffset = 0;
+
+  // for typewriter effect
+  int messageIdx = 0; // which letter of the message we are up to
+  bool finishedWriting = false;
 };

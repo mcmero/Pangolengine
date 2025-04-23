@@ -4,7 +4,6 @@
 #include "SDL3/SDL_rect.h"
 #include "SDL3_image/SDL_image.h"
 #include "SDL3_ttf/SDL_ttf.h"
-#include <unordered_map>
 
 fs::path TextureManager::fontPath = fs::path(SDL_GetBasePath()) / "assets" /
                                     "fonts" / "AtlantisInternational-jen0.ttf";
