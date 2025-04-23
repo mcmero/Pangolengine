@@ -23,6 +23,7 @@ public:
   std::vector<DialogueNode> dialogueTree = {};
   int currentNode = -1;
   bool active = false;
+  bool canRespond = false;
 
   Dialogue(const char *dialogueFile) {
     try {

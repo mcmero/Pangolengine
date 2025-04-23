@@ -67,6 +67,9 @@ public:
 
       // Check if the line has changed
       if (dialogue->getLine() != line) {
+        // Pause ability to respond until we finish writing
+        dialogue->canRespond = false;
+
         // Recreate message
         std::stringstream ss;
         ss << dialogue->getSpeaker() << ": " << dialogue->getLine()
@@ -96,8 +99,10 @@ public:
         messageDims = TextureManager::GetMessageTextureDimensions(messageTex);
 
         // Check if we've finished
-        if (messageIdx == message.size())
+        if (messageIdx == message.size()) {
           finishedWriting = true;
+          dialogue->canRespond = true;
+        }
       }
     } else
       show = false;

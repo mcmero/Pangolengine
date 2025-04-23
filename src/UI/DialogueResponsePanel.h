@@ -66,7 +66,7 @@ public:
 
   void update(Interactable *interactable, Dialogue *dialogue) override {
     if (interactable != nullptr && interactable->active &&
-        dialogue != nullptr && dialogue->active) {
+        dialogue != nullptr && dialogue->active && dialogue->canRespond) {
 
       if (state == INACTIVE) {
         // Reset vars to start new dialogue
@@ -79,6 +79,7 @@ public:
         clean(); // Clean before loading new textures
         loadResponseTextures();
       } else if (state == PROGRESS) {
+        // Fetch the next node and determine if dialogue progresses
         nextNodeId = getNextNode();
         bool continueDialogue = dialogue->progressToNode(nextNodeId);
         if (!continueDialogue)
@@ -89,19 +90,20 @@ public:
         clean(); // Clean before loading new textures
         loadResponseTextures();
 
-        selectedResponse = 0; // Reset selected response
+        // Reset selected response
+        selectedResponse = 0;
 
+        // State progreses to active
         state = ACTIVE;
       }
       if (state == ACTIVE) {
         nextNodeId = getNextNode();
 
-        if (responses.empty()) {
-          // std::cout << "No responses!" << std::endl;
+        if (responses.empty())
           show = false;
-        } else {
+        else
           show = true;
-        }
+
       } else if (state == END) {
         show = false;
         interactable->active = false;
@@ -115,7 +117,6 @@ public:
   }
 
   void handleEvents(const SDL_Event &event) override {
-
     // Dialogue selection events
     if (state != INACTIVE && event.type == SDL_EVENT_KEY_DOWN) {
       switch (event.key.key) {
