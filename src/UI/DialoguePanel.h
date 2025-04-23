@@ -28,8 +28,13 @@ public:
       TextureManager::Panel(borderRect, innerRect, borderColour, innerColour);
 
       // Keep scroll offset within bounds so that we keep text visible
-      scrollOffset = std::max(scrollOffset, 0.0f);
-      scrollOffset = std::min(scrollOffset, messageDims.height - textRect.h);
+      if (!finishedWriting) {
+        // Set max scroll offset if we haven't finished writing
+        scrollOffset = messageDims.height - textRect.h;
+      } else {
+        scrollOffset = std::max(scrollOffset, 0.0f);
+        scrollOffset = std::min(scrollOffset, messageDims.height - textRect.h);
+      }
 
       // source rect used to clip the text based on offset
       SDL_FRect dest;
@@ -101,7 +106,7 @@ public:
   void handleEvents(const SDL_Event &event) override {
 
     // Handle panel scrolling
-    if (show && event.type == SDL_EVENT_KEY_DOWN) {
+    if (show && finishedWriting && event.type == SDL_EVENT_KEY_DOWN) {
       switch (event.key.key) {
       case SDLK_S: // scroll down
         scrollOffset += 5;
