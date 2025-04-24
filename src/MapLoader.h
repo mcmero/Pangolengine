@@ -15,6 +15,14 @@ struct ColliderData {
   float ypos;
 };
 
+struct TransitionData {
+  std::string mapPath;
+  float width;
+  float height;
+  float xpos;
+  float ypos;
+};
+
 struct SpriteData {
   std::string texPath;
   float width;
@@ -30,6 +38,7 @@ struct MapData {
   std::string tilesetImg;
   std::vector<SpriteData> spriteVector;
   std::vector<ColliderData> colliderVector;
+  std::vector<TransitionData> transitionVector;
 };
 
 class MapLoader {
@@ -39,9 +48,12 @@ public:
   static MapData LoadMap(const char *mapFile,
                          std::string tileLayerName = "Tiles",
                          std::string spriteLayerName = "Sprites",
-                         std::string collisionLayerName = "Collision");
+                         std::string collisionLayerName = "Collision",
+                         std::string transitionLayerName = "Transition");
 
 private:
   static std::string getTilesetSource(int tilesetID, const json &mapDataJson);
   static fs::path getTilesetImageFile(const fs::path &tilesetFile);
+  static std::string getProperty(const json &object,
+                                 const std::string property);
 };

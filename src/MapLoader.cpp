@@ -8,57 +8,14 @@
 
 namespace fs = std::filesystem;
 
-fs::path MapLoader::getTilesetImageFile(const fs::path &tilsetFile) {
-  tinyxml2::XMLDocument doc;
-  tinyxml2::XMLError eResult = doc.LoadFile(tilsetFile.string().c_str());
-
-  if (eResult != tinyxml2::XML_SUCCESS) {
-    std::cerr << "Error loading XML file: " << eResult << std::endl;
-  }
-
-  tinyxml2::XMLNode *root = doc.FirstChildElement("tileset");
-  if (root == nullptr) {
-    std::cerr << "No root element found!" << std::endl;
-  }
-
-  tinyxml2::XMLElement *imageElement = root->FirstChildElement("image");
-  if (imageElement == nullptr) {
-    std::cerr << "No 'image' element found." << std::endl;
-  }
-
-  const char *imageSource = imageElement->Attribute("source");
-  if (imageSource == nullptr) {
-    std::cerr << "No 'source' attribute found in 'image' element." << std::endl;
-  }
-
-  return tilsetFile.parent_path() / fs::path(imageSource);
-}
-
-// Return the path to the tileset definition file given its ID value
-std::string MapLoader::getTilesetSource(int tilesetID,
-                                        const json &tilesetInfo) {
-  if (!tilesetInfo.contains("tilesets")) {
-    std::cerr << "No 'tilesets' key found." << std::endl;
-    return "";
-  }
-
-  for (const auto &tileset : tilesetInfo["tilesets"]) {
-    if (tileset.value("firstgid", -1) == tilesetID) {
-      return tileset.value("source", "");
-    }
-  }
-
-  std::cerr << "ID value not found in tileset definition." << std::endl;
-  return "";
-}
-
 MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
                            std::string spriteLayerName,
-                           std::string collisionLayerName) {
+                           std::string collisionLayerName,
+                           std::string transitionLayerName) {
   std::ifstream f(mapFile);
   MapData mapData;
   json mapDataJson = json::parse(f);
-  json tileDataJson, spriteDataJson, collisionDataJson;
+  json tileDataJson, spriteDataJson, collisionDataJson, transitionDataJson;
   json &layers = mapDataJson["layers"];
 
   // Find tile, sprite and collision layers by name
@@ -69,6 +26,8 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
       spriteDataJson = layers[i];
     } else if (layers[i]["name"] == collisionLayerName) {
       collisionDataJson = layers[i];
+    } else if (layers[i]["name"] == transitionLayerName) {
+      transitionDataJson = layers[i];
     }
   }
 
@@ -133,5 +92,80 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
     }
   }
 
+  // Load the transition data
+  if (transitionDataJson.size() == 0) {
+    std::cerr << "Transition layer not found." << std::endl;
+  } else {
+    for (auto object : transitionDataJson["objects"]) {
+      TransitionData transitionData;
+      transitionData.height = object["height"];
+      transitionData.width = object["width"];
+      transitionData.xpos = object["x"];
+      transitionData.ypos = object["y"];
+      transitionData.mapPath = MapLoader::getProperty(object, "map");
+      std::cout << "Map path: " << transitionData.mapPath << std::endl;
+      mapData.transitionVector.push_back(transitionData);
+    }
+  }
+
   return mapData;
+}
+
+fs::path MapLoader::getTilesetImageFile(const fs::path &tilsetFile) {
+  tinyxml2::XMLDocument doc;
+  tinyxml2::XMLError eResult = doc.LoadFile(tilsetFile.string().c_str());
+
+  if (eResult != tinyxml2::XML_SUCCESS) {
+    std::cerr << "Error loading XML file: " << eResult << std::endl;
+  }
+
+  tinyxml2::XMLNode *root = doc.FirstChildElement("tileset");
+  if (root == nullptr) {
+    std::cerr << "No root element found!" << std::endl;
+  }
+
+  tinyxml2::XMLElement *imageElement = root->FirstChildElement("image");
+  if (imageElement == nullptr) {
+    std::cerr << "No 'image' element found." << std::endl;
+  }
+
+  const char *imageSource = imageElement->Attribute("source");
+  if (imageSource == nullptr) {
+    std::cerr << "No 'source' attribute found in 'image' element." << std::endl;
+  }
+
+  return tilsetFile.parent_path() / fs::path(imageSource);
+}
+
+// Return the path to the tileset definition file given its ID value
+std::string MapLoader::getTilesetSource(int tilesetID,
+                                        const json &tilesetInfo) {
+  if (!tilesetInfo.contains("tilesets")) {
+    std::cerr << "No 'tilesets' key found." << std::endl;
+    return "";
+  }
+
+  for (const auto &tileset : tilesetInfo["tilesets"]) {
+    if (tileset.value("firstgid", -1) == tilesetID) {
+      return tileset.value("source", "");
+    }
+  }
+
+  std::cerr << "ID value not found in tileset definition." << std::endl;
+  return "";
+}
+
+std::string MapLoader::getProperty(const json &object,
+                                   const std::string property) {
+  if (object["properties"].size() == 0) {
+    std::cerr << "Properties field not found." << std::endl;
+    return "";
+  }
+  for (auto prop : object["properties"]) {
+    if (prop["name"] == property) {
+      return prop["value"];
+    }
+  }
+  std::cerr << "Property " << property << " not found." << std::endl;
+  return "";
 }

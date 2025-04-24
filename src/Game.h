@@ -37,4 +37,5 @@ private:
   static entt::entity npc;
   static std::vector<entt::entity> mapSprites;
   static std::vector<entt::entity> mapColliders;
+  static std::vector<entt::entity> mapTransitions;
 };

@@ -20,6 +20,7 @@ entt::entity Game::player = entt::null;
 entt::entity Game::npc = entt::null;
 std::vector<entt::entity> Game::mapSprites = {};
 std::vector<entt::entity> Game::mapColliders = {};
+std::vector<entt::entity> Game::mapTransitions = {};
 
 MapData Game::mapData;
 int Game::mapPixelHeight = 0;
@@ -80,6 +81,8 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   const entt::entity map = registry.create();
   registry.emplace<Map>(map, &mapData, mapData.tilesetImg.c_str(), TILE_SIZE);
 
+  // TODO: make these into template functions
+
   // Set up map sprites
   for (auto sprite : mapData.spriteVector) {
     entt::entity spriteEntity = registry.create();
@@ -98,6 +101,18 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
                                collider.width, collider.height);
     registry.emplace<Transform>(colliderEntity, collider.xpos, collider.ypos,
                                 collider.width, collider.height);
+  }
+
+  // Set up map transitions
+  for (auto transition : mapData.transitionVector) {
+    entt::entity transitionEntity = registry.create();
+    mapTransitions.push_back(transitionEntity);
+    registry.emplace<Collider>(transitionEntity, transition.xpos,
+                               transition.ypos, transition.width,
+                               transition.height);
+    registry.emplace<Transform>(transitionEntity, transition.xpos,
+                                transition.ypos, transition.width,
+                                transition.height);
   }
 
   // Set up the up the UI manager
@@ -140,7 +155,8 @@ void Game::updateCamera() {
 }
 
 void Game::update() {
-  // TODO: Fix player getting stuck on level geometry
+  // TODO: Right side of collision boxes doesn't look right
+  // TODO: Use templates
   // TODO: Fix jerky movement when moving towards a collision object
 
   // Get player collider and transform components
