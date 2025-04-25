@@ -107,12 +107,13 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   for (auto transition : mapData.transitionVector) {
     entt::entity transitionEntity = registry.create();
     mapTransitions.push_back(transitionEntity);
-    registry.emplace<Collider>(transitionEntity, transition.xpos,
-                               transition.ypos, transition.width,
-                               transition.height);
     registry.emplace<Transform>(transitionEntity, transition.xpos,
                                 transition.ypos, transition.width,
                                 transition.height);
+
+    auto &transform = registry.get<Transform>(transitionEntity);
+    registry.emplace<Transition>(transitionEntity, transform,
+                                 transition.mapPath);
   }
 
   // Set up the up the UI manager
@@ -155,7 +156,6 @@ void Game::updateCamera() {
 }
 
 void Game::update() {
-  // TODO: Right side of collision boxes doesn't look right
   // TODO: Use templates
   // TODO: Fix jerky movement when moving towards a collision object
 
@@ -175,6 +175,19 @@ void Game::update() {
       playerTransform.abortMove();
     }
     collider.update(transform);
+  }
+
+  // Update all transitions
+  auto transitionView = registry.view<Transition, Transform>();
+  for (auto entity : transitionView) {
+    auto &transition = transitionView.get<Transition>(entity);
+    auto &transform = transitionView.get<Transform>(entity);
+    transform.update();
+    if (Collision::AABB(playerCollider.collider, transition.collider)) {
+      std::cout << "Trigger transition!" << std::endl;
+      // transition triggers here
+    }
+    transition.update(transform);
   }
 
   // Update all Interactable

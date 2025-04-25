@@ -32,9 +32,11 @@ public:
 private:
   bool running;
   SDL_Window *window;
+
   entt::registry registry;
   static entt::entity player;
   static entt::entity npc;
+
   static std::vector<entt::entity> mapSprites;
   static std::vector<entt::entity> mapColliders;
   static std::vector<entt::entity> mapTransitions;
