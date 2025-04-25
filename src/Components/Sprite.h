@@ -19,8 +19,8 @@ public:
          Offset posOffset = {0, 0}, std::vector<Animation> anims = {}) {
     srcRect.x = 0;
     srcRect.y = 0;
-    srcRect.h = width;
-    srcRect.w = height;
+    srcRect.w = width;
+    srcRect.h = height;
 
     this->posOffset = posOffset;
 

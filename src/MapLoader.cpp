@@ -57,6 +57,8 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
     }
   }
 
+  // TODO: clean up/standardise these loading functions
+
   // Load sprite data
   if (spriteDataJson.size() == 0) {
     std::cerr << "Sprite layer not found." << std::endl;
