@@ -103,7 +103,6 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
       transitionData.xpos = object["x"];
       transitionData.ypos = object["y"];
       transitionData.mapPath = MapLoader::getProperty(object, "map");
-      std::cout << "Map path: " << transitionData.mapPath << std::endl;
       mapData.transitionVector.push_back(transitionData);
     }
   }

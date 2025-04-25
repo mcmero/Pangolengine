@@ -58,7 +58,7 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
                                         {"walk_side", 1, 4, 200},
                                         {"walk_back", 2, 4, 200}};
   registry.emplace<Sprite>(player, playerSpriteSheet.c_str(), PLAYER_WIDTH,
-                           PLAYER_HEIGHT, playerAnims);
+                           PLAYER_HEIGHT, Offset{8, 0}, playerAnims);
   registry.emplace<Transform>(player, 192.0f, 128.0f, 32.0f, 32.0f, true);
   registry.emplace<Collider>(player, 192.0f, 128.0f, 15.0f, 15.0f,
                              Offset{17, 17});
@@ -67,9 +67,9 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   // Set up NPCs
   npc = registry.create();
   registry.emplace<Sprite>(npc, npcSpriteSheet.c_str(), PLAYER_WIDTH,
-                           PLAYER_HEIGHT);
-  registry.emplace<Transform>(npc, 208.0f, 112.0f, 32.0f, 32.0f);
-  registry.emplace<Collider>(npc, 208.0f, 112.0f, 15.0f, 15.0f, Offset{17, 17});
+                           PLAYER_HEIGHT, Offset{8, 0});
+  registry.emplace<Transform>(npc, 208.0f, 192.0f, 32.0f, 32.0f);
+  registry.emplace<Collider>(npc, 208.0f, 192.0f, 15.0f, 15.0f, Offset{17, 17});
   registry.emplace<Interactable>(npc, 208.0f, 112.0f, 48.0f, 48.0f,
                                  Offset{-16, -16});
   registry.emplace<Dialogue>(npc, s001_dialogue.c_str());

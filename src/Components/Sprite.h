@@ -13,13 +13,16 @@
 class Sprite {
 public:
   SDL_FlipMode spriteFlip = SDL_FLIP_NONE;
+  Offset posOffset;
 
   Sprite(const char *texturePath, float width, float height,
-         std::vector<Animation> anims = {}) {
+         Offset posOffset = {0, 0}, std::vector<Animation> anims = {}) {
     srcRect.x = 0;
     srcRect.y = 0;
     srcRect.h = width;
     srcRect.w = height;
+
+    this->posOffset = posOffset;
 
     texture = TextureManager::LoadTexture(texturePath);
     animations = anims;
@@ -61,8 +64,8 @@ public:
 
     // update sprite position relative to camera ensuring sprite
     // remains on fixed position on the tile grid
-    destRect.x = float(transform.position.x - Camera::position.x);
-    destRect.y = float(transform.position.y - Camera::position.y);
+    destRect.x = float(transform.position.x + posOffset.x - Camera::position.x);
+    destRect.y = float(transform.position.y + posOffset.y - Camera::position.y);
     destRect.w = srcRect.w;
     destRect.h = srcRect.h;
   }

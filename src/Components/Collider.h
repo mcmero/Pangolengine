@@ -4,13 +4,6 @@
 #include "../TextureManager.h"
 #include "Transform.h"
 
-// Offset is used for the positioning of the component,
-// relative to its transform component
-struct Offset {
-  float x = 0;
-  float y = 0;
-};
-
 class Collider {
 public:
   SDL_FRect collider;

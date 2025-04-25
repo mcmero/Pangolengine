@@ -5,6 +5,13 @@
 #include <SDL3/SDL_stdinc.h>
 #include <iostream>
 
+// Offset is used for the positioning of the component,
+// relative to its transform component
+struct Offset {
+  float x = 0;
+  float y = 0;
+};
+
 class Transform {
 public:
   float width;
@@ -20,6 +27,8 @@ public:
 
   Transform() { position = Vector2D(); }
 
+  // TODO: we need to implement an offset so that the sprite sits flush with the
+  // tilemap
   Transform(float x, float y, float width, float height,
             bool isPlayer = false) {
     position = Vector2D(x, y);
