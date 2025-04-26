@@ -6,6 +6,7 @@
 #include <iostream>
 #include <ostream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 
 namespace fs = std::filesystem;
@@ -17,9 +18,10 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
   std::ifstream f(mapFile);
   if (!f.is_open()) {
     std::stringstream ss;
-    ss << "Failled to open map file: " << mapFile << std::endl;
+    ss << "Failed to open map file: " << mapFile << std::endl;
     throw std::runtime_error(ss.str());
   }
+
   MapData mapData;
   json mapDataJson = json::parse(f);
   json tileDataJson, spriteDataJson, collisionDataJson, transitionDataJson;
@@ -42,7 +44,7 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
 
   // Load tile map data
   if (tileDataJson.size() == 0) {
-    std::cerr << "Tile layer not found." << std::endl;
+    throw std::runtime_error("Map file must have a tile layer");
   } else {
     // Get image path for tile set
     int tilesetID = static_cast<int>(tileDataJson["id"]);
@@ -63,6 +65,18 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
         row.push_back(tileDataJson["data"][i * w + j]);
       }
       mapData.map.push_back(row);
+    }
+
+    try {
+      mapData.startPos.x =
+          MapLoader::getProperty<float>(tileDataJson, "startPos_x");
+      mapData.startPos.y =
+          MapLoader::getProperty<float>(tileDataJson, "startPos_y");
+    } catch (std::runtime_error e) {
+      std::cout << "Start pos could not be set from map, setting to 0,0."
+                << std::endl;
+      mapData.startPos.x = 0;
+      mapData.startPos.y = 0;
     }
   }
 
@@ -114,7 +128,8 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
       transitionData.xpos = object["x"];
       transitionData.ypos = object["y"];
       transitionData.mapPath =
-          (assetsPath / "maps" / MapLoader::getProperty(object, "map"))
+          (assetsPath / "maps" /
+           MapLoader::getProperty<std::string>(object, "map"))
               .string();
       mapData.transitionVector.push_back(transitionData);
     }
@@ -167,17 +182,28 @@ std::string MapLoader::getTilesetSource(int tilesetID,
   return "";
 }
 
-std::string MapLoader::getProperty(const json &object,
-                                   const std::string property) {
-  if (object["properties"].size() == 0) {
-    std::cerr << "Properties field not found." << std::endl;
-    return "";
+template <typename T>
+T MapLoader::getProperty(const json &object, const std::string &property) {
+  if (object.find("properties") == object.end() ||
+      object["properties"].size() == 0) {
+    throw std::runtime_error("Properties field not found.");
   }
-  for (auto prop : object["properties"]) {
+  for (const auto &prop : object["properties"]) {
     if (prop["name"] == property) {
-      return prop["value"];
+      // Check if type matches
+      const std::string type = prop["type"];
+      if constexpr (std::is_same_v<T, float>) {
+        if (type == "float")
+          return prop["value"].get<float>();
+      } else if constexpr (std::is_same_v<T, int>) {
+        if (type == "int")
+          return prop["value"].get<float>();
+      } else if constexpr (std::is_same_v<T, std::string>) {
+        if (type == "string")
+          return prop["value"].get<std::string>();
+      }
+      throw std::runtime_error("Property type mismatch or unsupported type.");
     }
   }
-  std::cerr << "Property " << property << " not found." << std::endl;
-  return "";
+  throw std::runtime_error("Property " + property + " not found.");
 }

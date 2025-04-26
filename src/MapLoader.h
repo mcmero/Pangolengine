@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Vector2D.h"
 #include <filesystem>
 #include <third_party/nlohmann/json.hpp>
 #include <vector>
@@ -35,6 +36,7 @@ struct MapData {
   std::vector<std::vector<int>> map;
   float height;
   float width;
+  Vector2D startPos;
   std::string tilesetImg;
   std::vector<SpriteData> spriteVector;
   std::vector<ColliderData> colliderVector;
@@ -54,6 +56,6 @@ public:
 private:
   static std::string getTilesetSource(int tilesetID, const json &mapDataJson);
   static fs::path getTilesetImageFile(const fs::path &tilesetFile);
-  static std::string getProperty(const json &object,
-                                 const std::string property);
+  template <typename T>
+  static T getProperty(const json &object, const std::string &property);
 };

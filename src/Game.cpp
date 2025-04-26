@@ -51,10 +51,8 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   std::string s001_dialogue =
       (assetsPath / "scenes" / "S001_Test.json").string();
 
-  // Set up player character
-  Game::loadPlayer();
-
   // Set up NPCs
+  // TODO: NPCs should be part of the map components?
   npc = registry.create();
   registry.emplace<Sprite>(npc, npcSpriteSheet.c_str(), PLAYER_WIDTH,
                            PLAYER_HEIGHT, Offset{8, 0});
@@ -66,6 +64,9 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
 
   // Set up map data
   Game::loadMap(level1Map);
+
+  // Set up player character
+  Game::loadPlayer();
 
   // Set up the up the UI manager
   uiManager = new UIManager();
@@ -148,6 +149,7 @@ void Game::update() {
   }
 
   // Update all sprites
+  // TODO: draw sprite order based on Y axis position
   auto spriteView = registry.view<Sprite, Transform>();
   for (auto entity : spriteView) {
     auto &sprite = spriteView.get<Sprite>(entity);
@@ -167,13 +169,23 @@ void Game::update() {
   for (auto entity : transitionView) {
     auto &transition = transitionView.get<Transition>(entity);
     auto &transform = transitionView.get<Transform>(entity);
+
     transform.update();
     transition.update(transform);
+
     if (Collision::AABB(playerCollider.collider, transition.collider)) {
       std::cout << "Trigger transition!" << std::endl;
       std::string mapPath = transition.mapPath;
+
       Game::unloadMap();
       Game::loadMap(mapPath);
+
+      // TODO: set player position to startPos on new map
+      // we will however need to reset more than just the
+      // following:
+      // playerTransform.position.x = mapData.startPos.x;
+      // playerTransform.position.y = mapData.startPos.y;
+
       break;
     }
   }
@@ -216,7 +228,6 @@ void Game::clean() {
 }
 
 void Game::unloadMap() {
-  // Clear map sprites
   clearEntities(mapSprites);
   clearEntities(mapColliders);
   clearEntities(mapTransitions);
@@ -248,9 +259,10 @@ void Game::loadPlayer() {
                                         {"walk_back", 2, 4, 200}};
   registry.emplace<Sprite>(player, playerSpriteSheet.c_str(), PLAYER_WIDTH,
                            PLAYER_HEIGHT, Offset{8, 0}, playerAnims);
-  registry.emplace<Transform>(player, 160.0f, 128.0f, 32.0f, 32.0f, true);
-  registry.emplace<Collider>(player, 160.0f, 128.0f, 15.0f, 15.0f,
-                             Offset{17, 17});
+  registry.emplace<Transform>(player, mapData.startPos.x, mapData.startPos.y,
+                              32.0f, 32.0f, true);
+  registry.emplace<Collider>(player, mapData.startPos.x, mapData.startPos.y,
+                             15.0f, 15.0f, Offset{17, 17});
   registry.emplace<KeyboardController>(player);
 }
 

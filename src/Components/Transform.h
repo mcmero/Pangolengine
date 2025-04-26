@@ -27,8 +27,6 @@ public:
 
   Transform() { position = Vector2D(); }
 
-  // TODO: we need to implement an offset so that the sprite sits flush with the
-  // tilemap
   Transform(float x, float y, float width, float height,
             bool isPlayer = false) {
     position = Vector2D(x, y);
