@@ -14,6 +14,7 @@ public:
     collider.y = transform.position.y;
     collider.w = transform.width;
     collider.h = transform.height;
+    this->mapPath = mapPath;
   }
 
   void update(Transform &transform) {

@@ -18,6 +18,8 @@ SDL_Event Game::event;
 
 entt::entity Game::player = entt::null;
 entt::entity Game::npc = entt::null;
+entt::entity Game::map = entt::null;
+
 std::vector<entt::entity> Game::mapSprites = {};
 std::vector<entt::entity> Game::mapColliders = {};
 std::vector<entt::entity> Game::mapTransitions = {};
@@ -50,19 +52,7 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
       (assetsPath / "scenes" / "S001_Test.json").string();
 
   // Set up player character
-  player = registry.create();
-  // TODO: the animation is a bit jerky when walking -- can it be fixed by
-  // animation speed?
-  // TODO: initialise collision component using transform values
-  std::vector<Animation> playerAnims = {{"walk_front", 0, 4, 200},
-                                        {"walk_side", 1, 4, 200},
-                                        {"walk_back", 2, 4, 200}};
-  registry.emplace<Sprite>(player, playerSpriteSheet.c_str(), PLAYER_WIDTH,
-                           PLAYER_HEIGHT, Offset{8, 0}, playerAnims);
-  registry.emplace<Transform>(player, 160.0f, 128.0f, 32.0f, 32.0f, true);
-  registry.emplace<Collider>(player, 160.0f, 128.0f, 15.0f, 15.0f,
-                             Offset{17, 17});
-  registry.emplace<KeyboardController>(player);
+  Game::loadPlayer();
 
   // Set up NPCs
   npc = registry.create();
@@ -75,46 +65,7 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   registry.emplace<Dialogue>(npc, s001_dialogue.c_str());
 
   // Set up map data
-  mapData = MapLoader::LoadMap(level1Map.c_str());
-  mapPixelHeight = static_cast<int>(mapData.height) * TILE_SIZE;
-  mapPixelWidth = static_cast<int>(mapData.width) * TILE_SIZE;
-  const entt::entity map = registry.create();
-  registry.emplace<Map>(map, &mapData, mapData.tilesetImg.c_str(), TILE_SIZE);
-
-  // TODO: make these into template functions
-
-  // Set up map sprites
-  for (auto sprite : mapData.spriteVector) {
-    entt::entity spriteEntity = registry.create();
-    mapSprites.push_back(spriteEntity);
-    registry.emplace<Sprite>(spriteEntity, sprite.texPath.c_str(), sprite.width,
-                             sprite.height);
-    registry.emplace<Transform>(spriteEntity, sprite.xpos, sprite.ypos,
-                                sprite.width, sprite.height);
-  }
-
-  // Set up map colliders
-  for (auto collider : mapData.colliderVector) {
-    entt::entity colliderEntity = registry.create();
-    mapColliders.push_back(colliderEntity);
-    registry.emplace<Collider>(colliderEntity, collider.xpos, collider.ypos,
-                               collider.width, collider.height);
-    registry.emplace<Transform>(colliderEntity, collider.xpos, collider.ypos,
-                                collider.width, collider.height);
-  }
-
-  // Set up map transitions
-  for (auto transition : mapData.transitionVector) {
-    entt::entity transitionEntity = registry.create();
-    mapTransitions.push_back(transitionEntity);
-    registry.emplace<Transform>(transitionEntity, transition.xpos,
-                                transition.ypos, transition.width,
-                                transition.height);
-
-    auto &transform = registry.get<Transform>(transitionEntity);
-    registry.emplace<Transition>(transitionEntity, transform,
-                                 transition.mapPath);
-  }
+  Game::loadMap(level1Map);
 
   // Set up the up the UI manager
   uiManager = new UIManager();
@@ -177,19 +128,6 @@ void Game::update() {
     collider.update(transform);
   }
 
-  // Update all transitions
-  auto transitionView = registry.view<Transition, Transform>();
-  for (auto entity : transitionView) {
-    auto &transition = transitionView.get<Transition>(entity);
-    auto &transform = transitionView.get<Transform>(entity);
-    transform.update();
-    if (Collision::AABB(playerCollider.collider, transition.collider)) {
-      std::cout << "Trigger transition!" << std::endl;
-      // transition triggers here
-    }
-    transition.update(transform);
-  }
-
   // Update all Interactable
   auto interactView = registry.view<Interactable, Transform>();
   Interactable *intObject = nullptr;
@@ -224,6 +162,22 @@ void Game::update() {
     map.update();
   }
 
+  // Update all transitions
+  auto transitionView = registry.view<Transition, Transform>();
+  for (auto entity : transitionView) {
+    auto &transition = transitionView.get<Transition>(entity);
+    auto &transform = transitionView.get<Transform>(entity);
+    transform.update();
+    transition.update(transform);
+    if (Collision::AABB(playerCollider.collider, transition.collider)) {
+      std::cout << "Trigger transition!" << std::endl;
+      std::string mapPath = transition.mapPath;
+      Game::unloadMap();
+      Game::loadMap(mapPath);
+      break;
+    }
+  }
+
   uiManager->update(intObject, dialogue);
   updateCamera();
 }
@@ -251,22 +205,96 @@ void Game::render() {
 }
 
 void Game::clean() {
-  // Clean up sprites
-  auto view = registry.view<Sprite>();
-  for (auto entity : view) {
-    auto &sprite = view.get<Sprite>(entity);
-    sprite.clean();
-  }
-  // Clean up maps
-  auto mapView = registry.view<Map>();
-  for (auto mapEntity : mapView) {
-    auto &map = mapView.get<Map>(mapEntity);
-    map.clean();
-  }
+  Game::unloadMap();
+
   registry.clear();
 
   delete uiManager;
 
   // No need to destroy window and renderer as they are managed outside
   SDL_Quit();
+}
+
+void Game::unloadMap() {
+  // Clear map sprites
+  clearEntities(mapSprites);
+  clearEntities(mapColliders);
+  clearEntities(mapTransitions);
+
+  if (registry.valid(map)) {
+    registry.destroy(map);
+  }
+}
+
+template <typename T> void Game::clearEntities(std::vector<T> entityVector) {
+  for (auto entity : entityVector) {
+    if (registry.valid(entity)) {
+      registry.destroy(entity);
+    }
+  }
+  entityVector.clear();
+}
+
+void Game::loadPlayer() {
+  player = registry.create();
+  // TODO: the animation is a bit jerky when walking -- can it be fixed by
+  // animation speed?
+  // TODO: initialise collision component using transform values
+  fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
+  std::string playerSpriteSheet =
+      (assetsPath / "characters" / "player_anim.png").string();
+  std::vector<Animation> playerAnims = {{"walk_front", 0, 4, 200},
+                                        {"walk_side", 1, 4, 200},
+                                        {"walk_back", 2, 4, 200}};
+  registry.emplace<Sprite>(player, playerSpriteSheet.c_str(), PLAYER_WIDTH,
+                           PLAYER_HEIGHT, Offset{8, 0}, playerAnims);
+  registry.emplace<Transform>(player, 160.0f, 128.0f, 32.0f, 32.0f, true);
+  registry.emplace<Collider>(player, 160.0f, 128.0f, 15.0f, 15.0f,
+                             Offset{17, 17});
+  registry.emplace<KeyboardController>(player);
+}
+
+void Game::loadMap(std::string mapPath) {
+  // Get map data
+  mapData = MapLoader::LoadMap(mapPath.c_str());
+  mapPixelHeight = static_cast<int>(mapData.height) * TILE_SIZE;
+  mapPixelWidth = static_cast<int>(mapData.width) * TILE_SIZE;
+
+  map = registry.create();
+  registry.emplace<Map>(map, &mapData, mapData.tilesetImg.c_str(), TILE_SIZE);
+
+  // TODO: make these into template functions
+
+  // Set up map sprites
+  for (auto sprite : mapData.spriteVector) {
+    entt::entity spriteEntity = registry.create();
+    mapSprites.push_back(spriteEntity);
+    registry.emplace<Sprite>(spriteEntity, sprite.texPath.c_str(), sprite.width,
+                             sprite.height);
+    registry.emplace<Transform>(spriteEntity, sprite.xpos, sprite.ypos,
+                                sprite.width, sprite.height);
+  }
+
+  // Set up map colliders
+  for (auto collider : mapData.colliderVector) {
+    entt::entity colliderEntity = registry.create();
+    mapColliders.push_back(colliderEntity);
+    registry.emplace<Collider>(colliderEntity, collider.xpos, collider.ypos,
+                               collider.width, collider.height);
+    registry.emplace<Transform>(colliderEntity, collider.xpos, collider.ypos,
+                                collider.width, collider.height);
+  }
+
+  // Set up map transitions
+  for (auto transition : mapData.transitionVector) {
+    entt::entity transitionEntity = registry.create();
+    mapTransitions.push_back(transitionEntity);
+    registry.emplace<Transform>(transitionEntity, transition.xpos,
+                                transition.ypos, transition.width,
+                                transition.height);
+
+    auto &transform = registry.get<Transform>(transitionEntity);
+    registry.emplace<Transition>(transitionEntity, transform,
+                                 transition.mapPath);
+  }
 }

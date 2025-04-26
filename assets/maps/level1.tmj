@@ -113,7 +113,7 @@
                 }],
          "opacity":0.9,
          "type":"objectgroup",
-         "visible":false,
+         "visible":true,
          "x":0,
          "y":0
         }],

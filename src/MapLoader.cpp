@@ -1,9 +1,11 @@
 #include "MapLoader.h"
+#include "SDL3/SDL_filesystem.h"
 #include "third_party/tinyxml2/tinyxml2.h"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <ostream>
+#include <sstream>
 #include <string>
 
 namespace fs = std::filesystem;
@@ -13,10 +15,17 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
                            std::string collisionLayerName,
                            std::string transitionLayerName) {
   std::ifstream f(mapFile);
+  if (!f.is_open()) {
+    std::stringstream ss;
+    ss << "Failled to open map file: " << mapFile << std::endl;
+    throw std::runtime_error(ss.str());
+  }
   MapData mapData;
   json mapDataJson = json::parse(f);
   json tileDataJson, spriteDataJson, collisionDataJson, transitionDataJson;
   json &layers = mapDataJson["layers"];
+
+  fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
 
   // Find tile, sprite and collision layers by name
   for (int i = 0; i < layers.size(); i++) {
@@ -104,7 +113,9 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
       transitionData.width = object["width"];
       transitionData.xpos = object["x"];
       transitionData.ypos = object["y"];
-      transitionData.mapPath = MapLoader::getProperty(object, "map");
+      transitionData.mapPath =
+          (assetsPath / "maps" / MapLoader::getProperty(object, "map"))
+              .string();
       mapData.transitionVector.push_back(transitionData);
     }
   }

@@ -36,8 +36,15 @@ private:
   entt::registry registry;
   static entt::entity player;
   static entt::entity npc;
+  static entt::entity map;
 
   static std::vector<entt::entity> mapSprites;
   static std::vector<entt::entity> mapColliders;
   static std::vector<entt::entity> mapTransitions;
+
+  void loadPlayer();
+  void unloadMap();
+  void loadMap(const std::string mapPath);
+
+  template <typename T> void clearEntities(std::vector<T> entityVector);
 };
