@@ -180,11 +180,12 @@ void Game::update() {
       Game::unloadMap();
       Game::loadMap(mapPath);
 
-      // TODO: set player position to startPos on new map
-      // we will however need to reset more than just the
-      // following:
-      // playerTransform.position.x = mapData.startPos.x;
-      // playerTransform.position.y = mapData.startPos.y;
+      // Replace transform and collider components on the player to reset
+      // position
+      registry.replace<Transform>(player, mapData.startPos.x,
+                                  mapData.startPos.y, 32.0f, 32.0f, true);
+      registry.replace<Collider>(player, mapData.startPos.x, mapData.startPos.y,
+                                 15.0f, 15.0f, Offset{17, 17});
 
       break;
     }
