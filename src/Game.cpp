@@ -282,8 +282,8 @@ void Game::loadMap(std::string mapPath) {
   for (auto sprite : mapData.spriteVector) {
     entt::entity spriteEntity = registry.create();
     mapSprites.push_back(spriteEntity);
-    registry.emplace<Sprite>(spriteEntity, sprite.texPath.c_str(), sprite.width,
-                             sprite.height);
+    registry.emplace<Sprite>(spriteEntity, sprite.filePath.c_str(),
+                             sprite.width, sprite.height);
     registry.emplace<Transform>(spriteEntity, sprite.xpos, sprite.ypos,
                                 sprite.width, sprite.height);
   }
@@ -308,6 +308,6 @@ void Game::loadMap(std::string mapPath) {
 
     auto &transform = registry.get<Transform>(transitionEntity);
     registry.emplace<Transition>(transitionEntity, transform,
-                                 transition.mapPath);
+                                 transition.filePath);
   }
 }

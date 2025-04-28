@@ -9,23 +9,8 @@ namespace fs = std::filesystem;
 
 using namespace nlohmann;
 
-struct ColliderData {
-  float width;
-  float height;
-  float xpos;
-  float ypos;
-};
-
-struct TransitionData {
-  std::string mapPath;
-  float width;
-  float height;
-  float xpos;
-  float ypos;
-};
-
-struct SpriteData {
-  std::string texPath;
+struct MapObject {
+  std::string filePath;
   float width;
   float height;
   float xpos;
@@ -38,9 +23,9 @@ struct MapData {
   float width;
   Vector2D startPos;
   std::string tilesetImg;
-  std::vector<SpriteData> spriteVector;
-  std::vector<ColliderData> colliderVector;
-  std::vector<TransitionData> transitionVector;
+  std::vector<MapObject> spriteVector;
+  std::vector<MapObject> colliderVector;
+  std::vector<MapObject> transitionVector;
 };
 
 class MapLoader {
@@ -54,8 +39,17 @@ public:
                          std::string transitionLayerName = "Transition");
 
 private:
+  enum PropertyType { TILE, SPRITE, COLLISION, TRANSITION };
+
   static std::string getTilesetSource(int tilesetID, const json &mapDataJson);
+
   static fs::path getTilesetImageFile(const fs::path &tilesetFile);
+
+  static std::vector<MapObject> loadMapObjects(json &mapDataJson,
+                                               std::string layerName,
+                                               PropertyType propertyType,
+                                               fs::path mapDir);
+
   template <typename T>
   static T getProperty(const json &object, const std::string &property);
 };
