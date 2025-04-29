@@ -24,12 +24,13 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
   }
 
   MapData mapData;
+  fs::path mapDir = fs::path(mapFile).parent_path();
   json mapDataJson = json::parse(f);
   json tileDataJson, spriteObjectJson, collisionDataJson, transitionDataJson;
 
   json &layers = mapDataJson["layers"];
 
-  // Find tile, sprite and collision layers by name
+  // Find tile layer
   for (int i = 0; i < layers.size(); i++) {
     if (layers[i]["name"] == tileLayerName) {
       tileDataJson = layers[i];
@@ -44,7 +45,7 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
     int tilesetID = static_cast<int>(tileDataJson["id"]);
     fs::path tilesetFile =
         fs::path(MapLoader::getTilesetSource(tilesetID, mapDataJson));
-    tilesetFile = fs::path(mapFile).parent_path() / tilesetFile;
+    tilesetFile = mapDir / tilesetFile;
     fs::path tilesetImgPath = MapLoader::getTilesetImageFile(tilesetFile);
     mapData.tilesetImg = fs::canonical(tilesetImgPath).string();
 
@@ -75,7 +76,6 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
     }
   }
 
-  fs::path mapDir = fs::path(mapFile).parent_path();
   mapData.spriteVector =
       MapLoader::loadMapObjects(mapDataJson, spriteLayerName, SPRITE, mapDir);
   mapData.colliderVector = MapLoader::loadMapObjects(
@@ -86,11 +86,54 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
   return mapData;
 }
 
+void MapLoader::processSpriteObject(MapObject &mapObject, const json &object,
+                                    const json &mapDataJson,
+                                    const fs::path &mapDir) {
+  // Correct y coord to top-left corner as Tiled uses bottom-left
+  mapObject.ypos -= mapObject.height;
+
+  // Get path to texture for sprite object
+  int spritesetID = static_cast<int>(object["gid"]);
+  auto spritesetFile =
+      mapDir / MapLoader::getTilesetSource(spritesetID, mapDataJson);
+  auto spritesetTex = MapLoader::getTilesetImageFile(spritesetFile);
+  mapObject.filePath = fs::canonical(spritesetTex).string();
+}
+
+void MapLoader::processTransitionObject(MapObject &mapObject,
+                                        const json &object) {
+  fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
+  mapObject.filePath =
+      (assetsPath / "maps" / MapLoader::getProperty<std::string>(object, "map"))
+          .string();
+}
+
+MapObject MapLoader::loadObject(const json &object, const json &mapDataJson,
+                                const fs::path &mapDir,
+                                PropertyType propertyType) {
+  MapObject mapObject;
+  mapObject.height = object.value("height", 0);
+  mapObject.width = object.value("width", 0);
+  mapObject.xpos = object.value("x", 0);
+  mapObject.ypos = object.value("y", 0);
+
+  switch (propertyType) {
+  case SPRITE:
+    processSpriteObject(mapObject, object, mapDataJson, mapDir);
+    break;
+  case TRANSITION:
+    processTransitionObject(mapObject, object);
+    break;
+  default:
+    break;
+  }
+  return mapObject;
+}
+
 std::vector<MapObject> MapLoader::loadMapObjects(json &mapDataJson,
                                                  std::string layerName,
                                                  PropertyType propertyType,
                                                  fs::path mapDir) {
-  // Get layer data
   json objectDataJson;
   json &layers = mapDataJson["layers"];
   for (int i = 0; i < layers.size(); i++) {
@@ -104,37 +147,11 @@ std::vector<MapObject> MapLoader::loadMapObjects(json &mapDataJson,
     return mapObjects;
   }
 
-  for (auto object : objectDataJson["objects"]) {
-    MapObject mapObject;
-    mapObject.height = object["height"];
-    mapObject.width = object["width"];
-    mapObject.xpos = object["x"];
-    mapObject.ypos = object["y"];
-
-    switch (propertyType) {
-    case SPRITE: {
-      int spritesetID = static_cast<int>(object["gid"]);
-      fs::path spritesetFile =
-          fs::path(MapLoader::getTilesetSource(spritesetID, mapDataJson));
-      spritesetFile = mapDir / spritesetFile;
-      fs::path spritesetTex = MapLoader::getTilesetImageFile(spritesetFile);
-      mapObject.ypos = mapObject.ypos - mapObject.height; // correct y coord
-      mapObject.filePath = fs::canonical(spritesetTex).string();
-      break;
-    }
-    case TRANSITION: {
-
-      fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
-      mapObject.filePath = (assetsPath / "maps" /
-                            MapLoader::getProperty<std::string>(object, "map"))
-                               .string();
-      break;
-    }
-    default:
-      break;
-    }
+  for (const auto &object : objectDataJson["objects"]) {
+    MapObject mapObject = loadObject(object, mapDataJson, mapDir, propertyType);
     mapObjects.push_back(mapObject);
   }
+
   return mapObjects;
 }
 

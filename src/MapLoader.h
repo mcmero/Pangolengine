@@ -45,11 +45,24 @@ private:
 
   static fs::path getTilesetImageFile(const fs::path &tilesetFile);
 
+  static void processTileObject(MapObject &mapObject, const json &object,
+                                const json &mapDataJson,
+                                const fs::path &mapDir);
+
+  static void processSpriteObject(MapObject &mapObject, const json &object,
+                                  const json &mapDataJson,
+                                  const fs::path &mapDir);
+
+  static void processTransitionObject(MapObject &mapObject, const json &object);
+
+  static MapObject loadObject(const json &object, const json &mapDataJson,
+                              const fs::path &mapDir,
+                              PropertyType propertyType);
+
   static std::vector<MapObject> loadMapObjects(json &mapDataJson,
                                                std::string layerName,
                                                PropertyType propertyType,
                                                fs::path mapDir);
-
   template <typename T>
   static T getProperty(const json &object, const std::string &property);
 };
