@@ -42,5 +42,5 @@ private:
 
   fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
   std::string npcPortrait =
-      (assetsPath / "portraits" / "npc_portrait.png").string();
+      (assetsPath / "textures" / "npc_portrait.png").string();
 };

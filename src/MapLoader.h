@@ -3,6 +3,7 @@
 #include "Vector2D.h"
 #include <filesystem>
 #include <third_party/nlohmann/json.hpp>
+#include <unordered_map>
 #include <vector>
 
 namespace fs = std::filesystem;
@@ -43,26 +44,30 @@ private:
 
   static std::string getTilesetSource(int tilesetID, const json &mapDataJson);
 
-  static fs::path getTilesetImageFile(const fs::path &tilesetFile);
-
   static void processTileObject(MapObject &mapObject, const json &object,
                                 const json &mapDataJson,
                                 const fs::path &mapDir);
 
-  static void processSpriteObject(MapObject &mapObject, const json &object,
-                                  const json &mapDataJson,
-                                  const fs::path &mapDir);
+  static void
+  processSpriteObject(MapObject &mapObject, const json &object,
+                      const json &mapDataJson, const fs::path &mapDir,
+                      const std::unordered_map<int, std::string> &gidTextures);
 
   static void processTransitionObject(MapObject &mapObject, const json &object);
 
-  static MapObject loadObject(const json &object, const json &mapDataJson,
-                              const fs::path &mapDir,
-                              PropertyType propertyType);
+  static MapObject
+  loadObject(const json &object, const json &mapDataJson,
+             const fs::path &mapDir, PropertyType propertyType,
+             const std::unordered_map<int, std::string> &gidTextures);
 
-  static std::vector<MapObject> loadMapObjects(json &mapDataJson,
-                                               std::string layerName,
-                                               PropertyType propertyType,
-                                               fs::path mapDir);
+  static std::vector<MapObject>
+  loadMapObjects(json &mapDataJson, std::string layerName,
+                 PropertyType propertyType, fs::path mapDir,
+                 const std::unordered_map<int, std::string> &gidTextures);
+
+  static void
+  addGidTexturesFromTileset(std::unordered_map<int, std::string> &gidTextures,
+                            const fs::path &tilesetFile, int firstGid);
   template <typename T>
   static T getProperty(const json &object, const std::string &property);
 };

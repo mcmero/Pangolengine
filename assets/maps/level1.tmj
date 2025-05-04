@@ -50,16 +50,28 @@
          "name":"Sprites",
          "objects":[
                 {
-                 "gid":5,
+                 "gid":6,
+                 "height":32,
+                 "id":26,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":32,
+                 "x":199.666666666667,
+                 "y":160.666666666667
+                }, 
+                {
+                 "gid":7,
                  "height":180,
-                 "id":22,
+                 "id":27,
                  "name":"",
                  "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":160,
-                 "x":165,
-                 "y":180
+                 "x":165.666666666667,
+                 "y":181
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -129,7 +141,7 @@
          "y":0
         }],
  "nextlayerid":6,
- "nextobjectid":23,
+ "nextobjectid":30,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.0",
@@ -142,6 +154,10 @@
         {
          "firstgid":5,
          "source":"..\/tilesets\/SpritesheetBuilding.tsx"
+        }, 
+        {
+         "firstgid":6,
+         "source":"..\/tilesets\/Objects.tsx"
         }],
  "tilewidth":16,
  "type":"map",

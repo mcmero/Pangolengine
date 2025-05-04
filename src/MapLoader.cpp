@@ -9,6 +9,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 
 namespace fs = std::filesystem;
 
@@ -26,9 +27,28 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
   MapData mapData;
   fs::path mapDir = fs::path(mapFile).parent_path();
   json mapDataJson = json::parse(f);
-  json tileDataJson, spriteObjectJson, collisionDataJson, transitionDataJson;
-
+  json tileDataJson;
   json &layers = mapDataJson["layers"];
+
+  // Map where index = global ID and string = texture path
+  std::unordered_map<int, std::string> gidTextures = {};
+
+  // We need at least one tileset, otherwise the map has no textures...
+  if (!mapDataJson.contains("tilesets")) {
+    throw std::runtime_error("No tilesets found!");
+  }
+
+  // Build global ID to texture lookup
+  for (const auto &tileset : mapDataJson["tilesets"]) {
+    int gid = tileset.value("firstgid", -1);
+    if (gid < 0)
+      continue;
+
+    fs::path tilesetFile =
+        fs::path(MapLoader::getTilesetSource(gid, mapDataJson));
+    tilesetFile = mapDir / tilesetFile;
+    MapLoader::addGidTexturesFromTileset(gidTextures, tilesetFile, gid);
+  }
 
   // Find tile layer
   for (int i = 0; i < layers.size(); i++) {
@@ -43,11 +63,7 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
   } else {
     // Get image path for tile set
     int tilesetID = static_cast<int>(tileDataJson["id"]);
-    fs::path tilesetFile =
-        fs::path(MapLoader::getTilesetSource(tilesetID, mapDataJson));
-    tilesetFile = mapDir / tilesetFile;
-    fs::path tilesetImgPath = MapLoader::getTilesetImageFile(tilesetFile);
-    mapData.tilesetImg = fs::canonical(tilesetImgPath).string();
+    mapData.tilesetImg = gidTextures[tilesetID];
 
     // Set up tile set dimensions
     mapData.height = tileDataJson["height"];
@@ -76,28 +92,33 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
     }
   }
 
-  mapData.spriteVector =
-      MapLoader::loadMapObjects(mapDataJson, spriteLayerName, SPRITE, mapDir);
+  mapData.spriteVector = MapLoader::loadMapObjects(mapDataJson, spriteLayerName,
+                                                   SPRITE, mapDir, gidTextures);
   mapData.colliderVector = MapLoader::loadMapObjects(
-      mapDataJson, collisionLayerName, COLLISION, mapDir);
+      mapDataJson, collisionLayerName, COLLISION, mapDir, gidTextures);
   mapData.transitionVector = MapLoader::loadMapObjects(
-      mapDataJson, transitionLayerName, TRANSITION, mapDir);
+      mapDataJson, transitionLayerName, TRANSITION, mapDir, gidTextures);
 
   return mapData;
 }
 
-void MapLoader::processSpriteObject(MapObject &mapObject, const json &object,
-                                    const json &mapDataJson,
-                                    const fs::path &mapDir) {
-  // Correct y coord to top-left corner as Tiled uses bottom-left
+void MapLoader::processSpriteObject(
+    MapObject &mapObject, const json &object, const json &mapDataJson,
+    const fs::path &mapDir,
+    const std::unordered_map<int, std::string> &gidTextures) {
+  // Correct y coord to top-left corner as
+  // Tiled uses bottom-left
   mapObject.ypos -= mapObject.height;
 
   // Get path to texture for sprite object
   int spritesetID = static_cast<int>(object["gid"]);
-  auto spritesetFile =
-      mapDir / MapLoader::getTilesetSource(spritesetID, mapDataJson);
-  auto spritesetTex = MapLoader::getTilesetImageFile(spritesetFile);
-  mapObject.filePath = fs::canonical(spritesetTex).string();
+  auto it = gidTextures.find(spritesetID);
+  if (it != gidTextures.end()) {
+    mapObject.filePath = it->second;
+  } else {
+    throw std::runtime_error("spritesetID not found in gidTextures: " +
+                             std::to_string(spritesetID));
+  }
 }
 
 void MapLoader::processTransitionObject(MapObject &mapObject,
@@ -108,9 +129,10 @@ void MapLoader::processTransitionObject(MapObject &mapObject,
           .string();
 }
 
-MapObject MapLoader::loadObject(const json &object, const json &mapDataJson,
-                                const fs::path &mapDir,
-                                PropertyType propertyType) {
+MapObject
+MapLoader::loadObject(const json &object, const json &mapDataJson,
+                      const fs::path &mapDir, PropertyType propertyType,
+                      const std::unordered_map<int, std::string> &gidTextures) {
   MapObject mapObject;
   mapObject.height = object.value("height", 0);
   mapObject.width = object.value("width", 0);
@@ -119,7 +141,7 @@ MapObject MapLoader::loadObject(const json &object, const json &mapDataJson,
 
   switch (propertyType) {
   case SPRITE:
-    processSpriteObject(mapObject, object, mapDataJson, mapDir);
+    processSpriteObject(mapObject, object, mapDataJson, mapDir, gidTextures);
     break;
   case TRANSITION:
     processTransitionObject(mapObject, object);
@@ -130,10 +152,11 @@ MapObject MapLoader::loadObject(const json &object, const json &mapDataJson,
   return mapObject;
 }
 
-std::vector<MapObject> MapLoader::loadMapObjects(json &mapDataJson,
-                                                 std::string layerName,
-                                                 PropertyType propertyType,
-                                                 fs::path mapDir) {
+// TODO: the passing of gidTextures is getting a bit wild, consider refactoring
+// to non-static class
+std::vector<MapObject> MapLoader::loadMapObjects(
+    json &mapDataJson, std::string layerName, PropertyType propertyType,
+    fs::path mapDir, const std::unordered_map<int, std::string> &gidTextures) {
   json objectDataJson;
   json &layers = mapDataJson["layers"];
   for (int i = 0; i < layers.size(); i++) {
@@ -148,40 +171,98 @@ std::vector<MapObject> MapLoader::loadMapObjects(json &mapDataJson,
   }
 
   for (const auto &object : objectDataJson["objects"]) {
-    MapObject mapObject = loadObject(object, mapDataJson, mapDir, propertyType);
+    MapObject mapObject =
+        loadObject(object, mapDataJson, mapDir, propertyType, gidTextures);
     mapObjects.push_back(mapObject);
   }
 
   return mapObjects;
 }
 
-fs::path MapLoader::getTilesetImageFile(const fs::path &tilsetFile) {
+void MapLoader::addGidTexturesFromTileset(
+    std::unordered_map<int, std::string> &gidTextures,
+    const fs::path &tilesetFile, int firstGid) {
   tinyxml2::XMLDocument doc;
-  tinyxml2::XMLError eResult = doc.LoadFile(tilsetFile.string().c_str());
+  tinyxml2::XMLError eResult = doc.LoadFile(tilesetFile.string().c_str());
 
   if (eResult != tinyxml2::XML_SUCCESS) {
-    std::cerr << "Error loading XML file: " << eResult << std::endl;
+    throw std::runtime_error("Error loading XML file: " + tilesetFile.string() +
+                             " (Error Code: " + std::to_string(eResult) + ")");
   }
 
   tinyxml2::XMLNode *root = doc.FirstChildElement("tileset");
   if (root == nullptr) {
-    std::cerr << "No root element found!" << std::endl;
+    throw std::runtime_error("No root element found in tileset "
+                             "file: " +
+                             tilesetFile.string());
   }
 
   tinyxml2::XMLElement *imageElement = root->FirstChildElement("image");
-  if (imageElement == nullptr) {
-    std::cerr << "No 'image' element found." << std::endl;
-  }
+  if (imageElement) {
+    // Regular tileset
+    const char *imageSource = imageElement->Attribute("source");
+    if (imageSource == nullptr) {
+      throw std::runtime_error("No 'source' attribute found in "
+                               "'image' element in tileset "
+                               "file: " +
+                               tilesetFile.string());
+    }
+    int tileCount = 0;
+    root->ToElement()->QueryIntAttribute("tilecount", &tileCount);
 
-  const char *imageSource = imageElement->Attribute("source");
-  if (imageSource == nullptr) {
-    std::cerr << "No 'source' attribute found in 'image' element." << std::endl;
-  }
+    // Add the same texture path for all
+    // tiles in this tileset
+    for (int i = 0; i < tileCount; ++i) {
+      try {
+        fs::path filePath = tilesetFile.parent_path() / fs::path(imageSource);
+        gidTextures[firstGid + i] = fs::canonical(filePath).string();
+      } catch (const std::exception &e) {
+        throw std::runtime_error("Error resolving file path for "
+                                 "tile: " +
+                                 std::string(e.what()));
+      }
+    }
+  } else {
+    // Object tileset, in this case each
+    // tile is one image
+    tinyxml2::XMLElement *tileNode = root->FirstChildElement("tile");
+    while (tileNode) {
+      int id = 0;
+      eResult = tileNode->QueryIntAttribute("id", &id);
+      if (eResult != tinyxml2::XML_SUCCESS) {
+        throw std::runtime_error("No 'id' attribute found in "
+                                 "tile node. Error "
+                                 "Code: " +
+                                 std::to_string(eResult));
+      }
 
-  return tilsetFile.parent_path() / fs::path(imageSource);
+      // Each tile has its own image tag
+      tinyxml2::XMLElement *tileImageNode =
+          tileNode->FirstChildElement("image");
+      if (tileImageNode) {
+        const char *imageSource = tileImageNode->Attribute("source");
+        if (imageSource) {
+          fs::path filePath = tilesetFile.parent_path() / fs::path(imageSource);
+          gidTextures[firstGid + id] = fs::canonical(filePath).string();
+        } else {
+          throw std::runtime_error("Missing 'source' attribute "
+                                   "for tile ID " +
+                                   std::to_string(id) +
+                                   " in tileset file: " + tilesetFile.string());
+        }
+      } else {
+        throw std::runtime_error("No 'image' element found for "
+                                 "tile ID " +
+                                 std::to_string(id) +
+                                 " in tileset file: " + tilesetFile.string());
+      }
+
+      tileNode = tileNode->NextSiblingElement("tile");
+    }
+  }
 }
-
-// Return the path to the tileset definition file given its ID value
+// Return the path to the tileset definition
+// file given its ID value
 std::string MapLoader::getTilesetSource(int tilesetID,
                                         const json &tilesetInfo) {
   if (!tilesetInfo.contains("tilesets")) {
@@ -195,7 +276,9 @@ std::string MapLoader::getTilesetSource(int tilesetID,
     }
   }
 
-  std::cerr << "ID value not found in tileset definition." << std::endl;
+  std::cerr << "ID value not found in "
+               "tileset definition."
+            << std::endl;
   return "";
 }
 
@@ -219,7 +302,8 @@ T MapLoader::getProperty(const json &object, const std::string &property) {
         if (type == "string")
           return prop["value"].get<std::string>();
       }
-      throw std::runtime_error("Property type mismatch or unsupported type.");
+      throw std::runtime_error("Property type mismatch or "
+                               "unsupported type.");
     }
   }
   throw std::runtime_error("Property " + property + " not found.");
