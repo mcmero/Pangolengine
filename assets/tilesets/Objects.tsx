@@ -5,6 +5,6 @@
   <image source="../textures/npc.png" width="32" height="32"/>
  </tile>
  <tile id="1">
-    <image source="../textures/SpritesheetBuilding.png" width="160" height="180"/>
+  <image source="../textures/SpritesheetBuilding.png" width="160" height="180"/>
  </tile>
 </tileset>
