@@ -50,7 +50,7 @@
          "name":"Sprites",
          "objects":[
                 {
-                 "gid":6,
+                 "gid":5,
                  "height":32,
                  "id":26,
                  "name":"",
@@ -62,7 +62,7 @@
                  "y":160.666666666667
                 }, 
                 {
-                 "gid":7,
+                 "gid":6,
                  "height":180,
                  "id":27,
                  "name":"",
@@ -153,10 +153,6 @@
         }, 
         {
          "firstgid":5,
-         "source":"..\/tilesets\/SpritesheetBuilding.tsx"
-        }, 
-        {
-         "firstgid":6,
          "source":"..\/tilesets\/Objects.tsx"
         }],
  "tilewidth":16,

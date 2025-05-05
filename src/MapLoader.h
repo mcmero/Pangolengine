@@ -22,6 +22,8 @@ struct MapData {
   std::vector<std::vector<int>> map;
   float height;
   float width;
+  int pixelHeight;
+  int pixelWidth;
   Vector2D startPos;
   std::string tilesetImg;
   std::vector<MapObject> spriteVector;
@@ -31,43 +33,49 @@ struct MapData {
 
 class MapLoader {
 public:
-  MapLoader() = delete;
+  MapLoader(std::string mapFile, const int tileSize,
+            std::string tileLayerName = "Tiles",
+            std::string spriteLayerName = "Sprites",
+            std::string collisionLayerName = "Collision",
+            std::string transitionLayerName = "Transition");
 
-  static MapData LoadMap(const char *mapFile,
-                         std::string tileLayerName = "Tiles",
-                         std::string spriteLayerName = "Sprites",
-                         std::string collisionLayerName = "Collision",
-                         std::string transitionLayerName = "Transition");
+  ~MapLoader();
+
+  MapData LoadMap();
 
 private:
+  MapData mapData;
+
+  std::string mapFile;
+  json mapDataJson;
+  fs::path mapDir;
+  const int tileSize;
+
+  std::string tileLayerName;
+  std::string spriteLayerName;
+  std::string collisionLayerName;
+  std::string transitionLayerName;
+
+  // Map where index = global ID and string = texture path
+  std::unordered_map<int, std::string> gidTextures = {};
+
   enum PropertyType { TILE, SPRITE, COLLISION, TRANSITION };
+
+  void processTileObject(MapObject &mapObject, const json &object);
+
+  void processSpriteObject(MapObject &mapObject, const json &object);
+
+  void processTransitionObject(MapObject &mapObject, const json &object);
+
+  MapObject loadObject(const json &object, PropertyType propertyType);
+
+  std::vector<MapObject> loadMapObjects(std::string layerName,
+                                        PropertyType propertyType);
+
+  void addGidTexturesFromTileset(const fs::path &tilesetFile, int firstGid);
 
   static std::string getTilesetSource(int tilesetID, const json &mapDataJson);
 
-  static void processTileObject(MapObject &mapObject, const json &object,
-                                const json &mapDataJson,
-                                const fs::path &mapDir);
-
-  static void
-  processSpriteObject(MapObject &mapObject, const json &object,
-                      const json &mapDataJson, const fs::path &mapDir,
-                      const std::unordered_map<int, std::string> &gidTextures);
-
-  static void processTransitionObject(MapObject &mapObject, const json &object);
-
-  static MapObject
-  loadObject(const json &object, const json &mapDataJson,
-             const fs::path &mapDir, PropertyType propertyType,
-             const std::unordered_map<int, std::string> &gidTextures);
-
-  static std::vector<MapObject>
-  loadMapObjects(json &mapDataJson, std::string layerName,
-                 PropertyType propertyType, fs::path mapDir,
-                 const std::unordered_map<int, std::string> &gidTextures);
-
-  static void
-  addGidTexturesFromTileset(std::unordered_map<int, std::string> &gidTextures,
-                            const fs::path &tilesetFile, int firstGid);
   template <typename T>
   static T getProperty(const json &object, const std::string &property);
 };

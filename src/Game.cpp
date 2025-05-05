@@ -3,6 +3,7 @@
 #include "Collision.h"
 #include "Components/Components.h"
 #include "Constants.h"
+#include "MapLoader.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_render.h"
 #include "SDL3/SDL_video.h"
@@ -25,8 +26,6 @@ std::vector<entt::entity> Game::mapColliders = {};
 std::vector<entt::entity> Game::mapTransitions = {};
 
 MapData Game::mapData;
-int Game::mapPixelHeight = 0;
-int Game::mapPixelWidth = 0;
 
 Game::Game() : running(true) {}
 
@@ -104,7 +103,7 @@ void Game::updateCamera() {
   int ypos = static_cast<int>(playerTransform.position.y +
                               float(PLAYER_HEIGHT) / 2.0f -
                               float(SCREEN_HEIGHT) / 2.0f);
-  Camera::update(xpos, ypos, mapPixelWidth, mapPixelHeight);
+  Camera::update(xpos, ypos, mapData.pixelWidth, mapData.pixelHeight);
 }
 
 void Game::update() {
@@ -269,9 +268,8 @@ void Game::loadPlayer() {
 
 void Game::loadMap(std::string mapPath) {
   // Get map data
-  mapData = MapLoader::LoadMap(mapPath.c_str());
-  mapPixelHeight = static_cast<int>(mapData.height) * TILE_SIZE;
-  mapPixelWidth = static_cast<int>(mapData.width) * TILE_SIZE;
+  MapLoader mapLoader = MapLoader(mapPath, TILE_SIZE);
+  mapData = mapLoader.LoadMap();
 
   map = registry.create();
   registry.emplace<Map>(map, &mapData, mapData.tilesetImg.c_str(), TILE_SIZE);

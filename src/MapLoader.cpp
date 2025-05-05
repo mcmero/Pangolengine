@@ -13,10 +13,15 @@
 
 namespace fs = std::filesystem;
 
-MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
-                           std::string spriteLayerName,
-                           std::string collisionLayerName,
-                           std::string transitionLayerName) {
+MapLoader::MapLoader(std::string mapFile, int tileSize,
+                     std::string tileLayerName, std::string spriteLayerName,
+                     std::string collisionLayerName,
+                     std::string transitionLayerName)
+    : mapFile(mapFile), tileSize(tileSize), tileLayerName(tileLayerName),
+      spriteLayerName(spriteLayerName), collisionLayerName(collisionLayerName),
+      transitionLayerName(transitionLayerName) {}
+
+MapData MapLoader::LoadMap() {
   std::ifstream f(mapFile);
   if (!f.is_open()) {
     std::stringstream ss;
@@ -24,14 +29,9 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
     throw std::runtime_error(ss.str());
   }
 
-  MapData mapData;
-  fs::path mapDir = fs::path(mapFile).parent_path();
-  json mapDataJson = json::parse(f);
-  json tileDataJson;
+  mapDir = fs::path(mapFile).parent_path();
+  mapDataJson = json::parse(f);
   json &layers = mapDataJson["layers"];
-
-  // Map where index = global ID and string = texture path
-  std::unordered_map<int, std::string> gidTextures = {};
 
   // We need at least one tileset, otherwise the map has no textures...
   if (!mapDataJson.contains("tilesets")) {
@@ -47,10 +47,11 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
     fs::path tilesetFile =
         fs::path(MapLoader::getTilesetSource(gid, mapDataJson));
     tilesetFile = mapDir / tilesetFile;
-    MapLoader::addGidTexturesFromTileset(gidTextures, tilesetFile, gid);
+    MapLoader::addGidTexturesFromTileset(tilesetFile, gid);
   }
 
   // Find tile layer
+  json tileDataJson;
   for (int i = 0; i < layers.size(); i++) {
     if (layers[i]["name"] == tileLayerName) {
       tileDataJson = layers[i];
@@ -68,6 +69,7 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
     // Set up tile set dimensions
     mapData.height = tileDataJson["height"];
     mapData.width = tileDataJson["width"];
+
     int h = static_cast<int>(mapData.height);
     int w = static_cast<int>(mapData.width);
     for (int i = 0; i < h; i++) {
@@ -77,6 +79,10 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
       }
       mapData.map.push_back(row);
     }
+
+    // Calculate pixel height and width
+    mapData.pixelHeight = static_cast<int>(mapData.height) * tileSize;
+    mapData.pixelWidth = static_cast<int>(mapData.width) * tileSize;
 
     // Get the player starting position (set to 0,0 if not found)
     try {
@@ -92,20 +98,18 @@ MapData MapLoader::LoadMap(const char *mapFile, std::string tileLayerName,
     }
   }
 
-  mapData.spriteVector = MapLoader::loadMapObjects(mapDataJson, spriteLayerName,
-                                                   SPRITE, mapDir, gidTextures);
-  mapData.colliderVector = MapLoader::loadMapObjects(
-      mapDataJson, collisionLayerName, COLLISION, mapDir, gidTextures);
-  mapData.transitionVector = MapLoader::loadMapObjects(
-      mapDataJson, transitionLayerName, TRANSITION, mapDir, gidTextures);
+  mapData.spriteVector = MapLoader::loadMapObjects(spriteLayerName, SPRITE);
+  mapData.colliderVector =
+      MapLoader::loadMapObjects(collisionLayerName, COLLISION);
+  mapData.transitionVector =
+      MapLoader::loadMapObjects(transitionLayerName, TRANSITION);
 
   return mapData;
 }
 
-void MapLoader::processSpriteObject(
-    MapObject &mapObject, const json &object, const json &mapDataJson,
-    const fs::path &mapDir,
-    const std::unordered_map<int, std::string> &gidTextures) {
+MapLoader::~MapLoader() {};
+
+void MapLoader::processSpriteObject(MapObject &mapObject, const json &object) {
   // Correct y coord to top-left corner as
   // Tiled uses bottom-left
   mapObject.ypos -= mapObject.height;
@@ -129,10 +133,7 @@ void MapLoader::processTransitionObject(MapObject &mapObject,
           .string();
 }
 
-MapObject
-MapLoader::loadObject(const json &object, const json &mapDataJson,
-                      const fs::path &mapDir, PropertyType propertyType,
-                      const std::unordered_map<int, std::string> &gidTextures) {
+MapObject MapLoader::loadObject(const json &object, PropertyType propertyType) {
   MapObject mapObject;
   mapObject.height = object.value("height", 0);
   mapObject.width = object.value("width", 0);
@@ -141,7 +142,7 @@ MapLoader::loadObject(const json &object, const json &mapDataJson,
 
   switch (propertyType) {
   case SPRITE:
-    processSpriteObject(mapObject, object, mapDataJson, mapDir, gidTextures);
+    processSpriteObject(mapObject, object);
     break;
   case TRANSITION:
     processTransitionObject(mapObject, object);
@@ -152,11 +153,8 @@ MapLoader::loadObject(const json &object, const json &mapDataJson,
   return mapObject;
 }
 
-// TODO: the passing of gidTextures is getting a bit wild, consider refactoring
-// to non-static class
-std::vector<MapObject> MapLoader::loadMapObjects(
-    json &mapDataJson, std::string layerName, PropertyType propertyType,
-    fs::path mapDir, const std::unordered_map<int, std::string> &gidTextures) {
+std::vector<MapObject> MapLoader::loadMapObjects(std::string layerName,
+                                                 PropertyType propertyType) {
   json objectDataJson;
   json &layers = mapDataJson["layers"];
   for (int i = 0; i < layers.size(); i++) {
@@ -171,17 +169,15 @@ std::vector<MapObject> MapLoader::loadMapObjects(
   }
 
   for (const auto &object : objectDataJson["objects"]) {
-    MapObject mapObject =
-        loadObject(object, mapDataJson, mapDir, propertyType, gidTextures);
+    MapObject mapObject = loadObject(object, propertyType);
     mapObjects.push_back(mapObject);
   }
 
   return mapObjects;
 }
 
-void MapLoader::addGidTexturesFromTileset(
-    std::unordered_map<int, std::string> &gidTextures,
-    const fs::path &tilesetFile, int firstGid) {
+void MapLoader::addGidTexturesFromTileset(const fs::path &tilesetFile,
+                                          int firstGid) {
   tinyxml2::XMLDocument doc;
   tinyxml2::XMLError eResult = doc.LoadFile(tilesetFile.string().c_str());
 
@@ -261,8 +257,8 @@ void MapLoader::addGidTexturesFromTileset(
     }
   }
 }
-// Return the path to the tileset definition
-// file given its ID value
+/** Return the path to the tileset definition
+ * file given its ID value */
 std::string MapLoader::getTilesetSource(int tilesetID,
                                         const json &tilesetInfo) {
   if (!tilesetInfo.contains("tilesets")) {
