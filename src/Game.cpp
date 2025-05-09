@@ -51,14 +51,19 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
       (assetsPath / "scenes" / "S001_Test.json").string();
 
   // Set up NPCs
-  // TODO: NPCs should be part of the map components?
+  // TODO:set NPC sprite via map
   npc = registry.create();
+  // TODO: sprite will come from the sprite layer
   registry.emplace<Sprite>(npc, npcSpriteSheet.c_str(), PLAYER_WIDTH,
                            PLAYER_HEIGHT, Offset{8, 0});
+  // TODO: transform will come from the sprite position
   registry.emplace<Transform>(npc, 192.0f, 128.0f, 32.0f, 32.0f);
+  // TODO: collider will come from collision layer (linked to entity)
   registry.emplace<Collider>(npc, 192.0f, 128.0f, 15.0f, 15.0f, Offset{17, 17});
+  // TODO: make a new layer for interactable
   registry.emplace<Interactable>(npc, 192.0f, 128.0f, 48.0f, 48.0f,
                                  Offset{-16, -16});
+  // TODO: dialogue file can probably just be a custom property on the sprite
   registry.emplace<Dialogue>(npc, s001_dialogue.c_str());
 
   // Set up map data
@@ -148,7 +153,9 @@ void Game::update() {
   }
 
   // Update all sprites
-  // TODO: draw sprite order based on Y axis position
+  // TODO: draw sprite order based on draw order from tiled;
+  // the one exception to this is the player, as their draw
+  // order needs to be based on the current Y position
   auto spriteView = registry.view<Sprite, Transform>();
   for (auto entity : spriteView) {
     auto &sprite = spriteView.get<Sprite>(entity);
@@ -275,6 +282,12 @@ void Game::loadMap(std::string mapPath) {
   registry.emplace<Map>(map, &mapData, mapData.tilesetImg.c_str(), TILE_SIZE);
 
   // TODO: make these into template functions
+  // TODO: we should move to a more type-agnostic entity system as well,
+  // so we should check if the map object has an entity ID, and if so
+  // check whether the entity exists, if not we create it and add
+  // the component type to the entity. Perhaps if no entity ID exists
+  // we create an 'anonamous' entity (probably make it just an entity
+  // with a blank/nonexistant ID)
 
   // Set up map sprites
   for (auto sprite : mapData.spriteVector) {

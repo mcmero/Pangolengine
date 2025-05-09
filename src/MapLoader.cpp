@@ -110,6 +110,9 @@ MapData MapLoader::LoadMap() {
 MapLoader::~MapLoader() {};
 
 void MapLoader::processSpriteObject(MapObject &mapObject, const json &object) {
+  // TODO: at some point, add support for collision boxes specified
+  // within the object sprite
+
   // Correct y coord to top-left corner as
   // Tiled uses bottom-left
   mapObject.ypos -= mapObject.height;
@@ -139,6 +142,15 @@ MapObject MapLoader::loadObject(const json &object, PropertyType propertyType) {
   mapObject.width = object.value("width", 0);
   mapObject.xpos = object.value("x", 0);
   mapObject.ypos = object.value("y", 0);
+
+  // Check for entity_id
+  try {
+    mapObject.entityId =
+        MapLoader::getProperty<std::string>(object, "entity_id");
+  } catch (std::runtime_error e) {
+    // Anonymous entity (no ID found)
+    mapObject.entityId = "";
+  }
 
   switch (propertyType) {
   case SPRITE:
@@ -188,8 +200,7 @@ void MapLoader::addGidTexturesFromTileset(const fs::path &tilesetFile,
 
   tinyxml2::XMLNode *root = doc.FirstChildElement("tileset");
   if (root == nullptr) {
-    throw std::runtime_error("No root element found in tileset "
-                             "file: " +
+    throw std::runtime_error("No root element found in tileset file: " +
                              tilesetFile.string());
   }
 
@@ -198,10 +209,9 @@ void MapLoader::addGidTexturesFromTileset(const fs::path &tilesetFile,
     // Regular tileset
     const char *imageSource = imageElement->Attribute("source");
     if (imageSource == nullptr) {
-      throw std::runtime_error("No 'source' attribute found in "
-                               "'image' element in tileset "
-                               "file: " +
-                               tilesetFile.string());
+      throw std::runtime_error(
+          "No 'source' attribute found in 'image' element in tileset file: " +
+          tilesetFile.string());
     }
     int tileCount = 0;
     root->ToElement()->QueryIntAttribute("tilecount", &tileCount);
@@ -213,8 +223,7 @@ void MapLoader::addGidTexturesFromTileset(const fs::path &tilesetFile,
         fs::path filePath = tilesetFile.parent_path() / fs::path(imageSource);
         gidTextures[firstGid + i] = fs::canonical(filePath).string();
       } catch (const std::exception &e) {
-        throw std::runtime_error("Error resolving file path for "
-                                 "tile: " +
+        throw std::runtime_error("Error resolving file path for tile: " +
                                  std::string(e.what()));
       }
     }
@@ -226,10 +235,9 @@ void MapLoader::addGidTexturesFromTileset(const fs::path &tilesetFile,
       int id = 0;
       eResult = tileNode->QueryIntAttribute("id", &id);
       if (eResult != tinyxml2::XML_SUCCESS) {
-        throw std::runtime_error("No 'id' attribute found in "
-                                 "tile node. Error "
-                                 "Code: " +
-                                 std::to_string(eResult));
+        throw std::runtime_error(
+            "No 'id' attribute found in tile node. Error Code: " +
+            std::to_string(eResult));
       }
 
       // Each tile has its own image tag
@@ -241,14 +249,12 @@ void MapLoader::addGidTexturesFromTileset(const fs::path &tilesetFile,
           fs::path filePath = tilesetFile.parent_path() / fs::path(imageSource);
           gidTextures[firstGid + id] = fs::canonical(filePath).string();
         } else {
-          throw std::runtime_error("Missing 'source' attribute "
-                                   "for tile ID " +
+          throw std::runtime_error("Missing 'source' attribute for tile ID " +
                                    std::to_string(id) +
                                    " in tileset file: " + tilesetFile.string());
         }
       } else {
-        throw std::runtime_error("No 'image' element found for "
-                                 "tile ID " +
+        throw std::runtime_error("No 'image' element found for tile ID " +
                                  std::to_string(id) +
                                  " in tileset file: " + tilesetFile.string());
       }
@@ -272,9 +278,7 @@ std::string MapLoader::getTilesetSource(int tilesetID,
     }
   }
 
-  std::cerr << "ID value not found in "
-               "tileset definition."
-            << std::endl;
+  std::cerr << "ID value not found in tileset definition." << std::endl;
   return "";
 }
 
@@ -298,8 +302,7 @@ T MapLoader::getProperty(const json &object, const std::string &property) {
         if (type == "string")
           return prop["value"].get<std::string>();
       }
-      throw std::runtime_error("Property type mismatch or "
-                               "unsupported type.");
+      throw std::runtime_error("Property type mismatch or unsupported type.");
     }
   }
   throw std::runtime_error("Property " + property + " not found.");

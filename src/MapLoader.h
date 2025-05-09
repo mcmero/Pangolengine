@@ -10,7 +10,11 @@ namespace fs = std::filesystem;
 
 using namespace nlohmann;
 
+// TODO: add some extra fields here to capture entities
+// this means that we can have entity IDs that link map
+// objects together
 struct MapObject {
+  std::string entityId;
   std::string filePath;
   float width;
   float height;

@@ -54,6 +54,12 @@
                  "height":32,
                  "id":26,
                  "name":"",
+                 "properties":[
+                        {
+                         "name":"entity_id",
+                         "type":"string",
+                         "value":"npc"
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -105,6 +111,23 @@
                  "width":77.0469585362956,
                  "x":241.035998574314,
                  "y":126.528060769871
+                }, 
+                {
+                 "height":13.40625,
+                 "id":33,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"entity_id",
+                         "type":"string",
+                         "value":"npc"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":8.71875,
+                 "x":211.15625,
+                 "y":145.03125
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -141,7 +164,7 @@
          "y":0
         }],
  "nextlayerid":6,
- "nextobjectid":30,
+ "nextobjectid":34,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.0",
