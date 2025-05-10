@@ -258,6 +258,7 @@ void Game::loadPlayer() {
   // TODO: the animation is a bit jerky when walking -- can it be fixed by
   // animation speed?
   // TODO: initialise collision component using transform values
+  // TODO: move player variables to a config file?
   fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
   std::string playerSpriteSheet =
       (assetsPath / "characters" / "player_anim.png").string();

@@ -33,6 +33,7 @@ struct MapData {
   std::vector<MapObject> spriteVector;
   std::vector<MapObject> colliderVector;
   std::vector<MapObject> transitionVector;
+  std::vector<MapObject> interactionVector;
 };
 
 class MapLoader {
@@ -41,7 +42,8 @@ public:
             std::string tileLayerName = "Tiles",
             std::string spriteLayerName = "Sprites",
             std::string collisionLayerName = "Collision",
-            std::string transitionLayerName = "Transition");
+            std::string transitionLayerName = "Transition",
+            std::string interactionLayerName = "Interaction");
 
   ~MapLoader();
 
@@ -59,11 +61,12 @@ private:
   std::string spriteLayerName;
   std::string collisionLayerName;
   std::string transitionLayerName;
+  std::string interactionLayerName;
 
   // Map where index = global ID and string = texture path
   std::unordered_map<int, std::string> gidTextures = {};
 
-  enum PropertyType { TILE, SPRITE, COLLISION, TRANSITION };
+  enum PropertyType { TILE, SPRITE, COLLISION, TRANSITION, INTERACTION };
 
   void processTileObject(MapObject &mapObject, const json &object);
 

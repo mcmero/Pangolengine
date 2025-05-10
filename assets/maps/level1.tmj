@@ -137,6 +137,34 @@
         }, 
         {
          "draworder":"topdown",
+         "id":6,
+         "name":"Interaction",
+         "objects":[
+                {
+                 "height":42,
+                 "id":34,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"entity_id",
+                         "type":"string",
+                         "value":"npc"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":40.3333333333333,
+                 "x":195.333333333333,
+                 "y":130.666666666667
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
          "id":5,
          "name":"Transition",
          "objects":[
@@ -163,8 +191,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":6,
- "nextobjectid":34,
+ "nextlayerid":7,
+ "nextobjectid":35,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.0",

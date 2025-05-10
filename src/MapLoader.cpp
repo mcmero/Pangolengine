@@ -16,10 +16,12 @@ namespace fs = std::filesystem;
 MapLoader::MapLoader(std::string mapFile, int tileSize,
                      std::string tileLayerName, std::string spriteLayerName,
                      std::string collisionLayerName,
-                     std::string transitionLayerName)
+                     std::string transitionLayerName,
+                     std::string interactionLayerName)
     : mapFile(mapFile), tileSize(tileSize), tileLayerName(tileLayerName),
       spriteLayerName(spriteLayerName), collisionLayerName(collisionLayerName),
-      transitionLayerName(transitionLayerName) {}
+      transitionLayerName(transitionLayerName),
+      interactionLayerName(interactionLayerName) {}
 
 MapData MapLoader::LoadMap() {
   std::ifstream f(mapFile);
@@ -103,6 +105,8 @@ MapData MapLoader::LoadMap() {
       MapLoader::loadMapObjects(collisionLayerName, COLLISION);
   mapData.transitionVector =
       MapLoader::loadMapObjects(transitionLayerName, TRANSITION);
+  mapData.interactionVector =
+      MapLoader::loadMapObjects(interactionLayerName, INTERACTION);
 
   return mapData;
 }
