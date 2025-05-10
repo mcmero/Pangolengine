@@ -14,6 +14,7 @@ using namespace nlohmann;
 // this means that we can have entity IDs that link map
 // objects together
 struct MapObject {
+  int objectId;
   std::string entityId;
   std::string filePath;
   float width;
@@ -67,8 +68,6 @@ private:
   std::unordered_map<int, std::string> gidTextures = {};
 
   enum PropertyType { TILE, SPRITE, COLLISION, TRANSITION, INTERACTION };
-
-  void processTileObject(MapObject &mapObject, const json &object);
 
   void processSpriteObject(MapObject &mapObject, const json &object);
 

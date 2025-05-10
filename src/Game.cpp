@@ -11,11 +11,12 @@
 #include <filesystem>
 #include <iostream>
 #include <ostream>
+#include <string>
+#include <unordered_map>
 
 namespace fs = std::filesystem;
 
 SDL_Renderer *Game::renderer = nullptr;
-SDL_Event Game::event;
 
 entt::entity Game::player = entt::null;
 entt::entity Game::npc = entt::null;
@@ -24,6 +25,8 @@ entt::entity Game::map = entt::null;
 std::vector<entt::entity> Game::mapSprites = {};
 std::vector<entt::entity> Game::mapColliders = {};
 std::vector<entt::entity> Game::mapTransitions = {};
+
+std::unordered_map<std::string, entt::entity> Game::mapEntities = {};
 
 MapData Game::mapData;
 
@@ -63,7 +66,8 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   // TODO: make a new layer for interactable
   registry.emplace<Interactable>(npc, 192.0f, 128.0f, 48.0f, 48.0f,
                                  Offset{-16, -16});
-  // TODO: dialogue file can probably just be a custom property on the sprite
+  // TODO: dialogue file can probably just be a custom property on the
+  // interactable object
   registry.emplace<Dialogue>(npc, s001_dialogue.c_str());
 
   // Set up map data
@@ -290,14 +294,39 @@ void Game::loadMap(std::string mapPath) {
   // we create an 'anonamous' entity (probably make it just an entity
   // with a blank/nonexistant ID)
 
+  // TODO: move all entities into mapEntities
+  // ensure that components are added to the same entity if it has the
+  // same entity ID, if it has none, just create a generic anonymous
+  // entity
+
   // Set up map sprites
   for (auto sprite : mapData.spriteVector) {
-    entt::entity spriteEntity = registry.create();
+    entt::entity spriteEntity = entt::null;
+    if (sprite.entityId == "") {
+      // Generate a new entity with ID
+      spriteEntity = registry.create();
+      std::string newEntityId = "id" + std::to_string(sprite.objectId);
+      mapEntities[newEntityId] = spriteEntity;
+
+    } else if (mapEntities.contains(sprite.entityId)) {
+      // Just fetch the entity as it already exists
+      spriteEntity = mapEntities[sprite.entityId];
+    } else {
+      // Create a new entity with the entity ID
+      spriteEntity = registry.create();
+      mapEntities[sprite.entityId] = spriteEntity;
+    }
+
     mapSprites.push_back(spriteEntity);
     registry.emplace<Sprite>(spriteEntity, sprite.filePath.c_str(),
                              sprite.width, sprite.height);
     registry.emplace<Transform>(spriteEntity, sprite.xpos, sprite.ypos,
                                 sprite.width, sprite.height);
+
+    // TODO: here we need to iterate colliders and if one exists with
+    // the same entity ID, emplace it on to the sprite, otherwise add
+    // it as a generic collider
+    // TODO: we also need to do the same with the interaction objects
   }
 
   // Set up map colliders

@@ -6,6 +6,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 #include <third_party/entt/entt.hpp>
+#include <unordered_map>
 
 class Game {
 public:
@@ -22,7 +23,6 @@ public:
   bool isRunning() const { return running; }
 
   static SDL_Renderer *renderer;
-  static SDL_Event event;
   static MapData mapData;
 
   UIManager *uiManager;
@@ -41,6 +41,8 @@ private:
   static std::vector<entt::entity> mapSprites;
   static std::vector<entt::entity> mapColliders;
   static std::vector<entt::entity> mapTransitions;
+
+  static std::unordered_map<std::string, entt::entity> mapEntities;
 
   void loadPlayer();
   void unloadMap();
