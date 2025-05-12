@@ -10,12 +10,9 @@ namespace fs = std::filesystem;
 
 using namespace nlohmann;
 
-// TODO: add some extra fields here to capture entities
-// this means that we can have entity IDs that link map
-// objects together
 struct MapObject {
   int objectId;
-  std::string entityId;
+  int linkedId;
   std::string filePath;
   float width;
   float height;
@@ -31,10 +28,10 @@ struct MapData {
   int pixelWidth;
   Vector2D startPos;
   std::string tilesetImg;
-  std::vector<MapObject> spriteVector;
-  std::vector<MapObject> colliderVector;
-  std::vector<MapObject> transitionVector;
-  std::vector<MapObject> interactionVector;
+  std::unordered_map<int, MapObject> spriteVector;
+  std::unordered_map<int, MapObject> colliderVector;
+  std::unordered_map<int, MapObject> transitionVector;
+  std::unordered_map<int, MapObject> interactionVector;
 };
 
 class MapLoader {
@@ -75,8 +72,8 @@ private:
 
   MapObject loadObject(const json &object, PropertyType propertyType);
 
-  std::vector<MapObject> loadMapObjects(std::string layerName,
-                                        PropertyType propertyType);
+  std::unordered_map<int, MapObject> loadMapObjects(std::string layerName,
+                                                    PropertyType propertyType);
 
   void addGidTexturesFromTileset(const fs::path &tilesetFile, int firstGid);
 

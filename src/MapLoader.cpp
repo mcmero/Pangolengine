@@ -148,13 +148,11 @@ MapObject MapLoader::loadObject(const json &object, PropertyType propertyType) {
   mapObject.xpos = object.value("x", 0);
   mapObject.ypos = object.value("y", 0);
 
-  // Check for entity_id
+  // Check for linked ID
   try {
-    mapObject.entityId =
-        MapLoader::getProperty<std::string>(object, "entity_id");
+    mapObject.linkedId = MapLoader::getProperty<int>(object, "linked_id");
   } catch (std::runtime_error e) {
-    // Anonymous entity (no ID found)
-    mapObject.entityId = "";
+    mapObject.linkedId = -1;
   }
 
   switch (propertyType) {
@@ -170,8 +168,8 @@ MapObject MapLoader::loadObject(const json &object, PropertyType propertyType) {
   return mapObject;
 }
 
-std::vector<MapObject> MapLoader::loadMapObjects(std::string layerName,
-                                                 PropertyType propertyType) {
+std::unordered_map<int, MapObject>
+MapLoader::loadMapObjects(std::string layerName, PropertyType propertyType) {
   json objectDataJson;
   json &layers = mapDataJson["layers"];
   for (int i = 0; i < layers.size(); i++) {
@@ -179,7 +177,7 @@ std::vector<MapObject> MapLoader::loadMapObjects(std::string layerName,
       objectDataJson = layers[i];
   }
 
-  std::vector<MapObject> mapObjects;
+  std::unordered_map<int, MapObject> mapObjects;
   if (objectDataJson.size() == 0) {
     std::cerr << "Layer " << layerName << " not found." << std::endl;
     return mapObjects;
@@ -187,7 +185,7 @@ std::vector<MapObject> MapLoader::loadMapObjects(std::string layerName,
 
   for (const auto &object : objectDataJson["objects"]) {
     MapObject mapObject = loadObject(object, propertyType);
-    mapObjects.push_back(mapObject);
+    mapObjects[mapObject.objectId] = mapObject;
   }
 
   return mapObjects;
@@ -221,8 +219,7 @@ void MapLoader::addGidTexturesFromTileset(const fs::path &tilesetFile,
     int tileCount = 0;
     root->ToElement()->QueryIntAttribute("tilecount", &tileCount);
 
-    // Add the same texture path for all
-    // tiles in this tileset
+    // Add the same texture path for all tiles in this tileset
     for (int i = 0; i < tileCount; ++i) {
       try {
         fs::path filePath = tilesetFile.parent_path() / fs::path(imageSource);
@@ -233,8 +230,7 @@ void MapLoader::addGidTexturesFromTileset(const fs::path &tilesetFile,
       }
     }
   } else {
-    // Object tileset, in this case each
-    // tile is one image
+    // Object tileset, in this case each tile is one image
     tinyxml2::XMLElement *tileNode = root->FirstChildElement("tile");
     while (tileNode) {
       int id = 0;
@@ -299,7 +295,7 @@ T MapLoader::getProperty(const json &object, const std::string &property) {
       const std::string type = prop["type"];
       if constexpr (std::is_same_v<T, float>) {
         if (type == "float")
-          return prop["value"].get<float>();
+          return prop["value"].get<int>();
       } else if constexpr (std::is_same_v<T, int>) {
         if (type == "int")
           return prop["value"].get<float>();

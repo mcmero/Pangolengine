@@ -54,12 +54,6 @@
                  "height":32,
                  "id":26,
                  "name":"",
-                 "properties":[
-                        {
-                         "name":"entity_id",
-                         "type":"string",
-                         "value":"npc"
-                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -118,9 +112,9 @@
                  "name":"",
                  "properties":[
                         {
-                         "name":"entity_id",
+                         "name":"linked_id",
                          "type":"string",
-                         "value":"npc"
+                         "value":"26"
                         }],
                  "rotation":0,
                  "type":"",
@@ -141,21 +135,21 @@
          "name":"Interaction",
          "objects":[
                 {
-                 "height":42,
+                 "height":44.875,
                  "id":34,
                  "name":"",
                  "properties":[
                         {
-                         "name":"entity_id",
-                         "type":"string",
-                         "value":"npc"
+                         "name":"linked_id",
+                         "type":"float",
+                         "value":26
                         }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":40.3333333333333,
-                 "x":195.333333333333,
-                 "y":130.666666666667
+                 "width":43.2083333333333,
+                 "x":194.583333333333,
+                 "y":128.916666666667
                 }],
          "opacity":1,
          "type":"objectgroup",

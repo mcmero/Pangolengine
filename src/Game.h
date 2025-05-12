@@ -42,7 +42,7 @@ private:
   static std::vector<entt::entity> mapColliders;
   static std::vector<entt::entity> mapTransitions;
 
-  static std::unordered_map<std::string, entt::entity> mapEntities;
+  static std::unordered_map<int, entt::entity> mapEntities;
 
   void loadPlayer();
   void unloadMap();

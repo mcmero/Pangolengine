@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Collider.h"
+#include "SDL3/SDL_rect.h"
 #include "Transform.h"
 #include <iostream>
 

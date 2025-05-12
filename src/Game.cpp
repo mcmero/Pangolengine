@@ -26,7 +26,7 @@ std::vector<entt::entity> Game::mapSprites = {};
 std::vector<entt::entity> Game::mapColliders = {};
 std::vector<entt::entity> Game::mapTransitions = {};
 
-std::unordered_map<std::string, entt::entity> Game::mapEntities = {};
+std::unordered_map<int, entt::entity> Game::mapEntities = {};
 
 MapData Game::mapData;
 
@@ -61,9 +61,7 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
                            PLAYER_HEIGHT, Offset{8, 0});
   // TODO: transform will come from the sprite position
   registry.emplace<Transform>(npc, 192.0f, 128.0f, 32.0f, 32.0f);
-  // TODO: collider will come from collision layer (linked to entity)
   registry.emplace<Collider>(npc, 192.0f, 128.0f, 15.0f, 15.0f, Offset{17, 17});
-  // TODO: make a new layer for interactable
   registry.emplace<Interactable>(npc, 192.0f, 128.0f, 48.0f, 48.0f,
                                  Offset{-16, -16});
   // TODO: dialogue file can probably just be a custom property on the
@@ -286,60 +284,45 @@ void Game::loadMap(std::string mapPath) {
   map = registry.create();
   registry.emplace<Map>(map, &mapData, mapData.tilesetImg.c_str(), TILE_SIZE);
 
-  // TODO: make these into template functions
-  // TODO: we should move to a more type-agnostic entity system as well,
-  // so we should check if the map object has an entity ID, and if so
-  // check whether the entity exists, if not we create it and add
-  // the component type to the entity. Perhaps if no entity ID exists
-  // we create an 'anonamous' entity (probably make it just an entity
-  // with a blank/nonexistant ID)
+  for (auto &spriteObject : mapData.spriteVector) {
+    entt::entity spriteEntity = registry.create();
 
-  // TODO: move all entities into mapEntities
-  // ensure that components are added to the same entity if it has the
-  // same entity ID, if it has none, just create a generic anonymous
-  // entity
-
-  // Set up map sprites
-  for (auto sprite : mapData.spriteVector) {
-    entt::entity spriteEntity = entt::null;
-    if (sprite.entityId == "") {
-      // Generate a new entity with ID
-      spriteEntity = registry.create();
-      std::string newEntityId = "id" + std::to_string(sprite.objectId);
-      mapEntities[newEntityId] = spriteEntity;
-
-    } else if (mapEntities.contains(sprite.entityId)) {
-      // Just fetch the entity as it already exists
-      spriteEntity = mapEntities[sprite.entityId];
-    } else {
-      // Create a new entity with the entity ID
-      spriteEntity = registry.create();
-      mapEntities[sprite.entityId] = spriteEntity;
-    }
-
-    mapSprites.push_back(spriteEntity);
+    MapObject &sprite = spriteObject.second;
     registry.emplace<Sprite>(spriteEntity, sprite.filePath.c_str(),
                              sprite.width, sprite.height);
     registry.emplace<Transform>(spriteEntity, sprite.xpos, sprite.ypos,
                                 sprite.width, sprite.height);
 
-    // TODO: here we need to iterate colliders and if one exists with
-    // the same entity ID, emplace it on to the sprite, otherwise add
-    // it as a generic collider
-    // TODO: we also need to do the same with the interaction objects
+    mapEntities[spriteObject.first] = spriteEntity;
   }
 
-  // Set up map colliders
-  for (auto collider : mapData.colliderVector) {
-    entt::entity colliderEntity = registry.create();
-    mapColliders.push_back(colliderEntity);
-    registry.emplace<Collider>(colliderEntity, collider.xpos, collider.ypos,
-                               collider.width, collider.height);
-    registry.emplace<Transform>(colliderEntity, collider.xpos, collider.ypos,
-                                collider.width, collider.height);
+  for (auto colliderObject : mapData.colliderVector) {
+    entt::entity colliderEntity = entt::null;
+    MapObject &collider = colliderObject.second;
+
+    // Add the collider to linked (sprite) entity if it exists
+    // otherwise create a new entity
+    if (collider.linkedId > 0 && mapEntities.contains(collider.linkedId)) {
+      colliderEntity = mapEntities[collider.linkedId];
+
+      // We only need to add a collider as the sprite already has a transform
+      // TODO: we still need to calculate offsets here because the collider may
+      // move
+      registry.emplace<Collider>(colliderEntity, collider.xpos, collider.ypos,
+                                 collider.width, collider.height);
+    } else {
+      // Non-linked static collider, treat as its own entity
+      colliderEntity = registry.create();
+      mapEntities[colliderObject.first] = colliderEntity;
+      registry.emplace<Collider>(colliderEntity, collider.xpos, collider.ypos,
+                                 collider.width, collider.height);
+      registry.emplace<Transform>(colliderEntity, collider.xpos, collider.ypos,
+                                  collider.width, collider.height);
+    }
   }
 
-  // Set up map transitions
+  // TODO: map transitions
+  /*
   for (auto transition : mapData.transitionVector) {
     entt::entity transitionEntity = registry.create();
     mapTransitions.push_back(transitionEntity);
@@ -350,5 +333,5 @@ void Game::loadMap(std::string mapPath) {
     auto &transform = registry.get<Transform>(transitionEntity);
     registry.emplace<Transition>(transitionEntity, transform,
                                  transition.filePath);
-  }
+  }*/
 }
