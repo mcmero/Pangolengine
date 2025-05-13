@@ -113,8 +113,8 @@
                  "properties":[
                         {
                          "name":"linked_id",
-                         "type":"string",
-                         "value":"26"
+                         "type":"int",
+                         "value":26
                         }],
                  "rotation":0,
                  "type":"",
@@ -141,7 +141,7 @@
                  "properties":[
                         {
                          "name":"linked_id",
-                         "type":"float",
+                         "type":"int",
                          "value":26
                         }],
                  "rotation":0,

@@ -119,6 +119,7 @@ void MapLoader::processSpriteObject(MapObject &mapObject, const json &object) {
 
   // Correct y coord to top-left corner as
   // Tiled uses bottom-left
+  // TODO: check in the Tiled documentation if this can be changed
   mapObject.ypos -= mapObject.height;
 
   // Get path to texture for sprite object
@@ -295,10 +296,10 @@ T MapLoader::getProperty(const json &object, const std::string &property) {
       const std::string type = prop["type"];
       if constexpr (std::is_same_v<T, float>) {
         if (type == "float")
-          return prop["value"].get<int>();
+          return prop["value"].get<float>();
       } else if constexpr (std::is_same_v<T, int>) {
         if (type == "int")
-          return prop["value"].get<float>();
+          return prop["value"].get<int>();
       } else if constexpr (std::is_same_v<T, std::string>) {
         if (type == "string")
           return prop["value"].get<std::string>();

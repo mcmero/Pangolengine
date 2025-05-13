@@ -305,11 +305,15 @@ void Game::loadMap(std::string mapPath) {
     if (collider.linkedId > 0 && mapEntities.contains(collider.linkedId)) {
       colliderEntity = mapEntities[collider.linkedId];
 
-      // We only need to add a collider as the sprite already has a transform
-      // TODO: we still need to calculate offsets here because the collider may
-      // move
+      // Fetch the corresponding Transform component
+      auto view = registry.view<Transform>();
+      auto &transform = view.get<Transform>(colliderEntity);
+
+      // Calculate offsets here because the collider may move
+      Offset offset = {transform.position.x - collider.xpos,
+                       transform.position.y - collider.ypos};
       registry.emplace<Collider>(colliderEntity, collider.xpos, collider.ypos,
-                                 collider.width, collider.height);
+                                 collider.width, collider.height, offset);
     } else {
       // Non-linked static collider, treat as its own entity
       colliderEntity = registry.create();
