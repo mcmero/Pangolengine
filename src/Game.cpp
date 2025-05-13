@@ -241,9 +241,10 @@ void Game::unloadMap() {
 
 template <typename T>
 void Game::clearEntities(std::unordered_map<int, T> entityVector) {
-  for (auto &entity : entityVector) {
-    if (registry.valid(entity.second)) {
-      registry.destroy(entity.second);
+  for (auto &entityEntry : entityVector) {
+    entt::entity &entity = entityEntry.second;
+    if (registry.valid(entity)) {
+      registry.destroy(entity);
     }
   }
   entityVector.clear();
