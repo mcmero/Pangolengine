@@ -22,10 +22,6 @@ entt::entity Game::player = entt::null;
 entt::entity Game::npc = entt::null;
 entt::entity Game::map = entt::null;
 
-std::vector<entt::entity> Game::mapSprites = {};
-std::vector<entt::entity> Game::mapColliders = {};
-std::vector<entt::entity> Game::mapTransitions = {};
-
 std::unordered_map<int, entt::entity> Game::mapEntities = {};
 
 MapData Game::mapData;
@@ -56,12 +52,11 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   // Set up NPCs
   // TODO:set NPC sprite via map
   npc = registry.create();
-  // TODO: sprite will come from the sprite layer
-  registry.emplace<Sprite>(npc, npcSpriteSheet.c_str(), PLAYER_WIDTH,
-                           PLAYER_HEIGHT, Offset{8, 0});
-  // TODO: transform will come from the sprite position
+  // registry.emplace<Sprite>(npc, npcSpriteSheet.c_str(), PLAYER_WIDTH,
+  //                          PLAYER_HEIGHT, Offset{8, 0});
   registry.emplace<Transform>(npc, 192.0f, 128.0f, 32.0f, 32.0f);
-  registry.emplace<Collider>(npc, 192.0f, 128.0f, 15.0f, 15.0f, Offset{17, 17});
+  // registry.emplace<Collider>(npc, 192.0f, 128.0f, 15.0f, 15.0f, Offset{17,
+  // 17});
   registry.emplace<Interactable>(npc, 192.0f, 128.0f, 48.0f, 48.0f,
                                  Offset{-16, -16});
   // TODO: dialogue file can probably just be a custom property on the
@@ -237,19 +232,18 @@ void Game::clean() {
 }
 
 void Game::unloadMap() {
-  clearEntities(mapSprites);
-  clearEntities(mapColliders);
-  clearEntities(mapTransitions);
+  clearEntities(mapEntities);
 
   if (registry.valid(map)) {
     registry.destroy(map);
   }
 }
 
-template <typename T> void Game::clearEntities(std::vector<T> entityVector) {
-  for (auto entity : entityVector) {
-    if (registry.valid(entity)) {
-      registry.destroy(entity);
+template <typename T>
+void Game::clearEntities(std::unordered_map<int, T> entityVector) {
+  for (auto &entity : entityVector) {
+    if (registry.valid(entity.second)) {
+      registry.destroy(entity.second);
     }
   }
   entityVector.clear();
@@ -284,6 +278,7 @@ void Game::loadMap(std::string mapPath) {
   map = registry.create();
   registry.emplace<Map>(map, &mapData, mapData.tilesetImg.c_str(), TILE_SIZE);
 
+  // Create entities from sprites first
   for (auto &spriteObject : mapData.spriteVector) {
     entt::entity spriteEntity = registry.create();
 
@@ -296,7 +291,8 @@ void Game::loadMap(std::string mapPath) {
     mapEntities[spriteObject.first] = spriteEntity;
   }
 
-  for (auto colliderObject : mapData.colliderVector) {
+  // Process colliders, adding to existing sprite if they are linked
+  for (auto &colliderObject : mapData.colliderVector) {
     entt::entity colliderEntity = entt::null;
     MapObject &collider = colliderObject.second;
 
@@ -310,32 +306,35 @@ void Game::loadMap(std::string mapPath) {
       auto &transform = view.get<Transform>(colliderEntity);
 
       // Calculate offsets here because the collider may move
-      Offset offset = {transform.position.x - collider.xpos,
-                       transform.position.y - collider.ypos};
-      registry.emplace<Collider>(colliderEntity, collider.xpos, collider.ypos,
-                                 collider.width, collider.height, offset);
+      Offset offset = {collider.xpos - transform.position.x,
+                       collider.ypos - transform.position.y};
+      registry.emplace<Collider>(colliderEntity, transform.position.x,
+                                 transform.position.y, collider.width,
+                                 collider.height, offset);
     } else {
       // Non-linked static collider, treat as its own entity
       colliderEntity = registry.create();
-      mapEntities[colliderObject.first] = colliderEntity;
       registry.emplace<Collider>(colliderEntity, collider.xpos, collider.ypos,
                                  collider.width, collider.height);
       registry.emplace<Transform>(colliderEntity, collider.xpos, collider.ypos,
                                   collider.width, collider.height);
+
+      mapEntities[colliderObject.first] = colliderEntity;
     }
   }
 
-  // TODO: map transitions
-  /*
-  for (auto transition : mapData.transitionVector) {
+  // Process transitions -- they are not linked to anything (yet...)
+  for (auto &transitionObject : mapData.transitionVector) {
     entt::entity transitionEntity = registry.create();
-    mapTransitions.push_back(transitionEntity);
-    registry.emplace<Transform>(transitionEntity, transition.xpos,
-                                transition.ypos, transition.width,
-                                transition.height);
+    MapObject &transition = transitionObject.second;
 
-    auto &transform = registry.get<Transform>(transitionEntity);
+    auto &transform = registry.emplace<Transform>(
+        transitionEntity, transition.xpos, transition.ypos, transition.width,
+        transition.height);
+
     registry.emplace<Transition>(transitionEntity, transform,
                                  transition.filePath);
-  }*/
+
+    mapEntities[transitionObject.first] = transitionEntity;
+  }
 }

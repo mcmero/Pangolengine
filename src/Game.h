@@ -38,15 +38,12 @@ private:
   static entt::entity npc;
   static entt::entity map;
 
-  static std::vector<entt::entity> mapSprites;
-  static std::vector<entt::entity> mapColliders;
-  static std::vector<entt::entity> mapTransitions;
-
   static std::unordered_map<int, entt::entity> mapEntities;
 
   void loadPlayer();
   void unloadMap();
   void loadMap(const std::string mapPath);
 
-  template <typename T> void clearEntities(std::vector<T> entityVector);
+  template <typename T>
+  void clearEntities(std::unordered_map<int, T> entityVector);
 };
