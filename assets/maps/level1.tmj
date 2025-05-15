@@ -140,14 +140,14 @@
                  "name":"",
                  "properties":[
                         {
-                         "name":"dialogue_file",
-                         "type":"string",
-                         "value":""
-                        }, 
-                        {
                          "name":"linked_id",
                          "type":"int",
                          "value":26
+                        }, 
+                        {
+                         "name":"scene_file",
+                         "type":"string",
+                         "value":"S001_Test.json"
                         }],
                  "rotation":0,
                  "type":"",

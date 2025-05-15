@@ -80,5 +80,6 @@ private:
   static std::string getTilesetSource(int tilesetID, const json &mapDataJson);
 
   template <typename T>
-  static T getProperty(const json &object, const std::string &property);
+  static std::optional<T> getProperty(const json &object,
+                                      const std::string &property);
 };

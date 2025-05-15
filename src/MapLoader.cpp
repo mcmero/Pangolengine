@@ -2,6 +2,7 @@
 #include "SDL3/SDL_filesystem.h"
 #include "nlohmann/json.hpp"
 #include "third_party/tinyxml2/tinyxml2.h"
+#include <exception>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -87,17 +88,10 @@ MapData MapLoader::LoadMap() {
     mapData.pixelWidth = static_cast<int>(mapData.width) * tileSize;
 
     // Get the player starting position (set to 0,0 if not found)
-    try {
-      mapData.startPos.x =
-          MapLoader::getProperty<float>(tileDataJson, "startPos_x");
-      mapData.startPos.y =
-          MapLoader::getProperty<float>(tileDataJson, "startPos_y");
-    } catch (std::runtime_error e) {
-      std::cerr << "Start pos could not be set from map, setting to 0,0."
-                << std::endl;
-      mapData.startPos.x = 0;
-      mapData.startPos.y = 0;
-    }
+    mapData.startPos.x =
+        MapLoader::getProperty<float>(tileDataJson, "startPos_x").value_or(0);
+    mapData.startPos.y =
+        MapLoader::getProperty<float>(tileDataJson, "startPos_y").value_or(0);
   }
 
   mapData.spriteVector = MapLoader::loadMapObjects(spriteLayerName, SPRITE);
@@ -131,9 +125,14 @@ void MapLoader::processSpriteObject(MapObject &mapObject, const json &object) {
 void MapLoader::processTransitionObject(MapObject &mapObject,
                                         const json &object) {
   fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
-  mapObject.filePath =
-      (assetsPath / "maps" / MapLoader::getProperty<std::string>(object, "map"))
-          .string();
+
+  std::string mapFileName =
+      MapLoader::getProperty<std::string>(object, "map").value_or("");
+
+  if (mapFileName.empty())
+    throw std::runtime_error("Map name empty!");
+
+  mapObject.filePath = (assetsPath / "maps" / mapFileName).string();
 }
 
 MapObject MapLoader::loadObject(const json &object, PropertyType propertyType) {
@@ -145,11 +144,8 @@ MapObject MapLoader::loadObject(const json &object, PropertyType propertyType) {
   mapObject.ypos = object.value("y", 0);
 
   // Check for linked ID
-  try {
-    mapObject.linkedId = MapLoader::getProperty<int>(object, "linked_id");
-  } catch (std::runtime_error e) {
-    mapObject.linkedId = -1;
-  }
+  mapObject.linkedId =
+      MapLoader::getProperty<int>(object, "linked_id").value_or(-1);
 
   switch (propertyType) {
   case SPRITE:
@@ -158,6 +154,11 @@ MapObject MapLoader::loadObject(const json &object, PropertyType propertyType) {
   case TRANSITION:
     processTransitionObject(mapObject, object);
     break;
+  case INTERACTION: {
+    mapObject.filePath =
+        MapLoader::getProperty<std::string>(object, "scene_file").value_or("");
+    break;
+  }
   default:
     break;
   }
@@ -280,10 +281,11 @@ std::string MapLoader::getTilesetSource(int tilesetID,
 }
 
 template <typename T>
-T MapLoader::getProperty(const json &object, const std::string &property) {
+std::optional<T> MapLoader::getProperty(const json &object,
+                                        const std::string &property) {
   if (object.find("properties") == object.end() ||
-      object["properties"].size() == 0) {
-    throw std::runtime_error("Properties field not found.");
+      object["properties"].empty()) {
+    return std::nullopt;
   }
   for (const auto &prop : object["properties"]) {
     if (prop["name"] == property) {
@@ -299,8 +301,8 @@ T MapLoader::getProperty(const json &object, const std::string &property) {
         if (type == "string")
           return prop["value"].get<std::string>();
       }
-      throw std::runtime_error("Property type mismatch or unsupported type.");
+      return std::nullopt;
     }
   }
-  throw std::runtime_error("Property " + property + " not found.");
+  return std::nullopt;
 }
