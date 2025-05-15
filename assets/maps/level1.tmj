@@ -58,8 +58,8 @@
                  "type":"",
                  "visible":true,
                  "width":32,
-                 "x":199.666666666667,
-                 "y":160.666666666667
+                 "x":199.939393939394,
+                 "y":130.212121212122
                 }, 
                 {
                  "gid":6,
@@ -70,8 +70,8 @@
                  "type":"",
                  "visible":true,
                  "width":160,
-                 "x":165.666666666667,
-                 "y":181
+                 "x":166.666666666667,
+                 "y":0
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -139,6 +139,11 @@
                  "id":34,
                  "name":"",
                  "properties":[
+                        {
+                         "name":"dialogue_file",
+                         "type":"string",
+                         "value":""
+                        }, 
                         {
                          "name":"linked_id",
                          "type":"int",

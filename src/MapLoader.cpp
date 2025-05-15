@@ -93,7 +93,7 @@ MapData MapLoader::LoadMap() {
       mapData.startPos.y =
           MapLoader::getProperty<float>(tileDataJson, "startPos_y");
     } catch (std::runtime_error e) {
-      std::cout << "Start pos could not be set from map, setting to 0,0."
+      std::cerr << "Start pos could not be set from map, setting to 0,0."
                 << std::endl;
       mapData.startPos.x = 0;
       mapData.startPos.y = 0;
@@ -116,11 +116,6 @@ MapLoader::~MapLoader() {};
 void MapLoader::processSpriteObject(MapObject &mapObject, const json &object) {
   // TODO: at some point, add support for collision boxes specified
   // within the object sprite
-
-  // Correct y coord to top-left corner as
-  // Tiled uses bottom-left
-  // TODO: check in the Tiled documentation if this can be changed
-  mapObject.ypos -= mapObject.height;
 
   // Get path to texture for sprite object
   int spritesetID = static_cast<int>(object["gid"]);
