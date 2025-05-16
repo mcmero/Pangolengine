@@ -155,8 +155,12 @@ MapObject MapLoader::loadObject(const json &object, PropertyType propertyType) {
     processTransitionObject(mapObject, object);
     break;
   case INTERACTION: {
-    mapObject.filePath =
+    fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
+
+    std::string sceneFileName =
         MapLoader::getProperty<std::string>(object, "scene_file").value_or("");
+
+    mapObject.filePath = (assetsPath / "scenes" / sceneFileName).string();
     break;
   }
   default:
