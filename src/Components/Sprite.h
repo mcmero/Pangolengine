@@ -14,13 +14,17 @@ class Sprite {
 public:
   SDL_FlipMode spriteFlip = SDL_FLIP_NONE;
   Offset posOffset;
+  int drawOrderId;
 
   Sprite(const char *texturePath, float width, float height,
-         Offset posOffset = {0, 0}, std::vector<Animation> anims = {}) {
+         Offset posOffset = {0, 0}, std::vector<Animation> anims = {},
+         int drawOrderId = -1) {
     srcRect.x = 0;
     srcRect.y = 0;
     srcRect.w = width;
     srcRect.h = height;
+
+    this->drawOrderId = drawOrderId;
 
     this->posOffset = posOffset;
 
@@ -94,9 +98,11 @@ public:
 private:
   SDL_Texture *texture;
   SDL_FRect srcRect, destRect;
+
   bool animated = false;
   bool animStart = false;
   bool animUnfinished = false;
+
   int animFrameOffset = 0;
   std::vector<Animation> animations;
   int animIdx = 0;

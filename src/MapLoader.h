@@ -12,7 +12,8 @@ using namespace nlohmann;
 
 struct MapObject {
   int objectId;
-  int linkedId;
+  int linkedId = -1;
+  int drawOrderId = -1;
   std::string filePath;
   float width;
   float height;
@@ -54,6 +55,7 @@ private:
   json mapDataJson;
   fs::path mapDir;
   const int tileSize;
+  int drawOrderCounter = 0;
 
   std::string tileLayerName;
   std::string spriteLayerName;

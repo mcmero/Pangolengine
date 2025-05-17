@@ -91,7 +91,7 @@ void Game::updateCamera() {
 }
 
 void Game::update() {
-  // TODO: Use templates
+  // TODO: Refactor?
   // TODO: Fix jerky movement when moving towards a collision object
 
   // Get player collider and transform components
@@ -132,9 +132,6 @@ void Game::update() {
   }
 
   // Update all sprites
-  // TODO: draw sprite order based on draw order from tiled;
-  // the one exception to this is the player, as their draw
-  // order needs to be based on the current Y position
   auto spriteView = registry.view<Sprite, Transform>();
   for (auto entity : spriteView) {
     auto &sprite = spriteView.get<Sprite>(entity);
@@ -190,12 +187,26 @@ void Game::render() {
     map.render();
   }
 
-  // draw sprites
-  auto view = registry.view<Sprite>();
-  for (auto entity : view) {
-    auto &sprite = view.get<Sprite>(entity);
+  // Build a map or sprites based on draw order
+  std::map<int, entt::entity> entityDrawOrder = {};
+  auto spriteView = registry.view<Sprite>();
+  for (auto entity : spriteView) {
+    auto &sprite = spriteView.get<Sprite>(entity);
+
+    // This effectively skips the player sprite, which has no draw order (-1)
+    if (sprite.drawOrderId >= 0)
+      entityDrawOrder[sprite.drawOrderId] = entity;
+  }
+
+  // Render the sprites based on draw order (topdown assumed)
+  for (auto entityOrderEntry : entityDrawOrder) {
+    auto &sprite = spriteView.get<Sprite>(entityOrderEntry.second);
     sprite.render();
   }
+
+  // TODO: dynamically draw player based on ypos relative to other sprites
+  auto &playerSprite = spriteView.get<Sprite>(player);
+  playerSprite.render();
 
   uiManager->render(renderer);
 
@@ -273,7 +284,8 @@ void Game::loadMap(std::string mapPath) {
 
     MapObject &sprite = spriteObject.second;
     registry.emplace<Sprite>(spriteEntity, sprite.filePath.c_str(),
-                             sprite.width, sprite.height);
+                             sprite.width, sprite.height, Offset{0, 0},
+                             std::vector<Animation>{}, sprite.drawOrderId);
     registry.emplace<Transform>(spriteEntity, sprite.xpos, sprite.ypos,
                                 sprite.width, sprite.height);
 

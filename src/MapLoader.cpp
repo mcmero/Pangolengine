@@ -143,6 +143,11 @@ MapObject MapLoader::loadObject(const json &object, PropertyType propertyType) {
   mapObject.xpos = object.value("x", 0);
   mapObject.ypos = object.value("y", 0);
 
+  // Draw order is set by iteration position, which reflects the draw
+  // order in the JSON map file
+  mapObject.drawOrderId = drawOrderCounter;
+  drawOrderCounter++;
+
   // Check for linked ID
   mapObject.linkedId =
       MapLoader::getProperty<int>(object, "linked_id").value_or(-1);
@@ -184,6 +189,7 @@ MapLoader::loadMapObjects(std::string layerName, PropertyType propertyType) {
     return mapObjects;
   }
 
+  drawOrderCounter = 0; // Reset the draw order for new layer
   for (const auto &object : objectDataJson["objects"]) {
     MapObject mapObject = loadObject(object, propertyType);
     mapObjects[mapObject.objectId] = mapObject;
