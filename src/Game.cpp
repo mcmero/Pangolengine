@@ -233,23 +233,29 @@ void Game::clearEntities(std::unordered_map<int, T> entityVector) {
 }
 
 void Game::loadPlayer() {
-  player = registry.create();
   // TODO: the animation is a bit jerky when walking -- can it be fixed by
   // animation speed?
-  // TODO: initialise collision component using transform values
   // TODO: move player variables to a config file?
+  player = registry.create();
+
   fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
   std::string playerSpriteSheet =
       (assetsPath / "characters" / "player_anim.png").string();
   std::vector<Animation> playerAnims = {{"walk_front", 0, 4, 200},
                                         {"walk_side", 1, 4, 200},
                                         {"walk_back", 2, 4, 200}};
+
   registry.emplace<Sprite>(player, playerSpriteSheet.c_str(), PLAYER_WIDTH,
                            PLAYER_HEIGHT, Offset{8, 0}, playerAnims);
+
   registry.emplace<Transform>(player, mapData.startPos.x, mapData.startPos.y,
                               32.0f, 32.0f, true);
-  registry.emplace<Collider>(player, mapData.startPos.x, mapData.startPos.y,
+
+  auto view = registry.view<Transform>();
+  auto &transform = view.get<Transform>(player);
+  registry.emplace<Collider>(player, transform.position.x, transform.position.y,
                              15.0f, 15.0f, Offset{17, 17});
+
   registry.emplace<KeyboardController>(player);
 }
 
