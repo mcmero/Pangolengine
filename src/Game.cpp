@@ -91,7 +91,6 @@ void Game::updateCamera() {
 }
 
 void Game::update() {
-  // TODO: Refactor?
   // TODO: Fix jerky movement when moving towards a collision object
 
   // Get player collider and transform components
@@ -187,15 +186,17 @@ void Game::render() {
     map.render();
   }
 
-  // Build a map or sprites based on draw order
-  std::map<int, entt::entity> entityDrawOrder = {};
-  auto spriteView = registry.view<Sprite>();
+  // Build a vector of sprites, sorted by Y coordinate
+  std::vector<std::pair<float, entt::entity>> entityDrawOrder = {};
+  auto spriteView = registry.view<Sprite, Transform>();
   for (auto entity : spriteView) {
-    auto &sprite = spriteView.get<Sprite>(entity);
+    auto &transform = spriteView.get<Transform>(entity);
 
-    // This effectively skips the player sprite, which has no draw order (-1)
-    if (sprite.drawOrderId >= 0)
-      entityDrawOrder[sprite.drawOrderId] = entity;
+    entityDrawOrder.push_back({transform.position.y, entity});
+
+    // Sort vector by Y coordinate
+    std::sort(entityDrawOrder.begin(), entityDrawOrder.end(),
+              [](const auto a, const auto b) { return a.first < b.first; });
   }
 
   // Render the sprites based on draw order (topdown assumed)
@@ -203,10 +204,6 @@ void Game::render() {
     auto &sprite = spriteView.get<Sprite>(entityOrderEntry.second);
     sprite.render();
   }
-
-  // TODO: dynamically draw player based on ypos relative to other sprites
-  auto &playerSprite = spriteView.get<Sprite>(player);
-  playerSprite.render();
 
   uiManager->render(renderer);
 
