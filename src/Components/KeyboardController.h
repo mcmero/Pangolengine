@@ -17,48 +17,8 @@ public:
     else
       canMove = true;
 
-    if (event->type == SDL_EVENT_KEY_DOWN && canMove) {
-      switch (event->key.key) {
-      case SDLK_W:
-        sprite.play("walk_back");
-        setPlayerMovement(UP, transform);
-        lastDirection = UP;
-        break;
-      case SDLK_A:
-        sprite.play("walk_side");
-        setPlayerMovement(LEFT, transform);
-        sprite.spriteFlip = SDL_FLIP_HORIZONTAL;
-        lastDirection = LEFT;
-        break;
-      case SDLK_D:
-        sprite.play("walk_side");
-        setPlayerMovement(RIGHT, transform);
-        sprite.spriteFlip = SDL_FLIP_NONE;
-        lastDirection = RIGHT;
-        break;
-      case SDLK_S:
-        sprite.play("walk_front");
-        setPlayerMovement(DOWN, transform);
-        lastDirection = DOWN;
-        break;
-      default:
-        break;
-      }
-    }
     if (event->type == SDL_EVENT_KEY_UP) {
       switch (event->key.key) {
-      case SDLK_W:
-        sprite.stop();
-        break;
-      case SDLK_A:
-        sprite.stop();
-        break;
-      case SDLK_D:
-        sprite.stop();
-        break;
-      case SDLK_S:
-        sprite.stop();
-        break;
       case SDLK_E:
         if (intObject != nullptr) {
           intObject->interact();
@@ -68,6 +28,68 @@ public:
       default:
         break;
       }
+    }
+  }
+
+  /**
+   * Handle input by polling key state for smooth movement animation
+   */
+  void pollInput(const bool *keyState, Transform &transform, Sprite &sprite) {
+    bool moving = false;
+
+    if (!transform.isMoving) {
+
+      if (keyState[SDL_SCANCODE_W]) {
+        sprite.play("walk_back");
+
+        setPlayerMovement(UP, transform);
+        lastDirection = UP;
+
+      } else if (keyState[SDL_SCANCODE_A]) {
+        sprite.play("walk_side");
+        sprite.spriteFlip = SDL_FLIP_HORIZONTAL;
+
+        setPlayerMovement(LEFT, transform);
+        lastDirection = LEFT;
+
+      } else if (keyState[SDL_SCANCODE_D]) {
+        sprite.play("walk_side");
+        sprite.spriteFlip = SDL_FLIP_NONE;
+
+        setPlayerMovement(RIGHT, transform);
+        lastDirection = RIGHT;
+
+      } else if (keyState[SDL_SCANCODE_S]) {
+        sprite.play("walk_front");
+
+        setPlayerMovement(DOWN, transform);
+        lastDirection = DOWN;
+      }
+
+    } else {
+      switch (lastDirection) {
+      case UP:
+        sprite.play("walk_back");
+        break;
+      case DOWN:
+        sprite.play("walk_front");
+        break;
+      case LEFT:
+        sprite.play("walk_side");
+        sprite.spriteFlip = SDL_FLIP_HORIZONTAL;
+        break;
+      case RIGHT:
+        sprite.play("walk_side");
+        sprite.spriteFlip = SDL_FLIP_NONE;
+        break;
+      default:
+        break;
+      }
+      moving = true;
+    }
+
+    if (!moving) {
+      sprite.stop();
     }
   }
 

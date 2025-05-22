@@ -73,11 +73,20 @@ void Game::handleEvents(SDL_Event *event) {
       break; // only one object should be interactable at any one time
     }
   }
+
+  // Handle player interaction events
   controller.update(event, transform, sprite, intObject);
+
+  // Handle player movement via polling for smooth movement
+  const bool *keyState = SDL_GetKeyboardState(nullptr);
+  controller.pollInput(keyState, transform, sprite);
+
   uiManager->handleEvents(*event);
 }
 
 void Game::updateCamera() {
+  // TODO: fix jerky camera movement
+
   // Update camera position based on player position
   auto view = registry.view<Transform>();
   auto &playerTransform = view.get<Transform>(player);
@@ -241,17 +250,15 @@ void Game::clearEntities(std::unordered_map<int, T> entityVector) {
 }
 
 void Game::loadPlayer() {
-  // TODO: the animation is a bit jerky when walking -- can it be fixed by
-  // animation speed?
   // TODO: move player variables to a config file?
   player = registry.create();
 
   fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
   std::string playerSpriteSheet =
       (assetsPath / "characters" / "player_anim.png").string();
-  std::vector<Animation> playerAnims = {{"walk_front", 0, 4, 200},
-                                        {"walk_side", 1, 4, 200},
-                                        {"walk_back", 2, 4, 200}};
+  std::vector<Animation> playerAnims = {{"walk_front", 0, 4, 150},
+                                        {"walk_side", 1, 4, 150},
+                                        {"walk_back", 2, 4, 150}};
 
   registry.emplace<Sprite>(player, playerSpriteSheet.c_str(), PLAYER_WIDTH,
                            PLAYER_HEIGHT, Offset{8, 0}, playerAnims);
