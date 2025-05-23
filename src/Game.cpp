@@ -6,6 +6,7 @@
 #include "Constants.h"
 #include "MapLoader.h"
 #include "SDL3/SDL_events.h"
+#include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
 #include "SDL3/SDL_video.h"
 #include "UI/UIManager.h"
@@ -95,14 +96,13 @@ void Game::updateCamera() {
 }
 
 void Game::update() {
-  // TODO: Fix jerky movement when moving towards a collision object
-
   // Get player collider and transform components
-  auto view = registry.view<Sprite, Transform, Collider, KeyboardController>();
-  auto &playerCollider = view.get<Collider>(player);
-  auto &playerTransform = view.get<Transform>(player);
-  auto &playerController = view.get<KeyboardController>(player);
-  auto &playerSprite = view.get<Sprite>(player);
+  auto playerView =
+      registry.view<Sprite, Transform, Collider, KeyboardController>();
+  auto &playerCollider = playerView.get<Collider>(player);
+  auto &playerTransform = playerView.get<Transform>(player);
+  auto &playerController = playerView.get<KeyboardController>(player);
+  auto &playerSprite = playerView.get<Sprite>(player);
 
   // Update all colliders
   auto colliderView = registry.view<Collider, Transform>();
@@ -110,11 +110,31 @@ void Game::update() {
     auto &collider = colliderView.get<Collider>(entity);
     auto &transform = colliderView.get<Transform>(entity);
     transform.update();
-    if (entity != player && Collision::AABB(playerCollider, collider)) {
-      std::cout << "Player collision!" << std::endl;
-      playerTransform.abortMove();
-    }
     collider.update(transform);
+  }
+
+  // Check for collision with player (if moving) and abort move on colllision
+  if (playerTransform.isMoving) {
+    // Make a collider where the player will be at the end of the move
+    SDL_FRect futureCollider;
+    futureCollider.x =
+        playerTransform.targetPosition.x + playerCollider.offset.x;
+    futureCollider.y =
+        playerTransform.targetPosition.y + playerCollider.offset.y;
+    futureCollider.h = playerCollider.collider.h;
+    futureCollider.w = playerCollider.collider.w;
+
+    for (auto entity : colliderView) {
+      if (entity == player)
+        continue;
+
+      auto &collider = colliderView.get<Collider>(entity);
+      if (Collision::AABB(futureCollider, collider.collider)) {
+        std::cout << "Player collision!" << std::endl;
+        playerTransform.abortMove();
+        break;
+      }
+    }
   }
 
   // Update all Interactable
@@ -133,6 +153,7 @@ void Game::update() {
     } else {
       interact.canInteract = false;
     }
+    transform.update();
     interact.update(transform);
   }
 
