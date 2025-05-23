@@ -2,6 +2,7 @@
 #include "Camera.h"
 #include "Collision.h"
 #include "Components/Components.h"
+#include "Components/KeyboardController.h"
 #include "Constants.h"
 #include "MapLoader.h"
 #include "SDL3/SDL_events.h"
@@ -77,16 +78,10 @@ void Game::handleEvents(SDL_Event *event) {
   // Handle player interaction events
   controller.update(event, transform, sprite, intObject);
 
-  // Handle player movement via polling for smooth movement
-  const bool *keyState = SDL_GetKeyboardState(nullptr);
-  controller.pollInput(keyState, transform, sprite);
-
   uiManager->handleEvents(*event);
 }
 
 void Game::updateCamera() {
-  // TODO: fix jerky camera movement
-
   // Update camera position based on player position
   auto view = registry.view<Transform>();
   auto &playerTransform = view.get<Transform>(player);
@@ -103,9 +98,11 @@ void Game::update() {
   // TODO: Fix jerky movement when moving towards a collision object
 
   // Get player collider and transform components
-  auto view = registry.view<Sprite, Transform, Collider>();
+  auto view = registry.view<Sprite, Transform, Collider, KeyboardController>();
   auto &playerCollider = view.get<Collider>(player);
   auto &playerTransform = view.get<Transform>(player);
+  auto &playerController = view.get<KeyboardController>(player);
+  auto &playerSprite = view.get<Sprite>(player);
 
   // Update all colliders
   auto colliderView = registry.view<Collider, Transform>();
@@ -180,6 +177,10 @@ void Game::update() {
       break;
     }
   }
+
+  // Handle player movement via polling for smooth movement
+  const bool *keyState = SDL_GetKeyboardState(nullptr);
+  playerController.pollInput(keyState, playerTransform, playerSprite);
 
   uiManager->update(intObject, dialogue);
   updateCamera();
