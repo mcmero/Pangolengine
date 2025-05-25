@@ -1,4 +1,5 @@
 #include "MapLoader.h"
+#include "Components/Transform.h"
 #include "SDL3/SDL_filesystem.h"
 #include "nlohmann/json.hpp"
 #include "third_party/tinyxml2/tinyxml2.h"
@@ -88,6 +89,8 @@ MapData MapLoader::LoadMap() {
     mapData.pixelWidth = static_cast<int>(mapData.width) * tileSize;
 
     // Get the player starting position (set to 0,0 if not found)
+    // TODO: maybe this can be defined by placing a player sprite on the map
+    // instead of a property on the tile map?
     mapData.startPos.x =
         MapLoader::getProperty<float>(tileDataJson, "startPos_x").value_or(0);
     mapData.startPos.y =
@@ -101,6 +104,113 @@ MapData MapLoader::LoadMap() {
       MapLoader::loadMapObjects(transitionLayerName, TRANSITION);
   mapData.interactionVector =
       MapLoader::loadMapObjects(interactionLayerName, INTERACTION);
+
+  // Find and load player object
+  bool playerObjectFound = false;
+  for (const auto &tileset : mapDataJson["tilesets"]) {
+    int gid = tileset.value("firstgid", -1);
+    if (gid < 0)
+      continue;
+
+    fs::path tilesetFile =
+        fs::path(MapLoader::getTilesetSource(gid, mapDataJson));
+    tilesetFile = mapDir / tilesetFile;
+
+    tinyxml2::XMLDocument doc;
+    tinyxml2::XMLError eResult = doc.LoadFile(tilesetFile.string().c_str());
+
+    if (eResult != tinyxml2::XML_SUCCESS) {
+      throw std::runtime_error(
+          "Error loading XML file: " + tilesetFile.string() +
+          " (Error Code: " + std::to_string(eResult) + ")");
+    }
+
+    tinyxml2::XMLNode *root = doc.FirstChildElement("tileset");
+    if (root == nullptr) {
+      throw std::runtime_error("No root element found in tileset file: " +
+                               tilesetFile.string());
+    }
+
+    tinyxml2::XMLElement *imageElement = root->FirstChildElement("image");
+    if (imageElement) {
+      // Not an object tileset
+      continue;
+    }
+    // Attempt to find player in object tileset
+    tinyxml2::XMLElement *tileNode = root->FirstChildElement("tile");
+    while (tileNode) {
+      int id = 0;
+      eResult = tileNode->QueryIntAttribute("id", &id);
+      if (eResult != tinyxml2::XML_SUCCESS) {
+        throw std::runtime_error(
+            "No 'id' attribute found in tile node. Error Code: " +
+            std::to_string(eResult));
+      }
+
+      // Get properties tag if it exists
+      tinyxml2::XMLElement *tileProperties =
+          tileNode->FirstChildElement("properties");
+      if (!tileProperties) {
+        // No properties on tile, so keep looking
+        tileNode = tileNode->NextSiblingElement("tile");
+        continue;
+      }
+
+      const char *type;
+      eResult = tileNode->QueryStringAttribute("type", &type);
+
+      if (eResult == tinyxml2::XML_SUCCESS && strcmp(type, "player") == 0) {
+        playerObjectFound = true;
+      } else {
+        tileNode = tileNode->NextSiblingElement("tile");
+        continue;
+      }
+
+      mapData.playerObject.objectId = id;
+      mapData.playerObject.globalId = gid + id;
+
+      tinyxml2::XMLElement *tileProperty =
+          tileProperties->FirstChildElement("property");
+
+      while (tileProperty) {
+        const char *name;
+        eResult = tileProperty->QueryStringAttribute("name", &name);
+
+        if (eResult != tinyxml2::XML_SUCCESS) {
+          tileProperty = tileProperty->NextSiblingElement("property");
+          continue;
+        }
+
+        if (strcmp(name, "sprite_offset_x") == 0) {
+          float value = 0.0;
+          tileProperty->QueryFloatAttribute("value", &value);
+          mapData.playerObject.spriteOffset.x = value;
+
+        } else if (strcmp(name, "sprite_offset_y") == 0) {
+          float value = 0.0;
+          tileProperty->QueryFloatAttribute("value", &value);
+          mapData.playerObject.spriteOffset.y = value;
+
+        } else if (strcmp(name, "spritesheet") == 0) {
+          const char *value = "";
+          tileProperty->QueryStringAttribute("value", &value);
+          mapData.playerObject.spriteSheet =
+              fs::canonical(tilesetFile.parent_path() / fs::path(value))
+                  .string();
+        }
+        // TODO: load animations
+        // TODO: load player collider
+        tileProperty = tileProperty->NextSiblingElement("property");
+      }
+
+      tileNode = tileNode->NextSiblingElement("tile");
+    }
+    if (playerObjectFound)
+      break;
+  }
+  if (!playerObjectFound) {
+    std::cerr << "Warning: player object not found." << std::endl;
+  }
 
   return mapData;
 }

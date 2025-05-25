@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Components/Animation.h"
+#include "Components/Transform.h"
 #include "Vector2D.h"
 #include <filesystem>
 #include <third_party/nlohmann/json.hpp>
@@ -21,6 +23,15 @@ struct MapObject {
   float ypos;
 };
 
+struct PlayerObject {
+  int objectId;
+  int globalId;
+  Offset spriteOffset;
+  MapObject collider;
+  std::string spriteSheet;
+  std::vector<Animation> animations;
+};
+
 struct MapData {
   std::vector<std::vector<int>> map;
   float height;
@@ -28,6 +39,7 @@ struct MapData {
   int pixelHeight;
   int pixelWidth;
   Vector2D startPos;
+  PlayerObject playerObject;
   std::string tilesetImg;
   std::unordered_map<int, MapObject> spriteVector;
   std::unordered_map<int, MapObject> colliderVector;

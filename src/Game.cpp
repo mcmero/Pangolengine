@@ -272,7 +272,8 @@ void Game::clearEntities(std::unordered_map<int, T> entityVector) {
 }
 
 void Game::loadPlayer() {
-  // TODO: move player variables to a config file?
+  // TODO: move player variables into a player object (defined in tilemap)
+  // load from Maploader, including parsing animation json file
   player = registry.create();
 
   fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";

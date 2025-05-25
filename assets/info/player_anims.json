@@ -1,0 +1,22 @@
+{
+  "animations": [
+    {
+      "name": "walk_front",
+      "index": 0,
+      "frames": 4,
+      "speed": 150
+    },
+    {
+      "name": "walk_side",
+      "index": 1,
+      "frames": 4,
+      "speed": 150
+    },
+    {
+      "name": "walk_back",
+      "index": 2,
+      "frames": 4,
+      "speed": 150
+    }
+  ]
+}
