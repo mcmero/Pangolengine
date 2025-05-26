@@ -106,6 +106,7 @@ MapData MapLoader::LoadMap() {
       MapLoader::loadMapObjects(interactionLayerName, INTERACTION);
 
   // Find and load player object
+  // Iterate through tilesets
   bool playerObjectFound = false;
   for (const auto &tileset : mapDataJson["tilesets"]) {
     int gid = tileset.value("firstgid", -1);
@@ -136,6 +137,7 @@ MapData MapLoader::LoadMap() {
       // Not an object tileset
       continue;
     }
+
     // Attempt to find player in object tileset
     tinyxml2::XMLElement *tileNode = root->FirstChildElement("tile");
     while (tileNode) {
@@ -159,19 +161,36 @@ MapData MapLoader::LoadMap() {
       const char *type;
       eResult = tileNode->QueryStringAttribute("type", &type);
 
+      // Class (type in the XML file) indicates the player object
       if (eResult == tinyxml2::XML_SUCCESS && strcmp(type, "player") == 0) {
         playerObjectFound = true;
+
+        // Set IDs
+        mapData.playerObject.objectId = id;
+        mapData.playerObject.globalId = gid + id;
+
+        // Get collider -- first object in object group
+        tinyxml2::XMLElement *object =
+            tileNode->FirstChildElement("objectgroup")
+                ->FirstChildElement("object");
+        if (object) {
+          object->QueryIntAttribute("id",
+                                    &mapData.playerObject.collider.objectId);
+          object->QueryFloatAttribute("x", &mapData.playerObject.collider.xpos);
+          object->QueryFloatAttribute("y", &mapData.playerObject.collider.ypos);
+          object->QueryFloatAttribute("width",
+                                      &mapData.playerObject.collider.width);
+          object->QueryFloatAttribute("height",
+                                      &mapData.playerObject.collider.height);
+        }
       } else {
         tileNode = tileNode->NextSiblingElement("tile");
         continue;
       }
 
-      mapData.playerObject.objectId = id;
-      mapData.playerObject.globalId = gid + id;
-
+      // Process player properties
       tinyxml2::XMLElement *tileProperty =
           tileProperties->FirstChildElement("property");
-
       while (tileProperty) {
         const char *name;
         eResult = tileProperty->QueryStringAttribute("name", &name);
@@ -181,30 +200,13 @@ MapData MapLoader::LoadMap() {
           continue;
         }
 
-        if (strcmp(name, "sprite_offset_x") == 0) {
-          float value = 0.0;
-          tileProperty->QueryFloatAttribute("value", &value);
-          mapData.playerObject.spriteOffset.x = value;
-
-        } else if (strcmp(name, "sprite_offset_y") == 0) {
-          float value = 0.0;
-          tileProperty->QueryFloatAttribute("value", &value);
-          mapData.playerObject.spriteOffset.y = value;
-
-        } else if (strcmp(name, "spritesheet") == 0) {
-          const char *value = "";
-          tileProperty->QueryStringAttribute("value", &value);
-          mapData.playerObject.spriteSheet =
-              fs::canonical(tilesetFile.parent_path() / fs::path(value))
-                  .string();
-        }
-        // TODO: load animations
-        // TODO: load player collider
+        MapLoader::processPlayerProperty(name, tileProperty,
+                                         tilesetFile.parent_path());
         tileProperty = tileProperty->NextSiblingElement("property");
       }
-
-      tileNode = tileNode->NextSiblingElement("tile");
+      break;
     }
+    // Break out of iterating tilesets if we've found the player
     if (playerObjectFound)
       break;
   }
@@ -212,6 +214,7 @@ MapData MapLoader::LoadMap() {
     std::cerr << "Warning: player object not found." << std::endl;
   }
 
+  f.close();
   return mapData;
 }
 
@@ -282,6 +285,50 @@ MapObject MapLoader::loadObject(const json &object, PropertyType propertyType) {
     break;
   }
   return mapObject;
+}
+
+void MapLoader::processPlayerProperty(const char *name,
+                                      const tinyxml2::XMLElement *tileProperty,
+                                      const fs::path tilesetDir) {
+
+  if (strcmp(name, "sprite_offset_x") == 0) {
+    float value = 0.0;
+    tileProperty->QueryFloatAttribute("value", &value);
+    mapData.playerObject.spriteOffset.x = value;
+
+  } else if (strcmp(name, "sprite_offset_y") == 0) {
+    float value = 0.0;
+    tileProperty->QueryFloatAttribute("value", &value);
+    mapData.playerObject.spriteOffset.y = value;
+
+  } else if (strcmp(name, "spritesheet") == 0) {
+    const char *value = "";
+    tileProperty->QueryStringAttribute("value", &value);
+    mapData.playerObject.spriteSheet =
+        fs::canonical(tilesetDir / fs::path(value)).string();
+
+  } else if (strcmp(name, "animations") == 0) {
+    const char *value = "";
+    tileProperty->QueryStringAttribute("value", &value);
+
+    std::string animFilePath = (tilesetDir / fs::path(value)).string();
+    std::ifstream animationsFile(animFilePath);
+    if (!animationsFile.is_open()) {
+      std::stringstream ss;
+      ss << "Failed to open animations file: " << value << std::endl;
+      throw std::runtime_error(ss.str());
+    }
+
+    json animJson = json::parse(animationsFile);
+    for (const auto &animVals : animJson["animations"]) {
+      std::string animName = animVals.value("name", "");
+      Animation anim =
+          Animation(animName, animVals.value("index", 0),
+                    animVals.value("frames", 1), animVals.value("speed", 100));
+      mapData.playerObject.animations.push_back(anim);
+    }
+    animationsFile.close();
+  }
 }
 
 std::unordered_map<int, MapObject>

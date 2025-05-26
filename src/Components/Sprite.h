@@ -78,9 +78,9 @@ public:
     TextureManager::Draw(texture, srcRect, destRect, spriteFlip);
   }
 
-  void play(const char *animName) {
+  void play(const std::string animName) {
     for (int i = 0; i < animations.size(); i++) {
-      if (strcmp(animations[i].name, animName) == 0) {
+      if (animations[i].name == animName) {
         animIdx = i;
         animated = true;
         animStart = true;

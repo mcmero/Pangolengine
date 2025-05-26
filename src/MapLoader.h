@@ -5,6 +5,7 @@
 #include "Vector2D.h"
 #include <filesystem>
 #include <third_party/nlohmann/json.hpp>
+#include <third_party/tinyxml2/tinyxml2.h>
 #include <unordered_map>
 #include <vector>
 
@@ -17,16 +18,16 @@ struct MapObject {
   int linkedId = -1;
   int drawOrderId = -1;
   std::string filePath;
-  float width;
-  float height;
-  float xpos;
-  float ypos;
+  float width = 32;
+  float height = 32;
+  float xpos = 0;
+  float ypos = 0;
 };
 
 struct PlayerObject {
   int objectId;
   int globalId;
-  Offset spriteOffset;
+  Offset spriteOffset = {0, 0};
   MapObject collider;
   std::string spriteSheet;
   std::vector<Animation> animations;
@@ -83,6 +84,10 @@ private:
   void processSpriteObject(MapObject &mapObject, const json &object);
 
   void processTransitionObject(MapObject &mapObject, const json &object);
+
+  void processPlayerProperty(const char *name,
+                             const tinyxml2::XMLElement *property,
+                             const fs::path tilesetDir);
 
   MapObject loadObject(const json &object, PropertyType propertyType);
 
