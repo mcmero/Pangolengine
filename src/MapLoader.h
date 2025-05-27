@@ -14,7 +14,7 @@ namespace fs = std::filesystem;
 using namespace nlohmann;
 
 struct MapObject {
-  int objectId;
+  int objectId = -1;
   int linkedId = -1;
   int drawOrderId = -1;
   std::string filePath;
@@ -25,8 +25,10 @@ struct MapObject {
 };
 
 struct PlayerObject {
-  int objectId;
-  int globalId;
+  int objectId = -1;
+  int globalId = -1;
+  float width = 32;
+  float height = 32;
   Offset spriteOffset = {0, 0};
   MapObject collider;
   std::string spriteSheet;
@@ -35,13 +37,13 @@ struct PlayerObject {
 
 struct MapData {
   std::vector<std::vector<int>> map;
-  float height;
-  float width;
-  int pixelHeight;
-  int pixelWidth;
-  Vector2D startPos;
-  PlayerObject playerObject;
-  std::string tilesetImg;
+  float height = 0;
+  float width = 0;
+  int pixelHeight = 0;
+  int pixelWidth = 0;
+  Vector2D startPos = {0, 0};
+  PlayerObject playerObject = {};
+  std::string tilesetImg = "";
   std::unordered_map<int, MapObject> spriteVector;
   std::unordered_map<int, MapObject> colliderVector;
   std::unordered_map<int, MapObject> transitionVector;

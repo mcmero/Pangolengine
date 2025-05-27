@@ -86,11 +86,11 @@ void Game::updateCamera() {
   // Update camera position based on player position
   auto view = registry.view<Transform>();
   auto &playerTransform = view.get<Transform>(player);
-  int xpos =
-      static_cast<int>(playerTransform.position.x + float(PLAYER_WIDTH) / 2.0f -
-                       float(SCREEN_WIDTH) / 2.0f);
+  int xpos = static_cast<int>(playerTransform.position.x +
+                              float(mapData.playerObject.width) / 2.0f -
+                              float(SCREEN_WIDTH) / 2.0f);
   int ypos = static_cast<int>(playerTransform.position.y +
-                              float(PLAYER_HEIGHT) / 2.0f -
+                              float(mapData.playerObject.height) / 2.0f -
                               float(SCREEN_HEIGHT) / 2.0f);
   Camera::update(xpos, ypos, mapData.pixelWidth, mapData.pixelHeight);
 }
@@ -190,10 +190,16 @@ void Game::update() {
 
       // Replace transform and collider components on the player to reset
       // position
-      registry.replace<Transform>(player, mapData.startPos.x,
-                                  mapData.startPos.y, 32.0f, 32.0f, true);
-      registry.replace<Collider>(player, mapData.startPos.x, mapData.startPos.y,
-                                 15.0f, 15.0f, Offset{17, 17});
+      registry.replace<Transform>(
+          player, mapData.startPos.x, mapData.startPos.y,
+          mapData.playerObject.width, mapData.playerObject.height, true);
+
+      registry.replace<Collider>(player, playerTransform.position.x,
+                                 playerTransform.position.y,
+                                 mapData.playerObject.collider.width,
+                                 mapData.playerObject.collider.height,
+                                 Offset{mapData.playerObject.collider.xpos,
+                                        mapData.playerObject.collider.ypos});
 
       break;
     }
@@ -272,27 +278,24 @@ void Game::clearEntities(std::unordered_map<int, T> entityVector) {
 }
 
 void Game::loadPlayer() {
-  // TODO: move player variables into a player object (defined in tilemap)
-  // load from Maploader, including parsing animation json file
   player = registry.create();
 
-  fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
-  std::string playerSpriteSheet =
-      (assetsPath / "characters" / "player_anim.png").string();
-  std::vector<Animation> playerAnims = {{"walk_front", 0, 4, 150},
-                                        {"walk_side", 1, 4, 150},
-                                        {"walk_back", 2, 4, 150}};
-
-  registry.emplace<Sprite>(player, playerSpriteSheet.c_str(), PLAYER_WIDTH,
-                           PLAYER_HEIGHT, Offset{8, 0}, playerAnims);
+  registry.emplace<Sprite>(
+      player, mapData.playerObject.spriteSheet.c_str(),
+      mapData.playerObject.width, mapData.playerObject.height,
+      mapData.playerObject.spriteOffset, mapData.playerObject.animations);
 
   registry.emplace<Transform>(player, mapData.startPos.x, mapData.startPos.y,
-                              32.0f, 32.0f, true);
+                              mapData.playerObject.width,
+                              mapData.playerObject.height, true);
 
   auto view = registry.view<Transform>();
   auto &transform = view.get<Transform>(player);
   registry.emplace<Collider>(player, transform.position.x, transform.position.y,
-                             15.0f, 15.0f, Offset{17, 17});
+                             mapData.playerObject.collider.width,
+                             mapData.playerObject.collider.height,
+                             Offset{mapData.playerObject.collider.xpos,
+                                    mapData.playerObject.collider.ypos});
 
   registry.emplace<KeyboardController>(player);
 }

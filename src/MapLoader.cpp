@@ -169,6 +169,13 @@ MapData MapLoader::LoadMap() {
         mapData.playerObject.objectId = id;
         mapData.playerObject.globalId = gid + id;
 
+        // Get sprite dimensions
+        tinyxml2::XMLElement *image = tileNode->FirstChildElement("image");
+        if (image) {
+          image->QueryFloatAttribute("width", &mapData.playerObject.width);
+          image->QueryFloatAttribute("height", &mapData.playerObject.height);
+        }
+
         // Get collider -- first object in object group
         tinyxml2::XMLElement *object =
             tileNode->FirstChildElement("objectgroup")
