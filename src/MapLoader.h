@@ -57,7 +57,8 @@ public:
             std::string spriteLayerName = "Sprites",
             std::string collisionLayerName = "Collision",
             std::string transitionLayerName = "Transition",
-            std::string interactionLayerName = "Interaction");
+            std::string interactionLayerName = "Interaction",
+            std::string playerLayerName = "Player");
 
   ~MapLoader();
 
@@ -77,6 +78,7 @@ private:
   std::string collisionLayerName;
   std::string transitionLayerName;
   std::string interactionLayerName;
+  std::string playerLayerName;
 
   // Map where index = global ID and string = texture path
   std::unordered_map<int, std::string> gidTextures = {};

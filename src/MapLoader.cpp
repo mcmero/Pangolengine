@@ -19,11 +19,13 @@ MapLoader::MapLoader(std::string mapFile, int tileSize,
                      std::string tileLayerName, std::string spriteLayerName,
                      std::string collisionLayerName,
                      std::string transitionLayerName,
-                     std::string interactionLayerName)
+                     std::string interactionLayerName,
+                     std::string playerLayerName)
     : mapFile(mapFile), tileSize(tileSize), tileLayerName(tileLayerName),
       spriteLayerName(spriteLayerName), collisionLayerName(collisionLayerName),
       transitionLayerName(transitionLayerName),
-      interactionLayerName(interactionLayerName) {}
+      interactionLayerName(interactionLayerName),
+      playerLayerName(playerLayerName) {}
 
 MapData MapLoader::LoadMap() {
   std::ifstream f(mapFile);
@@ -87,14 +89,6 @@ MapData MapLoader::LoadMap() {
     // Calculate pixel height and width
     mapData.pixelHeight = static_cast<int>(mapData.height) * tileSize;
     mapData.pixelWidth = static_cast<int>(mapData.width) * tileSize;
-
-    // Get the player starting position (set to 0,0 if not found)
-    // TODO: maybe this can be defined by placing a player sprite on the map
-    // instead of a property on the tile map?
-    mapData.startPos.x =
-        MapLoader::getProperty<float>(tileDataJson, "startPos_x").value_or(0);
-    mapData.startPos.y =
-        MapLoader::getProperty<float>(tileDataJson, "startPos_y").value_or(0);
   }
 
   mapData.spriteVector = MapLoader::loadMapObjects(spriteLayerName, SPRITE);
@@ -104,6 +98,25 @@ MapData MapLoader::LoadMap() {
       MapLoader::loadMapObjects(transitionLayerName, TRANSITION);
   mapData.interactionVector =
       MapLoader::loadMapObjects(interactionLayerName, INTERACTION);
+
+  // Load start position from first object in player layer
+  std::unordered_map<int, MapObject> playerMap =
+      MapLoader::loadMapObjects(playerLayerName, SPRITE);
+  if (playerMap.size() > 1)
+    std::cerr
+        << "Warning: player layer has multiple objects. Expected only one."
+        << std::endl;
+  else if (playerMap.size() == 0)
+    std::cerr << "Warning: player layer has no objects. Assuming player starts "
+                 "at 0,0."
+              << std::endl;
+
+  // Start pos is first object's x and y position rounded to the tile size
+  for (const auto &object : playerMap) {
+    mapData.startPos.x = std::round(object.second.xpos / TILE_SIZE) * TILE_SIZE;
+    mapData.startPos.y = std::round(object.second.ypos / TILE_SIZE) * TILE_SIZE;
+    break;
+  }
 
   // Find and load player object
   // Iterate through tilesets

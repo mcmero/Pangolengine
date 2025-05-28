@@ -81,6 +81,29 @@
         }, 
         {
          "draworder":"topdown",
+         "id":7,
+         "name":"Player",
+         "objects":[
+                {
+                 "gid":7,
+                 "height":32,
+                 "id":39,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":32,
+                 "x":64.3333333333333,
+                 "y":145
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
          "id":4,
          "name":"Collision",
          "objects":[
@@ -190,8 +213,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":7,
- "nextobjectid":38,
+ "nextlayerid":8,
+ "nextobjectid":40,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.0",
