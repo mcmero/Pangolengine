@@ -88,6 +88,15 @@ add_subdirectory(SDL EXCLUDE_FROM_ALL)
 set(SDLTTF_VENDORED ON) # tell SDL_ttf to build its own dependencies
 add_subdirectory(SDL_ttf EXCLUDE_FROM_ALL)
 
+# SDL_mixer (used for playing audio)
+set(SDLMIXER_MIDI_NATIVE OFF)     # disable formats we don't use to make the build faster and smaller. Also some of these don't work on all platforms so you'll need to do some experimentation.
+set(SDLMIXER_GME OFF)
+set(SDLMIXER_WAVPACK OFF)
+set(SDLMIXER_MOD OFF)
+set(SDLMIXER_OPUS OFF)
+set(SDLMIXER_VENDORED ON)   # tell SDL_mixer to build its own dependencies
+add_subdirectory(SDL_mixer EXCLUDE_FROM_ALL)
+
 # Add SDL_image submodule and link it
 set(SDLIMAGE_VENDORED ON)
 set(SDLIMAGE_AVIF OFF)	# disable formats we don't use to make the build faster and smaller.
@@ -99,6 +108,7 @@ add_subdirectory(SDL_image EXCLUDE_FROM_ALL)
 # Link SDL to our executable. This also makes its include directory available to us. 
 target_link_libraries(${EXECUTABLE_NAME} PUBLIC 
   SDL3_ttf::SDL3_ttf
+  SDL3_mixer::SDL3_mixer
   SDL3_image::SDL3_image
   SDL3::SDL3)
 target_compile_definitions(${EXECUTABLE_NAME} PUBLIC SDL_MAIN_USE_CALLBACKS)

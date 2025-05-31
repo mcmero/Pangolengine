@@ -1,11 +1,13 @@
 #include "Constants.h"
 #include "Game.h"
 #include "SDL3/SDL_events.h"
+#include "SDL3/SDL_init.h"
 #include "SDL3/SDL_timer.h"
 #include "SDL3/SDL_video.h"
 #include "SDL3_ttf/SDL_ttf.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <SDL3_mixer/SDL_mixer.h>
 #include <cstdint>
 
 struct AppContext {
@@ -23,7 +25,7 @@ SDL_AppResult SDL_Fail() {
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   // init the library, here we make a window so we only need the Video
   // capabilities.
-  if (not SDL_Init(SDL_INIT_VIDEO)) {
+  if (not SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
     return SDL_Fail();
   }
 
@@ -57,6 +59,18 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     if (width != bbwidth) {
       SDL_Log("This is a highdpi environment.");
     }
+  }
+
+  // init SDL Mixer
+  auto audioDevice =
+      SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, NULL);
+
+  if (not audioDevice) {
+    return SDL_Fail();
+  }
+
+  if (not Mix_OpenAudio(audioDevice, NULL)) {
+    return SDL_Fail();
   }
 
   // Create the AppContext and initialize the game

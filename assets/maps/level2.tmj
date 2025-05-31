@@ -27,17 +27,6 @@
          "id":1,
          "name":"Tiles",
          "opacity":1,
-         "properties":[
-                {
-                 "name":"startPos_x",
-                 "type":"float",
-                 "value":128
-                }, 
-                {
-                 "name":"startPos_y",
-                 "type":"float",
-                 "value":112
-                }],
          "type":"tilelayer",
          "visible":true,
          "width":20,
