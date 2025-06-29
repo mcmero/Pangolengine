@@ -11,6 +11,7 @@
 #include "SDL3/SDL_video.h"
 #include "SDL3_mixer/SDL_mixer.h"
 #include "UI/UIManager.h"
+#include "nlohmann/json.hpp"
 #include <filesystem>
 #include <iostream>
 #include <ostream>
@@ -47,6 +48,7 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   std::string level1Map = (assetsPath / "maps" / "level1.tmj").string();
   std::string s001_dialogue =
       (assetsPath / "scenes" / "S001_Test.json").string();
+  std::string level1Music = (assetsPath / "audio" / "walking.ogg").string();
 
   // Set up map data
   Game::loadMap(level1Map);
@@ -56,6 +58,10 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
 
   // Set up the up the UI manager
   uiManager = new UIManager();
+
+  // Load music
+  auto music = Mix_LoadMUS(level1Music.c_str());
+  Mix_PlayMusic(music, 2);
 
   return true;
 }
