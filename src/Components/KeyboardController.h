@@ -37,7 +37,7 @@ public:
   void pollInput(const bool *keyState, Transform &transform, Sprite &sprite) {
     bool moving = false;
 
-    if (!transform.isMoving) {
+    if (!transform.isMoving && canMove) {
 
       if (keyState[SDL_SCANCODE_W]) {
         sprite.play("walk_back");

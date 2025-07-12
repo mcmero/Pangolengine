@@ -40,6 +40,7 @@ private:
   SDL_Color dialogueBorderColour = {0, 0, 0};
   SDL_Color dialogueBoxColour = {51, 64, 113};
 
+  // TODO: add portrait location to dialogue sheet
   fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
   std::string npcPortrait =
       (assetsPath / "textures" / "npc_portrait.png").string();

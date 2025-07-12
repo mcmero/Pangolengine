@@ -60,8 +60,8 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   uiManager = new UIManager();
 
   // Load music
-  auto music = Mix_LoadMUS(level1Music.c_str());
-  Mix_PlayMusic(music, 2);
+  // auto music = Mix_LoadMUS(level1Music.c_str());
+  // Mix_PlayMusic(music, 2);
 
   return true;
 }
