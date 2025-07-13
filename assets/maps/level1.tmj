@@ -180,7 +180,7 @@
          "name":"Transition",
          "objects":[
                 {
-                 "height":30.1931818181818,
+                 "height":14.0113636363636,
                  "id":13,
                  "name":"",
                  "properties":[
@@ -192,13 +192,13 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":44.8465909090909,
-                 "x":321.494318181819,
-                 "y":80.625
+                 "width":12.1193181818182,
+                 "x":434.221590909092,
+                 "y":96.9886363636363
                 }],
          "opacity":0.9,
          "type":"objectgroup",
-         "visible":false,
+         "visible":true,
          "x":0,
          "y":0
         }],

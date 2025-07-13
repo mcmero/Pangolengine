@@ -17,6 +17,7 @@ public:
     interactArea.y = ypos + offset.y;
     interactArea.w = width;
     interactArea.h = height;
+    this->offset = offset;
   }
 
   void update(Transform &transform) {

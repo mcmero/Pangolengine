@@ -330,6 +330,7 @@ void Game::loadMap(std::string mapPath) {
   }
 
   // Process colliders, adding to existing sprite if they are linked
+  // TODO: Fix colliders are off by one tile extra on the right side
   for (auto &colliderObject : mapData.colliderVector) {
     entt::entity colliderEntity = entt::null;
     MapObject &collider = colliderObject.second;

@@ -14,11 +14,11 @@ public:
 
   Collider(float xpos, float ypos, float width, float height,
            Offset offset = {0, 0}) {
-    this->offset = offset;
     collider.x = xpos + offset.x;
     collider.y = ypos + offset.y;
     collider.w = width;
     collider.h = height;
+    this->offset = offset;
   }
 
   void update(Transform &transform) {
