@@ -11,7 +11,6 @@
 #include "SDL3/SDL_video.h"
 #include "SDL3_mixer/SDL_mixer.h"
 #include "UI/UIManager.h"
-#include "nlohmann/json.hpp"
 #include <filesystem>
 #include <iostream>
 #include <ostream>

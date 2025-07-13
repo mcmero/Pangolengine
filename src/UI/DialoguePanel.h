@@ -7,6 +7,7 @@
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
+#include "SDL3_mixer/SDL_mixer.h"
 #include <algorithm>
 #include <sstream>
 #include <string>
@@ -21,7 +22,11 @@ public:
         innerRect(PanelHelper::getInnerRect(xpos, ypos, width, height)),
         borderColour(borderColour), innerColour(innerColour),
         textRect(PanelHelper::getTextRect(xpos, ypos, width, height)),
-        fontColour(fontColour), pointsize(pointsize) {}
+        fontColour(fontColour), pointsize(pointsize) {
+    fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
+    dialogueSound = Mix_LoadWAV(
+        (assetsPath / "audio" / "dialogue_blip.ogg").string().c_str());
+  }
 
   void render(SDL_Renderer *renderer) override {
     if (show) {
@@ -92,6 +97,10 @@ public:
         messageIdx++;
         std::string currMessage = message.substr(0, messageIdx);
 
+        // Play dialogue sound every fifth character
+        if (currMessage.size() % 5 == 0)
+          Mix_PlayChannel(-1, dialogueSound, 0);
+
         // Recreate texture
         SDL_DestroyTexture(messageTex);
         messageTex = TextureManager::LoadMessageTexture(
@@ -150,4 +159,7 @@ private:
   // for typewriter effect
   int messageIdx = 0; // which letter of the message we are up to
   bool finishedWriting = false;
+
+  // for dialogue sounds
+  Mix_Chunk *dialogueSound;
 };
