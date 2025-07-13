@@ -9,7 +9,7 @@ public:
   SDL_FRect collider;
 
   SDL_Texture *tex;
-  SDL_FRect srcRect, destRect;
+  SDL_FRect destRect;
   Offset offset;
 
   Collider(float xpos, float ypos, float width, float height,
@@ -18,6 +18,12 @@ public:
     collider.y = ypos + offset.y;
     collider.w = width;
     collider.h = height;
+
+    destRect.x = collider.x - Camera::position.x;
+    destRect.y = collider.y - Camera::position.y;
+    destRect.w = width;
+    destRect.h = height;
+
     this->offset = offset;
   }
 
@@ -28,8 +34,6 @@ public:
     destRect.x = collider.x - Camera::position.x;
     destRect.y = collider.y - Camera::position.y;
   }
-
-  void draw() { TextureManager::Draw(tex, srcRect, destRect, SDL_FLIP_NONE); }
 
 private:
 };

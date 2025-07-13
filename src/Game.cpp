@@ -301,8 +301,10 @@ void Game::loadPlayer() {
   registry.emplace<Collider>(player, transform.position.x, transform.position.y,
                              mapData.playerObject.collider.width,
                              mapData.playerObject.collider.height,
-                             Offset{mapData.playerObject.collider.xpos,
-                                    mapData.playerObject.collider.ypos});
+                             Offset{mapData.playerObject.collider.xpos +
+                                        mapData.playerObject.spriteOffset.x,
+                                    mapData.playerObject.collider.ypos +
+                                        mapData.playerObject.spriteOffset.y});
 
   registry.emplace<KeyboardController>(player);
 }
@@ -330,7 +332,6 @@ void Game::loadMap(std::string mapPath) {
   }
 
   // Process colliders, adding to existing sprite if they are linked
-  // TODO: Fix colliders are off by one tile extra on the right side
   for (auto &colliderObject : mapData.colliderVector) {
     entt::entity colliderEntity = entt::null;
     MapObject &collider = colliderObject.second;
