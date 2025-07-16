@@ -2,13 +2,14 @@
 
 #include "../Components/Dialogue.h"
 #include "Grid.h"
+#include "IUIManager.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_filesystem.h"
 #include "SDL3/SDL_render.h"
 #include "UIComponents.h"
 #include <memory>
 
-class UIManager {
+class UIManager : public IUIManager {
 public:
   UIManager() {
     grid.addChild(std::make_shared<DialoguePanel>(
@@ -21,8 +22,8 @@ public:
         80.0f, 10.0f, 220.0f, 40.0f, 2.0f, dialogueBorderColour,
         dialogueBoxColour, pointsize, fontColour, selectColour));
     grid.addChild(std::make_shared<Options>(120.0f, 42.0f, 80.0f, 80.0f, 2.0f,
-                                            menuBorderColour,
-                                            dialogueBoxColour));
+                                            menuBorderColour, dialogueBoxColour,
+                                            *this));
   }
   ~UIManager() { grid.clean(); }
 
@@ -34,8 +35,13 @@ public:
 
   void handleEvents(const SDL_Event &event) { grid.handleEvents(event); }
 
+  void setMenu(bool active) override { menuActive = active; }
+
+  bool isMenuActive() const override { return menuActive; }
+
 private:
   Grid grid;
+  bool menuActive = false;
 
   float pointsize = 14.0f;
   SDL_Color fontColour = {255, 255, 255};

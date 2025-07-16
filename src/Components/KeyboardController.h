@@ -12,7 +12,7 @@ public:
 
   void update(SDL_Event *event, bool menuActive, Transform &transform,
               Sprite &sprite, Interactable *intObject = nullptr) {
-    if (!menuActive && intObject != nullptr && intObject->active)
+    if (menuActive || (intObject != nullptr && intObject->active))
       canMove = false;
     else
       canMove = true;

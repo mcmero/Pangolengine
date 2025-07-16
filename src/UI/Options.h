@@ -2,6 +2,7 @@
 
 #include "../TextureManager.h"
 #include "IComponent.h"
+#include "IUIManager.h"
 #include "PanelHelper.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_keycode.h"
@@ -12,9 +13,10 @@
 class Options : public IComponent {
 public:
   Options(float xpos, float ypos, float width, float height,
-          float borderThickness, SDL_Color borderColour, SDL_Color innerColour)
-      : borderRect(PanelHelper::getBorderRect(xpos, ypos, width, height,
-                                              borderThickness)),
+          float borderThickness, SDL_Color borderColour, SDL_Color innerColour,
+          IUIManager &manager)
+      : manager(&manager), borderRect(PanelHelper::getBorderRect(
+                               xpos, ypos, width, height, borderThickness)),
         innerRect(PanelHelper::getInnerRect(xpos, ypos, width, height)),
         borderColour(borderColour), innerColour(innerColour) {}
 
@@ -30,6 +32,8 @@ public:
     // Open or close menu with escape
     if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE) {
       show = !show;
+      manager->setMenu(show);
+      std::cout << "Menu active: " << manager->isMenuActive() << std::endl;
     }
   }
 
@@ -37,6 +41,7 @@ public:
 
 private:
   bool show = false;
+  IUIManager *manager;
 
   SDL_FRect borderRect;
   SDL_FRect innerRect;
