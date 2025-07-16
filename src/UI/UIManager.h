@@ -1,13 +1,11 @@
 #pragma once
 
 #include "../Components/Dialogue.h"
-#include "DialoguePanel.h"
-#include "DialogueResponsePanel.h"
 #include "Grid.h"
-#include "PortraitPanel.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_filesystem.h"
 #include "SDL3/SDL_render.h"
+#include "UIComponents.h"
 #include <memory>
 
 class UIManager {
@@ -22,13 +20,18 @@ public:
     grid.addChild(std::make_shared<DialogueResponsePanel>(
         80.0f, 10.0f, 220.0f, 40.0f, 2.0f, dialogueBorderColour,
         dialogueBoxColour, pointsize, fontColour, selectColour));
+    grid.addChild(std::make_shared<Options>(120.0f, 42.0f, 80.0f, 80.0f, 2.0f,
+                                            menuBorderColour,
+                                            dialogueBoxColour));
   }
   ~UIManager() { grid.clean(); }
 
   void render(SDL_Renderer *renderer) { grid.render(renderer); }
+
   void update(Interactable *interactable, Dialogue *dialogue) {
     grid.update(interactable, dialogue);
   };
+
   void handleEvents(const SDL_Event &event) { grid.handleEvents(event); }
 
 private:
@@ -39,6 +42,7 @@ private:
   SDL_Color selectColour = {208, 199, 125};
   SDL_Color dialogueBorderColour = {0, 0, 0};
   SDL_Color dialogueBoxColour = {51, 64, 113};
+  SDL_Color menuBorderColour = {208, 199, 125};
 
   // TODO: add portrait location to dialogue sheet
   fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";

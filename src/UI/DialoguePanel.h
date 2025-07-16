@@ -118,7 +118,6 @@ public:
   }
 
   void handleEvents(const SDL_Event &event) override {
-
     // Handle panel scrolling
     if (show && finishedWriting && event.type == SDL_EVENT_KEY_DOWN) {
       switch (event.key.key) {

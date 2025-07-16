@@ -82,10 +82,10 @@ void Game::handleEvents(SDL_Event *event) {
     }
   }
 
-  // Handle player interaction events
-  controller.update(event, transform, sprite, intObject);
-
   uiManager->handleEvents(*event);
+
+  // Handle player interaction events
+  controller.update(event, false, transform, sprite, intObject);
 }
 
 void Game::updateCamera() {

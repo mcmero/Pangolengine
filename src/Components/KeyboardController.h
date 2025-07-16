@@ -10,9 +10,9 @@ class KeyboardController {
 public:
   KeyboardController() = default;
 
-  void update(SDL_Event *event, Transform &transform, Sprite &sprite,
-              Interactable *intObject = nullptr) {
-    if (intObject != nullptr && intObject->active)
+  void update(SDL_Event *event, bool menuActive, Transform &transform,
+              Sprite &sprite, Interactable *intObject = nullptr) {
+    if (!menuActive && intObject != nullptr && intObject->active)
       canMove = false;
     else
       canMove = true;
