@@ -31,8 +31,11 @@ public:
   void handleEvents(const SDL_Event &event) override {
     // Open or close menu with escape
     if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE) {
-      show = !show;
-      manager->setMenu(show);
+      if (!show)
+        manager->trySetMenu(true);
+      else
+        manager->trySetMenu(false);
+      show = manager->isMenuActive();
       std::cout << "Menu active: " << manager->isMenuActive() << std::endl;
     }
   }

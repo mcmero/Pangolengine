@@ -45,6 +45,7 @@ PRIVATE
     src/UI/UIManager.h
     src/UI/Grid.h
     src/UI/IComponent.h
+    src/UI/IUIManager.h
     src/UI/UIComponents.h
     src/iosLaunchScreen.storyboard
     include/third_party/tinyxml2/tinyxml2.cpp

@@ -31,17 +31,30 @@ public:
 
   void update(Interactable *interactable, Dialogue *dialogue) {
     grid.update(interactable, dialogue);
+
+    if (interactable && interactable->active)
+      interactionActive = true;
+    else {
+      interactionActive = false;
+    }
   };
 
   void handleEvents(const SDL_Event &event) { grid.handleEvents(event); }
 
-  void setMenu(bool active) override { menuActive = active; }
+  void trySetMenu(bool active) override {
+    // Only allow menu to be activated if interaction is not active
+    if (!interactionActive && active)
+      menuActive = true;
+    else
+      menuActive = false;
+  }
 
   bool isMenuActive() const override { return menuActive; }
 
 private:
   Grid grid;
   bool menuActive = false;
+  bool interactionActive = false;
 
   float pointsize = 14.0f;
   SDL_Color fontColour = {255, 255, 255};
