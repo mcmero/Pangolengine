@@ -2,12 +2,12 @@
 
 #include "../TextureManager.h"
 #include "IComponent.h"
-#include "PanelHelper.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
 #include "SDL3_mixer/SDL_mixer.h"
+#include "UIHelper.h"
 #include <algorithm>
 #include <sstream>
 #include <string>
@@ -17,11 +17,11 @@ public:
   DialoguePanel(float xpos, float ypos, float width, float height,
                 float borderThickness, SDL_Color borderColour,
                 SDL_Color innerColour, float pointsize, SDL_Color fontColour)
-      : borderRect(PanelHelper::getBorderRect(xpos, ypos, width, height,
-                                              borderThickness)),
-        innerRect(PanelHelper::getInnerRect(xpos, ypos, width, height)),
+      : borderRect(UIHelper::getBorderRect(xpos, ypos, width, height,
+                                           borderThickness)),
+        innerRect(UIHelper::getInnerRect(xpos, ypos, width, height)),
         borderColour(borderColour), innerColour(innerColour),
-        textRect(PanelHelper::getTextRect(xpos, ypos, width, height)),
+        textRect(UIHelper::getTextRect(xpos, ypos, width, height)),
         fontColour(fontColour), pointsize(pointsize) {
     fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
     dialogueSound = Mix_LoadWAV(

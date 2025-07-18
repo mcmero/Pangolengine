@@ -2,19 +2,19 @@
 
 #include "../TextureManager.h"
 #include "IComponent.h"
-#include "PanelHelper.h"
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
+#include "UIHelper.h"
 
 class PortraitPanel : public IComponent {
 public:
   PortraitPanel(float xpos, float ypos, float width, float height,
                 float borderThickness, SDL_Color borderColour,
                 SDL_Color innerColour, const char *texturePath)
-      : borderRect(PanelHelper::getBorderRect(xpos, ypos, width, height,
-                                              borderThickness)),
-        innerRect(PanelHelper::getInnerRect(xpos, ypos, width, height)),
+      : borderRect(UIHelper::getBorderRect(xpos, ypos, width, height,
+                                           borderThickness)),
+        innerRect(UIHelper::getInnerRect(xpos, ypos, width, height)),
         portraitRect({xpos, ypos, width, height}), borderColour(borderColour),
         innerColour(innerColour) {
     portraitTex = TextureManager::LoadTexture(texturePath);

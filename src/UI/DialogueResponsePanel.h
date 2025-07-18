@@ -2,10 +2,10 @@
 
 #include "../TextureManager.h"
 #include "IComponent.h"
-#include "PanelHelper.h"
 #include "SDL3/SDL_keycode.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
+#include "UIHelper.h"
 #include <cassert>
 #include <ostream>
 #include <sstream>
@@ -16,18 +16,18 @@ public:
                         float borderThickness, SDL_Color borderColour,
                         SDL_Color innerColour, float pointsize,
                         SDL_Color fontColour, SDL_Color selectColour)
-      : borderRect(PanelHelper::getBorderRect(xpos, ypos, width, height,
-                                              borderThickness)),
-        innerRect(PanelHelper::getInnerRect(xpos, ypos, width, height)),
+      : borderRect(UIHelper::getBorderRect(xpos, ypos, width, height,
+                                           borderThickness)),
+        innerRect(UIHelper::getInnerRect(xpos, ypos, width, height)),
         borderColour(borderColour), innerColour(innerColour),
-        textRect(PanelHelper::getTextRect(xpos, ypos, width, height)),
+        textRect(UIHelper::getTextRect(xpos, ypos, width, height)),
         fontColour(fontColour), selectColour(selectColour),
         pointsize(pointsize) {}
 
   ~DialogueResponsePanel() { clean(); }
 
   void render(SDL_Renderer *renderer) override {
-    int yOffset = -scrollOffset;
+    float yOffset = -scrollOffset;
     if (show) {
       TextureManager::Panel(borderRect, innerRect, borderColour, innerColour);
 
@@ -121,7 +121,7 @@ public:
     if (state != INACTIVE && event.type == SDL_EVENT_KEY_DOWN) {
       switch (event.key.key) {
       case SDLK_DOWN:
-        if ((selectedResponse + 1) >= responses.size())
+        if ((selectedResponse + 1) >= static_cast<int>(responses.size()))
           selectedResponse = 0;
         else
           selectedResponse++;
@@ -129,7 +129,7 @@ public:
         break;
       case SDLK_UP:
         if ((selectedResponse - 1) < 0)
-          selectedResponse = responses.size() - 1;
+          selectedResponse = static_cast<int>(responses.size()) - 1;
         else
           selectedResponse--;
         setScrollOffset(UP);
@@ -251,8 +251,8 @@ private:
           scrollOffset += responseTextures[selectedResponse].height;
         }
       } else {
-        for (int idx = responseTextures.size() - 1; idx > selectedResponse;
-             idx--) {
+        for (int idx = static_cast<int>(responseTextures.size()) - 1;
+             idx > selectedResponse; idx--) {
           scrollOffset -= responseTextures[selectedResponse].height;
         }
       }

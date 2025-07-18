@@ -34,8 +34,10 @@ SDL_Texture *TextureManager::LoadMessageTexture(const std::string_view text,
   }
 
   // Make surface then load texture from it
+  // TODO: make wraplength optional? if set to 0 do not wrap
   SDL_Surface *surfaceMessage = TTF_RenderText_Solid_Wrapped(
       font, text.data(), text.length(), colour, wraplength);
+
   SDL_Texture *messageTex =
       SDL_CreateTextureFromSurface(Game::renderer, surfaceMessage);
 

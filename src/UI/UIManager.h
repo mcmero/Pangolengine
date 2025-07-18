@@ -5,6 +5,7 @@
 #include "IUIManager.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_filesystem.h"
+#include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
 #include "UIComponents.h"
 #include <memory>
@@ -21,9 +22,9 @@ public:
     grid.addChild(std::make_shared<DialogueResponsePanel>(
         80.0f, 10.0f, 220.0f, 40.0f, 2.0f, dialogueBorderColour,
         dialogueBoxColour, pointsize, fontColour, selectColour));
-    grid.addChild(std::make_shared<Options>(120.0f, 42.0f, 80.0f, 80.0f, 2.0f,
-                                            menuBorderColour, dialogueBoxColour,
-                                            *this));
+    grid.addChild(std::make_shared<Options>(
+        SDL_FRect(120.0f, 42.0f, 80.0f, 80.0f), 2.0f, menuBorderColour,
+        dialogueBoxColour, pointsize, *this));
   }
   ~UIManager() { grid.clean(); }
 
