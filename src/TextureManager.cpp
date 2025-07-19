@@ -2,6 +2,7 @@
 #include "Game.h"
 #include "SDL3/SDL_filesystem.h"
 #include "SDL3/SDL_rect.h"
+#include "SDL3/SDL_render.h"
 #include "SDL3_image/SDL_image.h"
 #include "SDL3_ttf/SDL_ttf.h"
 
@@ -51,21 +52,18 @@ SDL_Texture *TextureManager::LoadMessageTexture(const std::string_view text,
   return messageTex;
 }
 
-void TextureManager::Panel(SDL_FRect borderRect, SDL_FRect innerRect,
-                           SDL_Color borderColour, SDL_Color innerColour) {
-  // Draw border rect
-  SDL_SetRenderDrawColor(Game::renderer, borderColour.r, borderColour.g,
-                         borderColour.b, SDL_ALPHA_OPAQUE);
-  SDL_RenderRect(Game::renderer, &borderRect);
-  SDL_RenderFillRect(Game::renderer, &borderRect);
-
-  // Draw inner rect
-  SDL_SetRenderDrawColor(Game::renderer, innerColour.r, innerColour.g,
-                         innerColour.b, SDL_ALPHA_OPAQUE);
-  SDL_RenderRect(Game::renderer, &innerRect);
-  SDL_RenderFillRect(Game::renderer, &innerRect);
+void TextureManager::DrawRect(SDL_FRect rect, SDL_Color colour) {
+  SDL_SetRenderDrawColor(Game::renderer, colour.r, colour.g, colour.b,
+                         SDL_ALPHA_OPAQUE);
+  SDL_RenderRect(Game::renderer, &rect);
+  SDL_RenderFillRect(Game::renderer, &rect);
 }
 
+void TextureManager::Panel(SDL_FRect borderRect, SDL_FRect innerRect,
+                           SDL_Color borderColour, SDL_Color innerColour) {
+  TextureManager::DrawRect(borderRect, borderColour);
+  TextureManager::DrawRect(innerRect, innerColour);
+}
 /**
  * Get message texture dimensions (width and height)
  */

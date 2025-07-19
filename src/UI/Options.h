@@ -28,19 +28,32 @@ public:
       TextureManager::Panel(borderRect, innerRect, borderColour, innerColour);
 
       // Render header text
-      SDL_FRect dest = {0, 0, headerDims.width, headerDims.height};
-      UIHelper::centerRectRelativeToContainer(dest, innerRect);
-      SDL_RenderTexture(renderer, headerTex, NULL, &dest);
+      SDL_FRect headerRect = {0, 0, headerDims.width, headerDims.height};
+      UIHelper::centerRectRelativeToContainer(headerRect, innerRect);
+      SDL_RenderTexture(renderer, headerTex, NULL, &headerRect);
+
+      // Render Graphics text
+      SDL_FRect buttonContainer = {innerRect.x, innerRect.y + 20.0f,
+                                   innerRect.w, innerRect.h};
+      SDL_FRect graphicsRect = {0, 0, graphicsDims.width, graphicsDims.height};
+      UIHelper::centerRectRelativeToContainer(graphicsRect, buttonContainer);
+      SDL_RenderTexture(renderer, graphicsTex, NULL, &graphicsRect);
     }
   }
 
   void update(Interactable *interactable, Dialogue *dialogue) override {
     if (show) {
-      // Set up texture for header
+      // Set up texture for header text
       SDL_DestroyTexture(headerTex);
-      headerTex = TextureManager::LoadMessageTexture(headerText, pointsize, 99,
+      headerTex = TextureManager::LoadMessageTexture("Options", pointsize, 99,
                                                      headerColour);
       headerDims = TextureManager::GetMessageTextureDimensions(headerTex);
+
+      // Set up texture for button text
+      SDL_DestroyTexture(graphicsTex);
+      graphicsTex = TextureManager::LoadMessageTexture("Graphics", 14.0f, 99,
+                                                       buttonTextColour);
+      graphicsDims = TextureManager::GetMessageTextureDimensions(graphicsTex);
     }
   }
 
@@ -67,9 +80,13 @@ private:
   SDL_Color borderColour;
   SDL_Color innerColour;
 
-  float pointsize = 14;
-  std::string const headerText = "Options";
+  float pointsize = 14.0f;
+
+  // TODO: make handling of textures less cumbersome
   SDL_Texture *headerTex;
+  SDL_Texture *graphicsTex;
   MessageDims headerDims;
+  MessageDims graphicsDims;
   SDL_Color headerColour = {255, 255, 255};
+  SDL_Color buttonTextColour = {0, 0, 0};
 };

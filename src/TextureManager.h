@@ -31,6 +31,8 @@ public:
                                          float pointsize, int wraplength,
                                          SDL_Color colour = {0, 0, 0});
 
+  static void DrawRect(SDL_FRect rect, SDL_Color colour);
+
   static void Panel(SDL_FRect borderRect, SDL_FRect innerRect,
                     SDL_Color borderColour, SDL_Color innerColour);
 
