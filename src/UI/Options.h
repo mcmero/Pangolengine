@@ -28,10 +28,8 @@ public:
       TextureManager::Panel(borderRect, innerRect, borderColour, innerColour);
 
       // Render header text
-      SDL_FRect headerTextRect =
-          UIHelper::getCenteredRectTop(innerRect, headerDims);
-      SDL_FRect dest = {headerTextRect.x, headerTextRect.y, headerDims.width,
-                        headerDims.height};
+      SDL_FRect dest = {0, 0, headerDims.width, headerDims.height};
+      UIHelper::centerRectRelativeToContainer(dest, innerRect);
       SDL_RenderTexture(renderer, headerTex, NULL, &dest);
     }
   }

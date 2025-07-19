@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../TextureManager.h"
 #include "SDL3/SDL_rect.h"
 
 class UIHelper {
@@ -21,15 +20,13 @@ public:
     return SDL_FRect{xpos + 5.0f, ypos + 2.0f, width - 5.0f, height - 5.0f};
   }
 
-  // TODO: rename message dims to something more general
-  static SDL_FRect getCenteredRectTop(SDL_FRect sourceRect,
-                                      MessageDims messageDims) {
-    if (messageDims.width >= sourceRect.w)
-      return sourceRect;
+  static void centerRectRelativeToContainer(SDL_FRect &rect,
+                                            const SDL_FRect &containerRect) {
+    if (rect.w >= containerRect.w)
+      return;
 
-    // Get center x coordinate
-    float x = sourceRect.x + ((sourceRect.w / 2) - (messageDims.width / 2));
-
-    return SDL_FRect(x, sourceRect.y, messageDims.width, messageDims.height);
+    // Center the x coordinate
+    rect.x = containerRect.x + ((containerRect.w / 2) - (rect.w / 2));
+    rect.y = containerRect.y;
   }
 };
