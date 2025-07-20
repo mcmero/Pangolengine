@@ -2,6 +2,11 @@
 
 #include "SDL3/SDL_rect.h"
 
+struct Size {
+  float width;
+  float height;
+};
+
 class UIHelper {
 public:
   static SDL_FRect getBorderRect(float xpos, float ypos, float width,

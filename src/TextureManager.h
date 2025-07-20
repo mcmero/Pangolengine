@@ -1,8 +1,10 @@
 #pragma once
 
+#include "Constants.h"
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
+#include "UI/UIHelper.h"
 #include <filesystem>
 
 namespace fs = std::filesystem;
@@ -10,11 +12,6 @@ namespace fs = std::filesystem;
 struct MessageTexture {
   SDL_Texture *tex;
   SDL_Color colour;
-};
-
-struct MessageDims {
-  float width;
-  float height;
 };
 
 class TextureManager {
@@ -28,7 +25,8 @@ public:
                    SDL_FlipMode flip);
 
   static SDL_Texture *LoadMessageTexture(const std::string_view text,
-                                         float pointsize, int wraplength,
+                                         float pointsize,
+                                         int wraplength = SCREEN_WIDTH,
                                          SDL_Color colour = {0, 0, 0});
 
   static void DrawRect(SDL_FRect rect, SDL_Color colour);
@@ -36,5 +34,5 @@ public:
   static void Panel(SDL_FRect borderRect, SDL_FRect innerRect,
                     SDL_Color borderColour, SDL_Color innerColour);
 
-  static MessageDims GetMessageTextureDimensions(SDL_Texture *messageTex);
+  static Size GetMessageTextureDimensions(SDL_Texture *messageTex);
 };

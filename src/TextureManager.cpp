@@ -35,7 +35,6 @@ SDL_Texture *TextureManager::LoadMessageTexture(const std::string_view text,
   }
 
   // Make surface then load texture from it
-  // TODO: make wraplength optional? if set to 0 do not wrap
   SDL_Surface *surfaceMessage = TTF_RenderText_Solid_Wrapped(
       font, text.data(), text.length(), colour, wraplength);
 
@@ -67,8 +66,7 @@ void TextureManager::Panel(SDL_FRect borderRect, SDL_FRect innerRect,
 /**
  * Get message texture dimensions (width and height)
  */
-MessageDims
-TextureManager::GetMessageTextureDimensions(SDL_Texture *messageTex) {
+Size TextureManager::GetMessageTextureDimensions(SDL_Texture *messageTex) {
   assert(messageTex != nullptr && "Message texture does not exist!");
 
   auto texprops = SDL_GetTextureProperties(messageTex);

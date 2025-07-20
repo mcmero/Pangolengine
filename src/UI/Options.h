@@ -51,14 +51,14 @@ public:
     if (show) {
       // Set up texture for header text
       SDL_DestroyTexture(headerTex);
-      headerTex = TextureManager::LoadMessageTexture("Options", pointsize, 99,
-                                                     headerColour);
+      headerTex = TextureManager::LoadMessageTexture(
+          "Options", pointsize, SCREEN_WIDTH, headerColour);
       headerDims = TextureManager::GetMessageTextureDimensions(headerTex);
 
       // Set up texture for button text
       SDL_DestroyTexture(graphicsTex);
-      graphicsTex = TextureManager::LoadMessageTexture("Graphics", 14.0f, 99,
-                                                       buttonTextColour);
+      graphicsTex = TextureManager::LoadMessageTexture(
+          "Graphics", 14.0f, SCREEN_WIDTH, buttonTextColour);
       graphicsDims = TextureManager::GetMessageTextureDimensions(graphicsTex);
     }
   }
@@ -92,8 +92,8 @@ private:
   // TODO: make handling of textures less cumbersome
   SDL_Texture *headerTex;
   SDL_Texture *graphicsTex;
-  MessageDims headerDims;
-  MessageDims graphicsDims;
+  Size headerDims;
+  Size graphicsDims;
   SDL_Color headerColour = {255, 255, 255};
   SDL_Color buttonTextColour = {0, 0, 0};
 };

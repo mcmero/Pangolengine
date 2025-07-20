@@ -149,7 +149,7 @@ private:
   float pointsize;
 
   SDL_Texture *messageTex;
-  MessageDims messageDims;
+  Size messageDims;
   std::string line;    // current line
   std::string message; // message to print
 
