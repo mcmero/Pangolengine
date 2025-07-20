@@ -13,9 +13,10 @@
 class Options : public IComponent {
 public:
   Options(SDL_FRect menuRect, float borderThickness, SDL_Color borderColour,
-          SDL_Color innerColour, float pointsize, IUIManager &manager)
+          SDL_Color innerColour, SDL_Color buttonColour, float pointsize,
+          IUIManager &manager)
       : manager(&manager), borderColour(borderColour), innerColour(innerColour),
-        pointsize(pointsize) {
+        buttonColour(buttonColour), pointsize(pointsize) {
     borderRect = UIHelper::getBorderRect(menuRect.x, menuRect.y, menuRect.w,
                                          menuRect.h, borderThickness);
     innerRect =
@@ -32,11 +33,16 @@ public:
       UIHelper::centerRectRelativeToContainer(headerRect, innerRect);
       SDL_RenderTexture(renderer, headerTex, NULL, &headerRect);
 
+      // Graphics button
+      SDL_FRect buttonContainer = {innerRect.x, innerRect.y, 60.0f, 12.0f};
+      UIHelper::centerRectRelativeToContainer(buttonContainer, innerRect);
+      buttonContainer.y = buttonContainer.y + 20.0f; // Shift button down
+      TextureManager::DrawRect(buttonContainer, buttonColour);
+
       // Render Graphics text
-      SDL_FRect buttonContainer = {innerRect.x, innerRect.y + 20.0f,
-                                   innerRect.w, innerRect.h};
       SDL_FRect graphicsRect = {0, 0, graphicsDims.width, graphicsDims.height};
       UIHelper::centerRectRelativeToContainer(graphicsRect, buttonContainer);
+      graphicsRect.y = graphicsRect.y - 3.0f; // text offset
       SDL_RenderTexture(renderer, graphicsTex, NULL, &graphicsRect);
     }
   }
@@ -79,6 +85,7 @@ private:
   SDL_FRect innerRect;
   SDL_Color borderColour;
   SDL_Color innerColour;
+  SDL_Color buttonColour;
 
   float pointsize = 14.0f;
 

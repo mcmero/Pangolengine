@@ -24,7 +24,7 @@ public:
         dialogueBoxColour, pointsize, fontColour, selectColour));
     grid.addChild(std::make_shared<Options>(
         SDL_FRect(120.0f, 42.0f, 80.0f, 80.0f), 2.0f, menuBorderColour,
-        dialogueBoxColour, pointsize, *this));
+        dialogueBoxColour, menuBorderColour, pointsize, *this));
   }
   ~UIManager() { grid.clean(); }
 
