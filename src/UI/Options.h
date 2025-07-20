@@ -34,19 +34,9 @@ public:
                                          Align::Top);
       SDL_RenderTexture(renderer, headerTex, NULL, &headerRect);
 
-      // Graphics button
-      SDL_FRect buttonContainer = {innerRect.x, innerRect.y, 60.0f, 12.0f};
-      UIHelper::alignRelativeToContainer(buttonContainer, innerRect,
-                                         Align::Center, Align::Top);
-      buttonContainer.y = buttonContainer.y + 20.0f; // Shift button down
-      TextureManager::DrawRect(buttonContainer, buttonColour);
-
-      // Render Graphics text
-      SDL_FRect graphicsRect = {0, 0, graphicsDims.width, graphicsDims.height};
-      UIHelper::alignRelativeToContainer(graphicsRect, buttonContainer,
-                                         Align::Center, Align::Top);
-      graphicsRect.y = graphicsRect.y - 3.0f; // text offset
-      SDL_RenderTexture(renderer, graphicsTex, NULL, &graphicsRect);
+      TextureManager::DrawButton("Graphics", buttonSize, buttonSpacing,
+                                 buttonColour, buttonTextColour, innerRect,
+                                 textOffset);
     }
   }
 
@@ -57,12 +47,6 @@ public:
       headerTex = TextureManager::LoadMessageTexture(
           "Options", pointsize, SCREEN_WIDTH, headerColour);
       headerDims = TextureManager::GetMessageTextureDimensions(headerTex);
-
-      // Set up texture for button text
-      SDL_DestroyTexture(graphicsTex);
-      graphicsTex = TextureManager::LoadMessageTexture(
-          "Graphics", 14.0f, SCREEN_WIDTH, buttonTextColour);
-      graphicsDims = TextureManager::GetMessageTextureDimensions(graphicsTex);
     }
   }
 
@@ -90,13 +74,13 @@ private:
   SDL_Color innerColour;
   SDL_Color buttonColour;
 
-  float pointsize = 14.0f;
+  float const pointsize = 14.0f;
+  float const buttonSpacing = 20.0f;
+  float const textOffset = 3.0f;
+  Size const buttonSize = {60.0f, 12.0f};
 
-  // TODO: make handling of textures less cumbersome
   SDL_Texture *headerTex;
-  SDL_Texture *graphicsTex;
   Size headerDims;
-  Size graphicsDims;
   SDL_Color headerColour = {255, 255, 255};
   SDL_Color buttonTextColour = {0, 0, 0};
 };

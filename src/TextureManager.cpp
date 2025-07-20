@@ -1,6 +1,7 @@
 #include "TextureManager.h"
 #include "Game.h"
 #include "SDL3/SDL_filesystem.h"
+#include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
 #include "SDL3_image/SDL_image.h"
@@ -63,6 +64,34 @@ void TextureManager::Panel(SDL_FRect borderRect, SDL_FRect innerRect,
   TextureManager::DrawRect(borderRect, borderColour);
   TextureManager::DrawRect(innerRect, innerColour);
 }
+
+void TextureManager::DrawButton(std::string buttonText, Size buttonSize,
+                                float buttonSpacing, SDL_Color buttonColour,
+                                SDL_Color buttonTextColour,
+                                SDL_FRect const &containerRect,
+                                float textOffset) {
+  SDL_FRect buttonContainer = {containerRect.x, containerRect.y,
+                               buttonSize.width, buttonSize.height};
+  UIHelper::alignRelativeToContainer(buttonContainer, containerRect,
+                                     Align::Center, Align::Top);
+  buttonContainer.y = buttonContainer.y + buttonSpacing; // Shift button down
+  TextureManager::DrawRect(buttonContainer, buttonColour);
+
+  SDL_Texture *buttonTex = TextureManager::LoadMessageTexture(
+      buttonText, 14.0f, SCREEN_WIDTH, buttonTextColour);
+  Size buttonDims = TextureManager::GetMessageTextureDimensions(buttonTex);
+
+  // Render button text
+  SDL_FRect buttonRect = {0, 0, buttonDims.width, buttonDims.height};
+  UIHelper::alignRelativeToContainer(buttonRect, buttonContainer, Align::Center,
+                                     Align::Top);
+  buttonRect.y = buttonRect.y - textOffset; // text offset
+  SDL_RenderTexture(Game::renderer, buttonTex, NULL, &buttonRect);
+
+  // Cleanup
+  SDL_DestroyTexture(buttonTex);
+}
+
 /**
  * Get message texture dimensions (width and height)
  */

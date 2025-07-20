@@ -34,5 +34,10 @@ public:
   static void Panel(SDL_FRect borderRect, SDL_FRect innerRect,
                     SDL_Color borderColour, SDL_Color innerColour);
 
+  static void DrawButton(std::string buttonText, Size buttonSize,
+                         float buttonSpacing, SDL_Color buttonColour,
+                         SDL_Color buttonTextColour,
+                         SDL_FRect const &containerRect, float textOffset);
+
   static Size GetMessageTextureDimensions(SDL_Texture *messageTex);
 };
