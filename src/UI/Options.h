@@ -30,18 +30,21 @@ public:
 
       // Render header text
       SDL_FRect headerRect = {0, 0, headerDims.width, headerDims.height};
-      UIHelper::centerRectRelativeToContainer(headerRect, innerRect);
+      UIHelper::alignRelativeToContainer(headerRect, innerRect, Align::Center,
+                                         Align::Top);
       SDL_RenderTexture(renderer, headerTex, NULL, &headerRect);
 
       // Graphics button
       SDL_FRect buttonContainer = {innerRect.x, innerRect.y, 60.0f, 12.0f};
-      UIHelper::centerRectRelativeToContainer(buttonContainer, innerRect);
+      UIHelper::alignRelativeToContainer(buttonContainer, innerRect,
+                                         Align::Center, Align::Top);
       buttonContainer.y = buttonContainer.y + 20.0f; // Shift button down
       TextureManager::DrawRect(buttonContainer, buttonColour);
 
       // Render Graphics text
       SDL_FRect graphicsRect = {0, 0, graphicsDims.width, graphicsDims.height};
-      UIHelper::centerRectRelativeToContainer(graphicsRect, buttonContainer);
+      UIHelper::alignRelativeToContainer(graphicsRect, buttonContainer,
+                                         Align::Center, Align::Top);
       graphicsRect.y = graphicsRect.y - 3.0f; // text offset
       SDL_RenderTexture(renderer, graphicsTex, NULL, &graphicsRect);
     }
