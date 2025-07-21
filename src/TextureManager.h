@@ -14,6 +14,17 @@ struct MessageTexture {
   SDL_Color colour;
 };
 
+struct ButtonProperties {
+  Size size = {60.0f, 12.0f};
+  std::string text = "";
+  float pointsize = 14.0f;
+  float textOffset = 3.0f;
+  SDL_Color colour = {255, 255, 255};
+  SDL_Color textColour = {0, 0, 0};
+  Align horizontalAlign = Align::Center;
+  Align verticalAlign = Align::Top;
+};
+
 class TextureManager {
 
 public:
@@ -34,10 +45,8 @@ public:
   static void Panel(SDL_FRect borderRect, SDL_FRect innerRect,
                     SDL_Color borderColour, SDL_Color innerColour);
 
-  static void DrawButton(std::string buttonText, Size buttonSize,
-                         float buttonSpacing, SDL_Color buttonColour,
-                         SDL_Color buttonTextColour,
-                         SDL_FRect const &containerRect, float textOffset);
+  static void DrawButton(ButtonProperties buttonProps,
+                         SDL_FRect const &containerRect, float buttonSpacing);
 
   static Size GetMessageTextureDimensions(SDL_Texture *messageTex);
 };

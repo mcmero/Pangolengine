@@ -34,9 +34,27 @@ public:
                                          Align::Top);
       SDL_RenderTexture(renderer, headerTex, NULL, &headerRect);
 
-      TextureManager::DrawButton("Graphics", buttonSize, buttonSpacing,
-                                 buttonColour, buttonTextColour, innerRect,
-                                 textOffset);
+      // Render Graphics button
+      ButtonProperties graphicsButtonProps = {
+          buttonSize,   "Graphics",       pointsize,     textOffset,
+          buttonColour, buttonTextColour, Align::Center, Align::Top};
+      TextureManager::DrawButton(graphicsButtonProps, innerRect,
+                                 buttonSpacing +
+                                     5.0f); // Extra spacing under header
+
+      // Render Audio button
+      ButtonProperties audioButtonProps = {
+          buttonSize,   "Audio",          pointsize,     textOffset,
+          buttonColour, buttonTextColour, Align::Center, Align::Top};
+      TextureManager::DrawButton(audioButtonProps, innerRect,
+                                 buttonSpacing * 2.0f + 5.0f);
+
+      // Render Gameplay button
+      ButtonProperties gameplayButtonProps = {
+          buttonSize,   "Gameplay",       pointsize,     textOffset,
+          buttonColour, buttonTextColour, Align::Center, Align::Top};
+      TextureManager::DrawButton(gameplayButtonProps, innerRect,
+                                 buttonSpacing * 3.0f + 5.0f);
     }
   }
 
@@ -75,7 +93,7 @@ private:
   SDL_Color buttonColour;
 
   float const pointsize = 14.0f;
-  float const buttonSpacing = 20.0f;
+  float const buttonSpacing = 15.0f;
   float const textOffset = 3.0f;
   Size const buttonSize = {60.0f, 12.0f};
 

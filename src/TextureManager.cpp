@@ -65,27 +65,28 @@ void TextureManager::Panel(SDL_FRect borderRect, SDL_FRect innerRect,
   TextureManager::DrawRect(innerRect, innerColour);
 }
 
-void TextureManager::DrawButton(std::string buttonText, Size buttonSize,
-                                float buttonSpacing, SDL_Color buttonColour,
-                                SDL_Color buttonTextColour,
+void TextureManager::DrawButton(ButtonProperties buttonProps,
                                 SDL_FRect const &containerRect,
-                                float textOffset) {
+                                float buttonSpacing) {
   SDL_FRect buttonContainer = {containerRect.x, containerRect.y,
-                               buttonSize.width, buttonSize.height};
+                               buttonProps.size.width, buttonProps.size.height};
   UIHelper::alignRelativeToContainer(buttonContainer, containerRect,
-                                     Align::Center, Align::Top);
+                                     buttonProps.horizontalAlign,
+                                     buttonProps.verticalAlign);
   buttonContainer.y = buttonContainer.y + buttonSpacing; // Shift button down
-  TextureManager::DrawRect(buttonContainer, buttonColour);
+  TextureManager::DrawRect(buttonContainer, buttonProps.colour);
 
   SDL_Texture *buttonTex = TextureManager::LoadMessageTexture(
-      buttonText, 14.0f, SCREEN_WIDTH, buttonTextColour);
+      buttonProps.text, buttonProps.pointsize, SCREEN_WIDTH,
+      buttonProps.textColour);
   Size buttonDims = TextureManager::GetMessageTextureDimensions(buttonTex);
 
   // Render button text
   SDL_FRect buttonRect = {0, 0, buttonDims.width, buttonDims.height};
-  UIHelper::alignRelativeToContainer(buttonRect, buttonContainer, Align::Center,
-                                     Align::Top);
-  buttonRect.y = buttonRect.y - textOffset; // text offset
+  UIHelper::alignRelativeToContainer(buttonRect, buttonContainer,
+                                     buttonProps.horizontalAlign,
+                                     buttonProps.verticalAlign);
+  buttonRect.y = buttonRect.y - buttonProps.textOffset; // text offset
   SDL_RenderTexture(Game::renderer, buttonTex, NULL, &buttonRect);
 
   // Cleanup
