@@ -78,7 +78,8 @@ void TextureManager::DrawText(TextProperties textProps,
   UIHelper::alignRelativeToContainer(textRect, containerRect,
                                      textProps.horizontalAlign,
                                      textProps.verticalAlign);
-  textRect.y = textRect.y - textProps.offset.y; // text offset
+  textRect.y = textRect.y + textProps.offset.y;
+  textRect.x = textRect.x + textProps.offset.x;
   SDL_RenderTexture(Game::renderer, textTex, NULL, &textRect);
 
   // Cleanup
@@ -95,23 +96,10 @@ void TextureManager::DrawButton(ButtonProperties buttonProps,
                                      buttonProps.horizontalAlign,
                                      buttonProps.verticalAlign);
   buttonContainer.y = buttonContainer.y + buttonSpacing; // Shift button down
+
+  // Render
   TextureManager::DrawRect(buttonContainer, buttonProps.colour);
-
-  SDL_Texture *buttonTex = TextureManager::LoadMessageTexture(
-      buttonProps.text, buttonProps.pointsize, SCREEN_WIDTH,
-      buttonProps.textColour);
-  Size buttonDims = TextureManager::GetMessageTextureDimensions(buttonTex);
-
-  // Render button text
-  SDL_FRect buttonRect = {0, 0, buttonDims.width, buttonDims.height};
-  UIHelper::alignRelativeToContainer(buttonRect, buttonContainer,
-                                     buttonProps.horizontalAlign,
-                                     buttonProps.verticalAlign);
-  buttonRect.y = buttonRect.y - buttonProps.textOffset.y; // text offset
-  SDL_RenderTexture(Game::renderer, buttonTex, NULL, &buttonRect);
-
-  // Cleanup
-  SDL_DestroyTexture(buttonTex);
+  TextureManager::DrawText(buttonProps.textProps, buttonContainer);
 }
 
 /**

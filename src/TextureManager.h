@@ -27,13 +27,10 @@ struct TextProperties {
 
 struct ButtonProperties {
   Size size = {60.0f, 12.0f};
-  std::string text = "";
-  float pointsize = 14.0f;
-  Vector2D textOffset = {0.0f, 3.0f};
   SDL_Color colour = {255, 255, 255};
-  SDL_Color textColour = {0, 0, 0};
   Align horizontalAlign = Align::Center;
   Align verticalAlign = Align::Top;
+  TextProperties textProps = {};
 };
 
 class TextureManager {
