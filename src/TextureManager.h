@@ -5,6 +5,7 @@
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
 #include "UI/UIHelper.h"
+#include "Vector2D.h"
 #include <filesystem>
 
 namespace fs = std::filesystem;
@@ -14,11 +15,21 @@ struct MessageTexture {
   SDL_Color colour;
 };
 
+struct TextProperties {
+  std::string text = "";
+  float pointsize = 14.0f;
+  int wraplength = SCREEN_WIDTH;
+  Vector2D offset = {0.0f, 0.0f};
+  SDL_Color colour = {0, 0, 0};
+  Align horizontalAlign = Align::Center;
+  Align verticalAlign = Align::Top;
+};
+
 struct ButtonProperties {
   Size size = {60.0f, 12.0f};
   std::string text = "";
   float pointsize = 14.0f;
-  float textOffset = 3.0f;
+  Vector2D textOffset = {0.0f, 3.0f};
   SDL_Color colour = {255, 255, 255};
   SDL_Color textColour = {0, 0, 0};
   Align horizontalAlign = Align::Center;
@@ -42,8 +53,11 @@ public:
 
   static void DrawRect(SDL_FRect rect, SDL_Color colour);
 
-  static void Panel(SDL_FRect borderRect, SDL_FRect innerRect,
-                    SDL_Color borderColour, SDL_Color innerColour);
+  static void DrawPanel(SDL_FRect borderRect, SDL_FRect innerRect,
+                        SDL_Color borderColour, SDL_Color innerColour);
+
+  static void DrawText(TextProperties textProps,
+                       SDL_FRect const &containerRect);
 
   static void DrawButton(ButtonProperties buttonProps,
                          SDL_FRect const &containerRect, float buttonSpacing);

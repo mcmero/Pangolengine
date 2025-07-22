@@ -26,13 +26,13 @@ public:
   void render(SDL_Renderer *renderer) override {
     if (show) {
       // Render main panel
-      TextureManager::Panel(borderRect, innerRect, borderColour, innerColour);
+      TextureManager::DrawPanel(borderRect, innerRect, borderColour,
+                                innerColour);
 
-      // Render header text
-      SDL_FRect headerRect = {0, 0, headerDims.width, headerDims.height};
-      UIHelper::alignRelativeToContainer(headerRect, innerRect, Align::Center,
-                                         Align::Top);
-      SDL_RenderTexture(renderer, headerTex, NULL, &headerRect);
+      TextProperties headerProps = {"Options",    pointsize,    SCREEN_WIDTH,
+                                    {0.0f, 0.0f}, headerColour, Align::Center,
+                                    Align::Top};
+      TextureManager::DrawText(headerProps, innerRect);
 
       // Render Graphics button
       ButtonProperties graphicsButtonProps = {
@@ -58,15 +58,7 @@ public:
     }
   }
 
-  void update(Interactable *interactable, Dialogue *dialogue) override {
-    if (show) {
-      // Set up texture for header text
-      SDL_DestroyTexture(headerTex);
-      headerTex = TextureManager::LoadMessageTexture(
-          "Options", pointsize, SCREEN_WIDTH, headerColour);
-      headerDims = TextureManager::GetMessageTextureDimensions(headerTex);
-    }
-  }
+  void update(Interactable *interactable, Dialogue *dialogue) override {}
 
   void handleEvents(const SDL_Event &event) override {
     // Open or close menu with escape
@@ -94,11 +86,9 @@ private:
 
   float const pointsize = 14.0f;
   float const buttonSpacing = 15.0f;
-  float const textOffset = 3.0f;
+  Vector2D const textOffset = {0.0f, 3.0f};
   Size const buttonSize = {60.0f, 12.0f};
 
-  SDL_Texture *headerTex;
-  Size headerDims;
   SDL_Color headerColour = {255, 255, 255};
   SDL_Color buttonTextColour = {0, 0, 0};
 };

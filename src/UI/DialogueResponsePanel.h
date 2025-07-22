@@ -29,7 +29,8 @@ public:
   void render(SDL_Renderer *renderer) override {
     float yOffset = -scrollOffset;
     if (show) {
-      TextureManager::Panel(borderRect, innerRect, borderColour, innerColour);
+      TextureManager::DrawPanel(borderRect, innerRect, borderColour,
+                                innerColour);
 
       for (int idx = 0; idx < responseTextures.size(); idx++) {
 

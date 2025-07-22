@@ -22,7 +22,8 @@ public:
 
   void render(SDL_Renderer *renderer) override {
     if (show) {
-      TextureManager::Panel(borderRect, innerRect, borderColour, innerColour);
+      TextureManager::DrawPanel(borderRect, innerRect, borderColour,
+                                innerColour);
 
       SDL_FRect srcRect = {0, 0, portraitRect.w, portraitRect.h};
       TextureManager::Draw(portraitTex, srcRect, portraitRect, SDL_FLIP_NONE);

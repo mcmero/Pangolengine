@@ -30,7 +30,8 @@ public:
 
   void render(SDL_Renderer *renderer) override {
     if (show) {
-      TextureManager::Panel(borderRect, innerRect, borderColour, innerColour);
+      TextureManager::DrawPanel(borderRect, innerRect, borderColour,
+                                innerColour);
 
       // Keep scroll offset within bounds so that we keep text visible
       if (!finishedWriting) {
