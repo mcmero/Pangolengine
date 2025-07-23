@@ -123,10 +123,10 @@ public:
     if (show && finishedWriting && event.type == SDL_EVENT_KEY_DOWN) {
       switch (event.key.key) {
       case SDLK_S: // scroll down
-        scrollOffset += 5;
+        scrollOffset += scrollAmount;
         break;
       case SDLK_W: // scroll up
-        scrollOffset -= 5;
+        scrollOffset -= scrollAmount;
         break;
       default:
         break;
@@ -154,7 +154,8 @@ private:
   std::string line;    // current line
   std::string message; // message to print
 
-  float scrollOffset = 0;
+  float scrollOffset = 0.0f;
+  float const scrollAmount = 5.0f;
 
   // for typewriter effect
   int messageIdx = 0; // which letter of the message we are up to

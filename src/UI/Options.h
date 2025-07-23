@@ -34,35 +34,18 @@ public:
                                     Align::Top};
       TextureManager::DrawText(headerProps, innerRect);
 
-      // Render Graphics button
-      TextProperties graphicsTextProps = {
-          "Graphics",       pointsize,     SCREEN_WIDTH, textOffset,
-          buttonTextColour, Align::Center, Align::Top};
-      ButtonProperties graphicsButtonProps = {buttonSize, buttonColour,
-                                              Align::Center, Align::Top,
-                                              graphicsTextProps};
-      TextureManager::DrawButton(graphicsButtonProps, innerRect,
-                                 buttonSpacing +
-                                     5.0f); // Extra spacing under header
-
-      // Render Audio button
-      TextProperties audioTextProps = {
-          "Audio",          pointsize,     SCREEN_WIDTH, textOffset,
-          buttonTextColour, Align::Center, Align::Top};
-      ButtonProperties audioButtonProps = {
-          buttonSize, buttonColour, Align::Center, Align::Top, audioTextProps};
-      TextureManager::DrawButton(audioButtonProps, innerRect,
-                                 buttonSpacing * 2.0f + 5.0f);
-
-      // Render Gameplay button
-      TextProperties gameplayTextProps = {
-          "Gameplay",       pointsize,     SCREEN_WIDTH, textOffset,
-          buttonTextColour, Align::Center, Align::Top};
-      ButtonProperties gameplayButtonProps = {buttonSize, buttonColour,
-                                              Align::Center, Align::Top,
-                                              gameplayTextProps};
-      TextureManager::DrawButton(gameplayButtonProps, innerRect,
-                                 buttonSpacing * 3.0f + 5.0f);
+      // Render buttons
+      for (const auto &[idx, item] : menuItems) {
+        TextProperties textProps = {item.name,  pointsize,        SCREEN_WIDTH,
+                                    textOffset, buttonTextColour, Align::Center,
+                                    Align::Top};
+        ButtonProperties graphicsButtonProps = {
+            buttonSize, buttonColour, Align::Center, Align::Top, textProps};
+        float spacingFactor =
+            buttonSpacing * (static_cast<float>(idx) + 1.0f) + 5.0f;
+        TextureManager::DrawButton(graphicsButtonProps, innerRect,
+                                   spacingFactor);
+      }
     }
   }
 
@@ -99,4 +82,12 @@ private:
 
   SDL_Color headerColour = {255, 255, 255};
   SDL_Color buttonTextColour = {0, 0, 0};
+
+  struct MenuItem {
+    std::string name = "";
+    // linked menu items will go here
+  };
+
+  std::map<int, MenuItem> menuItems{
+      {0, {"Graphics"}}, {1, {"Audio"}}, {2, {"Gameplay"}}};
 };
