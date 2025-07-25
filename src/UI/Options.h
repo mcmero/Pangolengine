@@ -36,9 +36,14 @@ public:
 
       // Render buttons
       for (const auto &[idx, item] : menuItems) {
-        TextProperties textProps = {item.name,  pointsize,        SCREEN_WIDTH,
-                                    textOffset, buttonTextColour, Align::Center,
-                                    Align::Top};
+        // Change text colour if button is selected
+        SDL_Color currentTextColour = buttonTextColour;
+        if (selectedButton == idx)
+          currentTextColour = buttonTextSelectColour;
+
+        TextProperties textProps = {
+            item.name,         pointsize,     SCREEN_WIDTH, textOffset,
+            currentTextColour, Align::Center, Align::Top};
         ButtonProperties graphicsButtonProps = {
             buttonSize, buttonColour, Align::Center, Align::Top, textProps};
         float spacingFactor =
@@ -52,6 +57,7 @@ public:
   void update(Interactable *interactable, Dialogue *dialogue) override {}
 
   void handleEvents(const SDL_Event &event) override {
+
     // Open or close menu with escape
     if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE) {
       if (!show)
@@ -60,6 +66,32 @@ public:
         manager->trySetMenu(false);
       show = manager->isMenuActive();
       std::cout << "Menu active: " << manager->isMenuActive() << std::endl;
+    }
+
+    // Ignore other events if menu is inactive
+    if (!manager->isMenuActive())
+      return;
+
+    if (event.type == SDL_EVENT_KEY_DOWN) {
+      switch (event.key.key) {
+      case SDLK_DOWN:
+        if ((selectedButton + 1) >= static_cast<int>(menuItems.size()))
+          selectedButton = 0;
+        else
+          selectedButton++;
+        break;
+      case SDLK_UP:
+        if ((selectedButton - 1) < 0)
+          selectedButton = static_cast<int>(menuItems.size()) - 1;
+        else
+          selectedButton--;
+        break;
+      case SDLK_RETURN:
+        // Handle menu change here
+        break;
+      default:
+        break;
+      }
     }
   }
 
@@ -79,9 +111,11 @@ private:
   float const buttonSpacing = 15.0f;
   Vector2D const textOffset = {0.0f, -3.0f};
   Size const buttonSize = {60.0f, 12.0f};
+  int selectedButton = 0;
 
   SDL_Color headerColour = {255, 255, 255};
   SDL_Color buttonTextColour = {0, 0, 0};
+  SDL_Color buttonTextSelectColour = {104, 31, 31};
 
   struct MenuItem {
     std::string name = "";
