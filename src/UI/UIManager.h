@@ -22,9 +22,9 @@ public:
     grid.addChild(std::make_shared<DialogueResponsePanel>(
         80.0f, 10.0f, 220.0f, 40.0f, 2.0f, dialogueBorderColour,
         dialogueBoxColour, pointsize, fontColour, selectColour));
-    grid.addChild(std::make_shared<Options>(
-        SDL_FRect(120.0f, 42.0f, 80.0f, 80.0f), 2.0f, menuBorderColour,
-        dialogueBoxColour, menuBorderColour, pointsize, *this));
+    grid.addChild(std::make_shared<Options>(2.0f, menuBorderColour,
+                                            dialogueBoxColour, menuBorderColour,
+                                            pointsize, *this));
   }
   ~UIManager() { grid.clean(); }
 
