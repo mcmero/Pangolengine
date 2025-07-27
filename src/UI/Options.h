@@ -17,12 +17,15 @@ public:
       : manager(&manager), borderThickness(borderThickness),
         pointsize(pointsize), borderColour(borderColour),
         innerColour(innerColour), buttonColour(buttonColour) {
-    mainMenuItems = {MenuItem{"Graphics"}, MenuItem{"Audio"},
-                     MenuItem{"Gameplay"}};
+    std::vector<MenuItem> mainMenuItems = {
+        MenuItem{"Graphics"}, MenuItem{"Audio"}, MenuItem{"Gameplay"}};
+    Menu mainMenu = {"Options", mainMenuItems, MenuType::Main};
+    menus.push_back(mainMenu);
+    activeMenu = &menus[0];
   }
 
   void render(SDL_Renderer *renderer) override {
-    if (show) {
+    if (show && activeMenu && activeMenu->menuType == MenuType::Main) {
       // Render main panel
       SDL_FRect borderRect = UIHelper::getBorderRect(
           mainMenuRect.x, mainMenuRect.y, mainMenuRect.w, mainMenuRect.h,
@@ -32,14 +35,14 @@ public:
       TextureManager::DrawPanel(borderRect, innerRect, borderColour,
                                 innerColour);
 
-      TextProperties headerProps = {"Options",    pointsize,    SCREEN_WIDTH,
-                                    {0.0f, 0.0f}, headerColour, Align::Center,
-                                    Align::Top};
+      TextProperties headerProps = {
+          activeMenu->headerText, pointsize,     SCREEN_WIDTH, {0.0f, 0.0f},
+          headerColour,           Align::Center, Align::Top};
       TextureManager::DrawText(headerProps, innerRect);
 
       // Render buttons
       int idx = 0;
-      for (const auto &item : mainMenuItems) {
+      for (const auto &item : activeMenu->menuItems) {
         // Change text colour if button is selected
         SDL_Color currentTextColour = buttonTextColour;
         if (selectedButton == idx)
@@ -79,16 +82,16 @@ public:
 
     if (event.type == SDL_EVENT_KEY_DOWN) {
       switch (event.key.key) {
-        // TODO: may need a generic scrolling handler for menus
       case SDLK_DOWN:
-        if ((selectedButton + 1) >= static_cast<int>(mainMenuItems.size()))
+        if ((selectedButton + 1) >=
+            static_cast<int>(activeMenu->menuItems.size()))
           selectedButton = 0;
         else
           selectedButton++;
         break;
       case SDLK_UP:
         if ((selectedButton - 1) < 0)
-          selectedButton = static_cast<int>(mainMenuItems.size()) - 1;
+          selectedButton = static_cast<int>(activeMenu->menuItems.size()) - 1;
         else
           selectedButton--;
         break;
@@ -125,11 +128,18 @@ private:
   SDL_Color buttonTextColour = {0, 0, 0};
   SDL_Color buttonTextSelectColour = {104, 31, 31};
 
+  enum class MenuType { Main, Sub };
+  struct MenuItem; // Forward definition
+  struct Menu {
+    std::string headerText = "";
+    std::vector<MenuItem> menuItems = {};
+    MenuType menuType = MenuType::Main;
+  };
   struct MenuItem {
     std::string name = "";
-    // linked menu items will go here
+    Menu *linkedMenu;
   };
 
-  std::vector<MenuItem> mainMenuItems = {};
-  // TODO: add submenus
+  Menu *activeMenu;
+  std::vector<Menu> menus = {};
 };
