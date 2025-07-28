@@ -12,15 +12,42 @@
 
 class Options : public IComponent {
 public:
-  Options(float borderThickness, SDL_Color borderColour, SDL_Color innerColour,
-          SDL_Color buttonColour, float pointsize, IUIManager &manager)
+  Options(float borderThickness, SDL_Color borderColour,
+          SDL_Color innerColour, SDL_Color buttonColour,
+          float pointsize, IUIManager &manager)
       : manager(&manager), borderThickness(borderThickness),
         pointsize(pointsize), borderColour(borderColour),
         innerColour(innerColour), buttonColour(buttonColour) {
+
     std::vector<MenuItem> mainMenuItems = {
-        MenuItem{"Graphics"}, MenuItem{"Audio"}, MenuItem{"Gameplay"}};
-    Menu mainMenu = {"Options", mainMenuItems, MenuType::Main};
+        MenuItem{"Graphics"},
+        MenuItem{"Audio"},
+        MenuItem{"Gameplay"}
+    };
+    Menu mainMenu = {
+      "Options",
+      mainMenuItems,
+      MenuType::Main
+    };
     menus.push_back(mainMenu);
+
+    std::vector<MenuItem> graphicsMenuItems = {
+      MenuItem{"Windowed"},
+      MenuItem{"Resolution"}
+    };
+
+    Menu graphicsMenu = {
+      "Graphics",
+      graphicsMenuItems,
+      MenuType::Sub
+    };
+    menus.push_back(graphicsMenu);
+
+    // Link Graphics button to Graphics menu
+    // TODO: we should use a map for menus so that we can link them via names
+    menus[0].menuItems[0].linkedMenu = &menus[1];
+    
+    // Initialise main menu as active
     activeMenu = &menus[0];
   }
 
@@ -28,16 +55,30 @@ public:
     if (show && activeMenu && activeMenu->menuType == MenuType::Main) {
       // Render main panel
       SDL_FRect borderRect = UIHelper::getBorderRect(
-          mainMenuRect.x, mainMenuRect.y, mainMenuRect.w, mainMenuRect.h,
-          borderThickness);
+          mainMenuRect.x,
+          mainMenuRect.y,
+          mainMenuRect.w,
+          mainMenuRect.h,
+          borderThickness
+      );
       SDL_FRect innerRect = UIHelper::getInnerRect(
-          mainMenuRect.x, mainMenuRect.y, mainMenuRect.w, mainMenuRect.h);
-      TextureManager::DrawPanel(borderRect, innerRect, borderColour,
-                                innerColour);
+          mainMenuRect.x,
+          mainMenuRect.y,
+          mainMenuRect.w,
+          mainMenuRect.h
+      );
+      TextureManager::DrawPanel(borderRect, innerRect,
+                                borderColour, innerColour);
 
       TextProperties headerProps = {
-          activeMenu->headerText, pointsize,     SCREEN_WIDTH, {0.0f, 0.0f},
-          headerColour,           Align::Center, Align::Top};
+          activeMenu->headerText,
+          pointsize,
+          SCREEN_WIDTH,
+          {0.0f, 0.0f},
+          headerColour,
+          Align::Center,
+          Align::Top
+      };
       TextureManager::DrawText(headerProps, innerRect);
 
       // Render buttons
@@ -49,16 +90,55 @@ public:
           currentTextColour = buttonTextSelectColour;
 
         TextProperties textProps = {
-            item.name,         pointsize,     SCREEN_WIDTH, textOffset,
-            currentTextColour, Align::Center, Align::Top};
+            item.name,
+            pointsize,
+            SCREEN_WIDTH,
+            textOffset,
+            currentTextColour,
+            Align::Center,
+            Align::Top
+        };
         ButtonProperties graphicsButtonProps = {
-            buttonSize, buttonColour, Align::Center, Align::Top, textProps};
+            buttonSize,
+            buttonColour,
+            Align::Center,
+            Align::Top,
+            textProps
+        };
         float spacingFactor =
             buttonSpacing * (static_cast<float>(idx) + 1.0f) + 5.0f;
         TextureManager::DrawButton(graphicsButtonProps, innerRect,
                                    spacingFactor);
         ++idx;
       }
+    } else if (show && activeMenu && activeMenu->menuType == MenuType::Sub) {
+      // Render sub panel
+      SDL_FRect borderRect = UIHelper::getBorderRect(
+          subMenuRect.x,
+          subMenuRect.y,
+          subMenuRect.w,
+          subMenuRect.h,
+          borderThickness
+      );
+      SDL_FRect innerRect = UIHelper::getInnerRect(
+          subMenuRect.x,
+          subMenuRect.y,
+          subMenuRect.w,
+          subMenuRect.h
+      );
+      TextureManager::DrawPanel(borderRect, innerRect,
+                                borderColour, innerColour);
+
+      TextProperties headerProps = {
+          activeMenu->headerText,
+          pointsize,
+          SCREEN_WIDTH,
+          {0.0f, 0.0f},
+          headerColour,
+          Align::Center,
+          Align::Top
+      };
+      TextureManager::DrawText(headerProps, innerRect);
     }
   }
 
@@ -70,10 +150,12 @@ public:
     if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE) {
       if (!show)
         manager->trySetMenu(true);
+      else if (manager->isMenuActive() && activeMenu->menuType == MenuType::Sub)
+        activeMenu = &menus[0]; // go back to the main menu
       else
         manager->trySetMenu(false);
+
       show = manager->isMenuActive();
-      std::cout << "Menu active: " << manager->isMenuActive() << std::endl;
     }
 
     // Ignore other events if menu is inactive
@@ -95,9 +177,13 @@ public:
         else
           selectedButton--;
         break;
-      case SDLK_RETURN:
-        // Handle menu change here
-        break;
+        case SDLK_RETURN: {
+          // Set new active menu
+          Menu *linkedMenu = activeMenu->menuItems[selectedButton].linkedMenu;
+          if (linkedMenu)
+            activeMenu = linkedMenu;
+          break;
+        }
       default:
         break;
       }
@@ -111,7 +197,7 @@ private:
   IUIManager *manager;
 
   SDL_FRect mainMenuRect = SDL_FRect(120.0f, 42.0f, 80.0f, 80.0f);
-  // SDL_FRect subMenuRect = SDL_FRect(100.0f, 42.0f, 140.0f, 60.0f);
+  SDL_FRect subMenuRect = SDL_FRect(100.0f, 42.0f, 140.0f, 60.0f);
   int selectedButton = 0;
 
   float borderThickness = 2.0f;
