@@ -9,6 +9,7 @@
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
 #include "UIHelper.h"
+#include <unordered_map>
 
 class Options : public IComponent {
 public:
@@ -29,7 +30,7 @@ public:
       mainMenuItems,
       MenuType::Main
     };
-    menus.push_back(mainMenu);
+    menus["main"] = mainMenu;
 
     std::vector<MenuItem> graphicsMenuItems = {
       MenuItem{"Windowed"},
@@ -41,14 +42,13 @@ public:
       graphicsMenuItems,
       MenuType::Sub
     };
-    menus.push_back(graphicsMenu);
+    menus["graphics"] = graphicsMenu;
 
     // Link Graphics button to Graphics menu
-    // TODO: we should use a map for menus so that we can link them via names
-    menus[0].menuItems[0].linkedMenu = &menus[1];
+    menus["main"].menuItems[0].linkedMenu = &menus["graphics"];
     
     // Initialise main menu as active
-    activeMenu = &menus[0];
+    activeMenu = &menus["main"];
   }
 
   void render(SDL_Renderer *renderer) override {
@@ -151,7 +151,7 @@ public:
       if (!show)
         manager->trySetMenu(true);
       else if (manager->isMenuActive() && activeMenu->menuType == MenuType::Sub)
-        activeMenu = &menus[0]; // go back to the main menu
+        activeMenu = &menus["main"]; // go back to the main menu
       else
         manager->trySetMenu(false);
 
@@ -227,5 +227,5 @@ private:
   };
 
   Menu *activeMenu;
-  std::vector<Menu> menus = {};
+  std::unordered_map<std::string, Menu> menus = {};
 };
