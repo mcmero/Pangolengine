@@ -33,9 +33,14 @@ public:
     menus["main"] = mainMenu;
 
     std::vector<MenuItem> graphicsMenuItems = {
-      MenuItem{"Windowed"},
-      MenuItem{"Resolution"}
+      MenuItem{"Full screen:"},
+      MenuItem{"Resolution:"}
     };
+
+    // Test callback function
+    OptionFunction setFullScreen;
+    setFullScreen.callback =  [](){ std::cout << "Full screen mode!" << std::endl; };
+    graphicsMenuItems[0].optionItems["Yes"] = setFullScreen;
 
     Menu graphicsMenu = {
       "Graphics",
@@ -139,6 +144,10 @@ public:
           Align::Top
       };
       TextureManager::DrawText(headerProps, innerRect);
+
+      if (activeMenu->menuItems[0].optionItems.size() > 0) {
+        activeMenu->menuItems[0].optionItems["Yes"].callback();
+      }
     }
   }
 
@@ -221,9 +230,18 @@ private:
     std::vector<MenuItem> menuItems = {};
     MenuType menuType = MenuType::Main;
   };
+  struct OptionFunction {
+    std::function<void()> callback;
+    void selectItem() {
+        if (callback)
+            callback();
+    }
+  };
   struct MenuItem {
     std::string name = "";
-    Menu *linkedMenu;
+    Menu *linkedMenu = nullptr;
+    std::function<void()> selectItem = nullptr;
+    std::unordered_map<std::string, OptionFunction> optionItems = {};
   };
 
   Menu *activeMenu;
