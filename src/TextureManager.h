@@ -5,7 +5,6 @@
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
 #include "UI/UIHelper.h"
-#include "Vector2D.h"
 #include <filesystem>
 
 namespace fs = std::filesystem;
@@ -15,14 +14,21 @@ struct MessageTexture {
   SDL_Color colour;
 };
 
+struct Margin {
+  float top = 0;
+  float bottom = 0;
+  float left = 0;
+  float right = 0;
+};
+
 struct TextProperties {
   std::string text = "";
   float pointsize = 14.0f;
   int wraplength = SCREEN_WIDTH;
-  Vector2D offset = {0.0f, 0.0f};
   SDL_Color colour = {0, 0, 0};
   Align horizontalAlign = Align::Center;
   Align verticalAlign = Align::Top;
+  Margin margin = {};
 };
 
 struct ButtonProperties {

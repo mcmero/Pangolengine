@@ -78,8 +78,8 @@ void TextureManager::DrawText(TextProperties textProps,
   UIHelper::alignRelativeToContainer(textRect, containerRect,
                                      textProps.horizontalAlign,
                                      textProps.verticalAlign);
-  textRect.y = textRect.y + textProps.offset.y;
-  textRect.x = textRect.x + textProps.offset.x;
+  textRect.y = textRect.y + textProps.margin.top - textProps.margin.bottom;
+  textRect.x = textRect.x + textProps.margin.left - textProps.margin.right;
   SDL_RenderTexture(Game::renderer, textTex, NULL, &textRect);
 
   // Cleanup

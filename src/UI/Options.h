@@ -38,9 +38,9 @@ public:
     };
 
     // Test callback function
-    OptionFunction setFullScreen;
+    OptionFunction setFullScreen = {"Yes"};
     setFullScreen.callback =  [](){ std::cout << "Full screen mode!" << std::endl; };
-    graphicsMenuItems[0].optionItems["Yes"] = setFullScreen;
+    graphicsMenuItems[0].optionItems.push_back(setFullScreen);
 
     Menu graphicsMenu = {
       "Graphics",
@@ -79,7 +79,6 @@ public:
           activeMenu->headerText,
           pointsize,
           SCREEN_WIDTH,
-          {0.0f, 0.0f},
           headerColour,
           Align::Center,
           Align::Top
@@ -91,19 +90,19 @@ public:
       for (const auto &item : activeMenu->menuItems) {
         // Change text colour if button is selected
         SDL_Color currentTextColour = buttonTextColour;
-        if (selectedButton == idx)
+        if (selectedItem == idx)
           currentTextColour = buttonTextSelectColour;
 
         TextProperties textProps = {
             item.name,
             pointsize,
             SCREEN_WIDTH,
-            textOffset,
             currentTextColour,
             Align::Center,
-            Align::Top
+            Align::Top,
+          textOffset
         };
-        ButtonProperties graphicsButtonProps = {
+        ButtonProperties buttonProps = {
             buttonSize,
             buttonColour,
             Align::Center,
@@ -111,8 +110,8 @@ public:
             textProps
         };
         float spacingFactor =
-            buttonSpacing * (static_cast<float>(idx) + 1.0f) + 5.0f;
-        TextureManager::DrawButton(graphicsButtonProps, innerRect,
+            itemSpacing * (static_cast<float>(idx) + 1.0f) + 5.0f;
+        TextureManager::DrawButton(buttonProps, innerRect,
                                    spacingFactor);
         ++idx;
       }
@@ -138,16 +137,43 @@ public:
           activeMenu->headerText,
           pointsize,
           SCREEN_WIDTH,
-          {0.0f, 0.0f},
           headerColour,
           Align::Center,
           Align::Top
       };
       TextureManager::DrawText(headerProps, innerRect);
 
-      if (activeMenu->menuItems[0].optionItems.size() > 0) {
-        activeMenu->menuItems[0].optionItems["Yes"].callback();
+      // Render options
+      int idx = 0;
+      for (const auto &item : activeMenu->menuItems) {
+        // Change text colour if button is selected
+        SDL_Color currentTextColour = headerColour;
+        if (selectedItem == idx)
+          currentTextColour = buttonColour;
+
+        TextProperties textProps = {
+            item.name,
+            pointsize,
+            SCREEN_WIDTH,
+            currentTextColour,
+            Align::Left,
+            Align::Top,
+            {0.0f, 0.0f, 5.0f, 0.0f}
+        };
+
+        float spacingFactor =
+            itemSpacing * (static_cast<float>(idx) + 1.0f) + 5.0f;
+        SDL_FRect textContainer = innerRect;
+        textContainer.y = textContainer.y + spacingFactor; // Shift text down
+        
+        TextureManager::DrawText(textProps, textContainer);
+        ++idx;
+
+        // TODO: render selected option to the right
       }
+      //if (activeMenu->menuItems[0].optionItems.size() > 0) {
+      //  activeMenu->menuItems[0].optionItems["Yes"].callback();
+      //}
     }
   }
 
@@ -174,23 +200,24 @@ public:
     if (event.type == SDL_EVENT_KEY_DOWN) {
       switch (event.key.key) {
       case SDLK_DOWN:
-        if ((selectedButton + 1) >=
+        if ((selectedItem + 1) >=
             static_cast<int>(activeMenu->menuItems.size()))
-          selectedButton = 0;
+          selectedItem = 0;
         else
-          selectedButton++;
+          selectedItem++;
         break;
       case SDLK_UP:
-        if ((selectedButton - 1) < 0)
-          selectedButton = static_cast<int>(activeMenu->menuItems.size()) - 1;
+        if ((selectedItem - 1) < 0)
+          selectedItem = static_cast<int>(activeMenu->menuItems.size()) - 1;
         else
-          selectedButton--;
+          selectedItem--;
         break;
         case SDLK_RETURN: {
           // Set new active menu
-          Menu *linkedMenu = activeMenu->menuItems[selectedButton].linkedMenu;
+          Menu *linkedMenu = activeMenu->menuItems[selectedItem].linkedMenu;
           if (linkedMenu)
             activeMenu = linkedMenu;
+          // TODO: trigger option selectItem()
           break;
         }
       default:
@@ -207,12 +234,12 @@ private:
 
   SDL_FRect mainMenuRect = SDL_FRect(120.0f, 42.0f, 80.0f, 80.0f);
   SDL_FRect subMenuRect = SDL_FRect(100.0f, 42.0f, 140.0f, 60.0f);
-  int selectedButton = 0;
+  int selectedItem = 0;
 
   float borderThickness = 2.0f;
   float pointsize = 14.0f;
-  float buttonSpacing = 15.0f;
-  Vector2D const textOffset = {0.0f, -3.0f};
+  float itemSpacing = 15.0f;
+  Margin const textOffset = {0.0f, 3.0f, 0.0f, 0.0f};
   Size const buttonSize = {60.0f, 12.0f};
 
   SDL_Color borderColour;
@@ -231,6 +258,8 @@ private:
     MenuType menuType = MenuType::Main;
   };
   struct OptionFunction {
+    std::string name = "";
+    // TODO: need variable to hold whether option is active
     std::function<void()> callback;
     void selectItem() {
         if (callback)
@@ -241,7 +270,7 @@ private:
     std::string name = "";
     Menu *linkedMenu = nullptr;
     std::function<void()> selectItem = nullptr;
-    std::unordered_map<std::string, OptionFunction> optionItems = {};
+    std::vector<OptionFunction> optionItems = {};
   };
 
   Menu *activeMenu;
