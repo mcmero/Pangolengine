@@ -32,14 +32,22 @@ public:
     };
     menus["main"] = mainMenu;
 
+    // Graphics options
+    //--------------------------------------------------------------------------
     std::vector<MenuItem> graphicsMenuItems = {
       MenuItem{"Full screen:"},
       MenuItem{"Resolution:"}
     };
 
-    // Test callback function
-    OptionFunction setFullScreen = {"Yes"};
-    setFullScreen.callback =  [](){ std::cout << "Full screen mode!" << std::endl; };
+    // Windowed mode option
+    OptionItem setWindowed = {"No"};
+    setWindowed.function =  [](){ std::cout << "Windowed mode!" << std::endl; };
+    graphicsMenuItems[0].optionItems.push_back(setWindowed);
+    graphicsMenuItems[0].selectedItem = &graphicsMenuItems[0].optionItems[0]; // currently selected
+
+    // Full screen mode
+    OptionItem setFullScreen = {"Yes"};
+    setFullScreen.function =  [](){ std::cout << "Full screen mode!" << std::endl; };
     graphicsMenuItems[0].optionItems.push_back(setFullScreen);
 
     Menu graphicsMenu = {
@@ -48,10 +56,11 @@ public:
       MenuType::Sub
     };
     menus["graphics"] = graphicsMenu;
+    //--------------------------------------------------------------------------
 
     // Link Graphics button to Graphics menu
     menus["main"].menuItems[0].linkedMenu = &menus["graphics"];
-    
+
     // Initialise main menu as active
     activeMenu = &menus["main"];
   }
@@ -100,7 +109,7 @@ public:
             currentTextColour,
             Align::Center,
             Align::Top,
-          textOffset
+            textOffset
         };
         ButtonProperties buttonProps = {
             buttonSize,
@@ -146,6 +155,8 @@ public:
       // Render options
       int idx = 0;
       for (const auto &item : activeMenu->menuItems) {
+        // Left menu label
+        //----------------------------------------------------------------------
         // Change text colour if button is selected
         SDL_Color currentTextColour = headerColour;
         if (selectedItem == idx)
@@ -165,15 +176,26 @@ public:
             itemSpacing * (static_cast<float>(idx) + 1.0f) + 5.0f;
         SDL_FRect textContainer = innerRect;
         textContainer.y = textContainer.y + spacingFactor; // Shift text down
-        
+ 
         TextureManager::DrawText(textProps, textContainer);
+  
+        // Right option
+        //----------------------------------------------------------------------
+        if (item.selectedItem) {
+          TextProperties optTextProps = {
+              //item.selectedItem->name, // TODO: issue reading this string for some reason
+              "No", // placeholder
+              pointsize,
+              SCREEN_WIDTH,
+              currentTextColour,
+              Align::Right,
+              Align::Top,
+              {0.0f, 0.0f, 0.0f, 20.0f}
+          };
+          TextureManager::DrawText(optTextProps, textContainer);
+        }
         ++idx;
-
-        // TODO: render selected option to the right
       }
-      //if (activeMenu->menuItems[0].optionItems.size() > 0) {
-      //  activeMenu->menuItems[0].optionItems["Yes"].callback();
-      //}
     }
   }
 
@@ -254,23 +276,23 @@ private:
   struct MenuItem; // Forward definition
   struct Menu {
     std::string headerText = "";
-    std::vector<MenuItem> menuItems = {};
+    std::vector<MenuItem> menuItems = {}; // TODO: make unordered_map
     MenuType menuType = MenuType::Main;
   };
-  struct OptionFunction {
+  struct OptionItem {
     std::string name = "";
-    // TODO: need variable to hold whether option is active
-    std::function<void()> callback;
+    std::function<void()> function;
     void selectItem() {
-        if (callback)
-            callback();
+        if (function)
+            function();
     }
   };
   struct MenuItem {
     std::string name = "";
     Menu *linkedMenu = nullptr;
-    std::function<void()> selectItem = nullptr;
-    std::vector<OptionFunction> optionItems = {};
+    std::vector<OptionItem> optionItems = {};
+    OptionItem *selectedItem = nullptr;
+
   };
 
   Menu *activeMenu;
