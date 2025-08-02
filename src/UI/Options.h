@@ -20,10 +20,10 @@ public:
         pointsize(pointsize), borderColour(borderColour),
         innerColour(innerColour), buttonColour(buttonColour) {
 
-    std::vector<MenuItem> mainMenuItems = {
-        MenuItem{"Graphics"},
-        MenuItem{"Audio"},
-        MenuItem{"Gameplay"}
+    std::unordered_map<std::string, MenuItem> mainMenuItems = {
+      {"Graphics", {}},
+      {"Audio", {}},
+      {"Gameplay", {}}
     };
     Menu mainMenu = {
       "Options",
@@ -34,21 +34,21 @@ public:
 
     // Graphics options
     //--------------------------------------------------------------------------
-    std::vector<MenuItem> graphicsMenuItems = {
-      MenuItem{"Full screen:"},
-      MenuItem{"Resolution:"}
+    std::unordered_map<std::string, MenuItem> graphicsMenuItems = {
+      {"Full screen", {}},
+      {"Resolution", {}},
     };
 
     // Windowed mode option
     OptionItem setWindowed = {"No"};
     setWindowed.function =  [](){ std::cout << "Windowed mode!" << std::endl; };
-    graphicsMenuItems[0].optionItems.push_back(setWindowed);
-    graphicsMenuItems[0].selectedItem = &graphicsMenuItems[0].optionItems[0]; // currently selected
+    graphicsMenuItems["Graphics"].optionItems.push_back(setWindowed);
+    graphicsMenuItems["Graphics"].selectedItem = &graphicsMenuItems["Graphics"].optionItems[0]; // currently selected
 
     // Full screen mode
     OptionItem setFullScreen = {"Yes"};
     setFullScreen.function =  [](){ std::cout << "Full screen mode!" << std::endl; };
-    graphicsMenuItems[0].optionItems.push_back(setFullScreen);
+    graphicsMenuItems["Graphics"].optionItems.push_back(setFullScreen);
 
     Menu graphicsMenu = {
       "Graphics",
@@ -59,7 +59,7 @@ public:
     //--------------------------------------------------------------------------
 
     // Link Graphics button to Graphics menu
-    menus["main"].menuItems[0].linkedMenu = &menus["graphics"];
+    menus["main"].menuItems["Graphics"].linkedMenu = &menus["graphics"];
 
     // Initialise main menu as active
     activeMenu = &menus["main"];
@@ -103,7 +103,7 @@ public:
           currentTextColour = buttonTextSelectColour;
 
         TextProperties textProps = {
-            item.name,
+            item.first,
             pointsize,
             SCREEN_WIDTH,
             currentTextColour,
@@ -163,7 +163,7 @@ public:
           currentTextColour = buttonColour;
 
         TextProperties textProps = {
-            item.name,
+            item.first,
             pointsize,
             SCREEN_WIDTH,
             currentTextColour,
@@ -181,7 +181,7 @@ public:
   
         // Right option
         //----------------------------------------------------------------------
-        if (item.selectedItem) {
+        if (item.second.selectedItem) {
           TextProperties optTextProps = {
               //item.selectedItem->name, // TODO: issue reading this string for some reason
               "No", // placeholder
@@ -236,7 +236,10 @@ public:
         break;
         case SDLK_RETURN: {
           // Set new active menu
-          Menu *linkedMenu = activeMenu->menuItems[selectedItem].linkedMenu;
+          Menu *linkedMenu = getItemFromIndex<MenuItem>(
+            activeMenu->menuItems,
+            selectedItem
+          )->linkedMenu;
           if (linkedMenu)
             activeMenu = linkedMenu;
           // TODO: trigger option selectItem()
@@ -256,7 +259,6 @@ private:
 
   SDL_FRect mainMenuRect = SDL_FRect(120.0f, 42.0f, 80.0f, 80.0f);
   SDL_FRect subMenuRect = SDL_FRect(100.0f, 42.0f, 140.0f, 60.0f);
-  int selectedItem = 0;
 
   float borderThickness = 2.0f;
   float pointsize = 14.0f;
@@ -276,7 +278,7 @@ private:
   struct MenuItem; // Forward definition
   struct Menu {
     std::string headerText = "";
-    std::vector<MenuItem> menuItems = {}; // TODO: make unordered_map
+    std::unordered_map<std::string, MenuItem> menuItems = {};
     MenuType menuType = MenuType::Main;
   };
   struct OptionItem {
@@ -288,13 +290,24 @@ private:
     }
   };
   struct MenuItem {
-    std::string name = "";
     Menu *linkedMenu = nullptr;
     std::vector<OptionItem> optionItems = {};
     OptionItem *selectedItem = nullptr;
-
   };
 
   Menu *activeMenu;
   std::unordered_map<std::string, Menu> menus = {};
+  int selectedItem = 0;
+
+  // Helper method to get index position of element in unordered_map
+  template <typename T>
+  T* getItemFromIndex(std::unordered_map<std::string, T> &umap, int idx) {
+    if (idx >= umap.size())
+      return nullptr;
+
+    auto it = umap.begin();
+    std::advance(it, idx);
+
+    return &(it->second);
+  }
 };
