@@ -42,13 +42,13 @@ public:
     // Windowed mode option
     OptionItem setWindowed = {"No"};
     setWindowed.function =  [](){ std::cout << "Windowed mode!" << std::endl; };
-    graphicsMenuItems["Graphics"].optionItems.push_back(setWindowed);
-    graphicsMenuItems["Graphics"].selectedItem = &graphicsMenuItems["Graphics"].optionItems[0]; // currently selected
+    graphicsMenuItems["Full screen"].optionItems.push_back(setWindowed);
+    graphicsMenuItems["Full screen"].selectedItem = &graphicsMenuItems["Full screen"].optionItems[0]; // currently selected
 
     // Full screen mode
     OptionItem setFullScreen = {"Yes"};
     setFullScreen.function =  [](){ std::cout << "Full screen mode!" << std::endl; };
-    graphicsMenuItems["Graphics"].optionItems.push_back(setFullScreen);
+    graphicsMenuItems["Full screen"].optionItems.push_back(setFullScreen);
 
     Menu graphicsMenu = {
       "Graphics",
@@ -67,6 +67,8 @@ public:
 
   void render(SDL_Renderer *renderer) override {
     if (show && activeMenu && activeMenu->menuType == MenuType::Main) {
+      // Main menu
+      //------------------------------------------------------------------------
       // Render main panel
       SDL_FRect borderRect = UIHelper::getBorderRect(
           mainMenuRect.x,
@@ -125,6 +127,8 @@ public:
         ++idx;
       }
     } else if (show && activeMenu && activeMenu->menuType == MenuType::Sub) {
+      // Sub menus
+      //------------------------------------------------------------------------
       // Render sub panel
       SDL_FRect borderRect = UIHelper::getBorderRect(
           subMenuRect.x,
@@ -142,6 +146,7 @@ public:
       TextureManager::DrawPanel(borderRect, innerRect,
                                 borderColour, innerColour);
 
+      // Render header
       TextProperties headerProps = {
           activeMenu->headerText,
           pointsize,
@@ -163,7 +168,7 @@ public:
           currentTextColour = buttonColour;
 
         TextProperties textProps = {
-            item.first,
+            item.first + ":",
             pointsize,
             SCREEN_WIDTH,
             currentTextColour,
