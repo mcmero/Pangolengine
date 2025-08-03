@@ -30,7 +30,7 @@ public:
       mainMenuItems,
       MenuType::Main
     };
-    menus["main"] = mainMenu;
+    menus["Main"] = mainMenu;
 
     // Graphics options
     //--------------------------------------------------------------------------
@@ -43,26 +43,39 @@ public:
     OptionItem setWindowed = {"No"};
     setWindowed.function =  [](){ std::cout << "Windowed mode!" << std::endl; };
     graphicsMenuItems["Full screen"].optionItems.push_back(setWindowed);
-    graphicsMenuItems["Full screen"].selectedItem = &graphicsMenuItems["Full screen"].optionItems[0]; // currently selected
 
     // Full screen mode
     OptionItem setFullScreen = {"Yes"};
     setFullScreen.function =  [](){ std::cout << "Full screen mode!" << std::endl; };
     graphicsMenuItems["Full screen"].optionItems.push_back(setFullScreen);
 
+    // Resolution options
+    OptionItem setRes360p = {"640x360"};
+    setRes360p.function =  [](){ std::cout << "Set to 640x360!" << std::endl; };
+    graphicsMenuItems["Resolution"].optionItems.push_back(setRes360p);
+
     Menu graphicsMenu = {
       "Graphics",
       graphicsMenuItems,
       MenuType::Sub
     };
-    menus["graphics"] = graphicsMenu;
+    menus["Graphics"] = graphicsMenu;
     //--------------------------------------------------------------------------
 
     // Link Graphics button to Graphics menu
-    menus["main"].menuItems["Graphics"].linkedMenu = &menus["graphics"];
+    menus["Main"].menuItems["Graphics"].linkedMenu = &menus["Graphics"];
+
+    // Set up default option settings
+    // Full screen = No
+    menus["Graphics"].menuItems["Full screen"].selectedItem = \
+        &menus["Graphics"].menuItems["Full screen"].optionItems[0];
+    
+    // Resolution = 640x320
+    menus["Graphics"].menuItems["Resolution"].selectedItem = \
+        &menus["Graphics"].menuItems["Resolution"].optionItems[0];
 
     // Initialise main menu as active
-    activeMenu = &menus["main"];
+    activeMenu = &menus["Main"];
   }
 
   void render(SDL_Renderer *renderer) override {
@@ -188,16 +201,25 @@ public:
         //----------------------------------------------------------------------
         if (item.second.selectedItem) {
           TextProperties optTextProps = {
-              //item.selectedItem->name, // TODO: issue reading this string for some reason
-              "No", // placeholder
+              item.second.selectedItem->name,
               pointsize,
               SCREEN_WIDTH,
-              currentTextColour,
-              Align::Right,
+              headerColour,
+              Align::Center,
               Align::Top,
-              {0.0f, 0.0f, 0.0f, 20.0f}
+              {0.0f, 0.0f, 0.0f, 0.0f}
           };
-          TextureManager::DrawText(optTextProps, textContainer);
+
+          // Align the option item to the right
+          SDL_FRect optionContainer = textContainer;
+          optionContainer.w = optionContainer.w / 2.0f;
+          UIHelper::alignRelativeToContainer(
+            optionContainer,
+            textContainer,
+            Align::Right,
+            Align::Top
+          );
+          TextureManager::DrawText(optTextProps, optionContainer);
         }
         ++idx;
       }
@@ -213,7 +235,7 @@ public:
       if (!show)
         manager->trySetMenu(true);
       else if (manager->isMenuActive() && activeMenu->menuType == MenuType::Sub)
-        activeMenu = &menus["main"]; // go back to the main menu
+        activeMenu = &menus["Main"]; // go back to the main menu
       else
         manager->trySetMenu(false);
 
@@ -244,7 +266,7 @@ public:
           Menu *linkedMenu = getItemFromIndex<MenuItem>(
             activeMenu->menuItems,
             selectedItem
-          )->linkedMenu;
+          )->second.linkedMenu;
           if (linkedMenu)
             activeMenu = linkedMenu;
           // TODO: trigger option selectItem()
@@ -305,14 +327,14 @@ private:
   int selectedItem = 0;
 
   // Helper method to get index position of element in unordered_map
-  template <typename T>
-  T* getItemFromIndex(std::unordered_map<std::string, T> &umap, int idx) {
+  template<typename T>
+  std::pair<const std::string, T>* getItemFromIndex(std::unordered_map<std::string, T> &umap, int idx) {
     if (idx >= umap.size())
       return nullptr;
 
     auto it = umap.begin();
     std::advance(it, idx);
 
-    return &(it->second);
+    return &(*it);
   }
 };
