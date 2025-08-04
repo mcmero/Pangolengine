@@ -103,7 +103,7 @@ public:
           activeMenu->headerText,
           pointsize,
           SCREEN_WIDTH,
-          headerColour,
+          textColour,
           Align::Center,
           Align::Top
       };
@@ -164,7 +164,7 @@ public:
           activeMenu->headerText,
           pointsize,
           SCREEN_WIDTH,
-          headerColour,
+          textColour,
           Align::Center,
           Align::Top
       };
@@ -176,9 +176,9 @@ public:
         // Left menu label
         //----------------------------------------------------------------------
         // Change text colour if button is selected
-        SDL_Color currentTextColour = headerColour;
+        SDL_Color currentTextColour = textColour;
         if (selectedItem == idx)
-          currentTextColour = buttonColour;
+          currentTextColour = textSelectColour;
 
         TextProperties textProps = {
             item.first + ":",
@@ -199,12 +199,16 @@ public:
   
         // Right option
         //----------------------------------------------------------------------
+        // Change text colour if button is selected
+        SDL_Color optionTextColour = textColour;
+        if (mode == SelectMode::Option && selectedItem == idx)
+          optionTextColour = textSelectColour; // Highlight option if in option mode
         if (item.second.selectedItem) {
           TextProperties optTextProps = {
               item.second.selectedItem->name,
               pointsize,
               SCREEN_WIDTH,
-              headerColour,
+              optionTextColour,
               Align::Center,
               Align::Top,
               {0.0f, 0.0f, 0.0f, 0.0f}
@@ -249,27 +253,38 @@ public:
     if (event.type == SDL_EVENT_KEY_DOWN) {
       switch (event.key.key) {
       case SDLK_DOWN:
-        if ((selectedItem + 1) >=
+        if (mode == SelectMode::Item && (selectedItem + 1) >=
             static_cast<int>(activeMenu->menuItems.size()))
           selectedItem = 0;
-        else
+        else if (mode == SelectMode::Item)
           selectedItem++;
         break;
       case SDLK_UP:
-        if ((selectedItem - 1) < 0)
+        if (mode == SelectMode::Item && (selectedItem - 1) < 0)
           selectedItem = static_cast<int>(activeMenu->menuItems.size()) - 1;
-        else
+        else if (mode == SelectMode::Item)
           selectedItem--;
         break;
         case SDLK_RETURN: {
-          // Set new active menu
-          Menu *linkedMenu = getItemFromIndex<MenuItem>(
+          auto *selectedMenu = getItemFromIndex<MenuItem>(
             activeMenu->menuItems,
             selectedItem
-          )->second.linkedMenu;
-          if (linkedMenu)
-            activeMenu = linkedMenu;
-          // TODO: trigger option selectItem()
+          );
+          std::vector<OptionItem> *options = &selectedMenu->second.optionItems;
+          if (mode == SelectMode::Item && selectedMenu->second.linkedMenu) {
+            // Set new active menu
+            std::cout << "Selected item, move to linked menu" << std::endl;
+            activeMenu = selectedMenu->second.linkedMenu;
+          } else if (mode == SelectMode::Item && options && options->size() > 0) {
+            // Switch to option selection mode
+            std::cout << "Selected item, switch to option mode" << std::endl;
+            mode = SelectMode::Option;
+          } else if (mode == SelectMode::Option && options && options->size() > 0) {
+            // Select the option item
+            // TODO: trigger option selectItem()
+            std::cout << "Selected option, back to item mode" << std::endl;
+            mode = SelectMode::Item;
+          }
           break;
         }
       default:
@@ -297,9 +312,10 @@ private:
   SDL_Color innerColour;
   SDL_Color buttonColour;
 
-  SDL_Color headerColour = {255, 255, 255};
-  SDL_Color buttonTextColour = {0, 0, 0};
-  SDL_Color buttonTextSelectColour = {104, 31, 31};
+  SDL_Color textColour = {255, 255, 255};            // White
+  SDL_Color textSelectColour = {208, 199, 125};      // Yellow
+  SDL_Color buttonTextColour = {0, 0, 0};            // Black
+  SDL_Color buttonTextSelectColour = {104, 31, 31};  // Dark red
 
   enum class MenuType { Main, Sub };
   struct MenuItem; // Forward definition
@@ -321,12 +337,16 @@ private:
     std::vector<OptionItem> optionItems = {};
     OptionItem *selectedItem = nullptr;
   };
-
   Menu *activeMenu;
   std::unordered_map<std::string, Menu> menus = {};
+
+  // Item mode means we are selecting menu items
+  // Option mode means we are slecting options within items
+  enum class SelectMode { Item, Option };
+  SelectMode mode = SelectMode::Item;
   int selectedItem = 0;
 
-  // Helper method to get index position of element in unordered_map
+  // Helper method to element from index position in unordered_map
   template<typename T>
   std::pair<const std::string, T>* getItemFromIndex(std::unordered_map<std::string, T> &umap, int idx) {
     if (idx >= umap.size())
