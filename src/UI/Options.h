@@ -67,12 +67,10 @@ public:
 
     // Set up default option settings
     // Full screen = No
-    menus["Graphics"].menuItems["Full screen"].selectedItem = \
-        &menus["Graphics"].menuItems["Full screen"].optionItems[0];
+    menus["Graphics"].menuItems["Full screen"].selectedItem = 0;
     
     // Resolution = 640x320
-    menus["Graphics"].menuItems["Resolution"].selectedItem = \
-        &menus["Graphics"].menuItems["Resolution"].optionItems[0];
+    menus["Graphics"].menuItems["Resolution"].selectedItem = 0;
 
     // Initialise main menu as active
     activeMenu = &menus["Main"];
@@ -203,9 +201,9 @@ public:
         SDL_Color optionTextColour = textColour;
         if (mode == SelectMode::Option && selectedItem == idx)
           optionTextColour = textSelectColour; // Highlight option if in option mode
-        if (item.second.selectedItem) {
+        if (item.second.selectedItem >= 0 && item.second.selectedItem < item.second.optionItems.size()) {
           TextProperties optTextProps = {
-              item.second.selectedItem->name,
+              item.second.optionItems[item.second.selectedItem].name,
               pointsize,
               SCREEN_WIDTH,
               optionTextColour,
@@ -251,42 +249,52 @@ public:
       return;
 
     if (event.type == SDL_EVENT_KEY_DOWN) {
+      // Get the selected menu and option items (need this to inform selection
+      // and scrolling)
+      auto *selectedMenu = getItemFromIndex<MenuItem>(
+          activeMenu->menuItems,
+          selectedItem
+      );
+      std::vector<OptionItem> *options = &selectedMenu->second.optionItems;
+
       switch (event.key.key) {
       case SDLK_DOWN:
-        if (mode == SelectMode::Item && (selectedItem + 1) >=
-            static_cast<int>(activeMenu->menuItems.size()))
-          selectedItem = 0;
-        else if (mode == SelectMode::Item)
-          selectedItem++;
+        if (mode == SelectMode::Item)
+          scroll(selectedItem,
+                 static_cast<int>(activeMenu->menuItems.size()),
+                 ScrollDir::Down);
+        else if (mode == SelectMode::Option)
+          scroll(selectedMenu->second.selectedItem,
+                 static_cast<int>(options->size()), ScrollDir::Down);
         break;
+
       case SDLK_UP:
-        if (mode == SelectMode::Item && (selectedItem - 1) < 0)
-          selectedItem = static_cast<int>(activeMenu->menuItems.size()) - 1;
-        else if (mode == SelectMode::Item)
-          selectedItem--;
+        if (mode == SelectMode::Item)
+          scroll(selectedItem, 
+                 static_cast<int>(activeMenu->menuItems.size()),
+                 ScrollDir::Up);
+        else if (mode == SelectMode::Option)
+          scroll(selectedMenu->second.selectedItem,
+                 static_cast<int>(options->size()), ScrollDir::Up);
         break;
-        case SDLK_RETURN: {
-          auto *selectedMenu = getItemFromIndex<MenuItem>(
-            activeMenu->menuItems,
-            selectedItem
-          );
-          std::vector<OptionItem> *options = &selectedMenu->second.optionItems;
-          if (mode == SelectMode::Item && selectedMenu->second.linkedMenu) {
-            // Set new active menu
-            std::cout << "Selected item, move to linked menu" << std::endl;
-            activeMenu = selectedMenu->second.linkedMenu;
-          } else if (mode == SelectMode::Item && options && options->size() > 0) {
-            // Switch to option selection mode
-            std::cout << "Selected item, switch to option mode" << std::endl;
-            mode = SelectMode::Option;
-          } else if (mode == SelectMode::Option && options && options->size() > 0) {
-            // Select the option item
-            // TODO: trigger option selectItem()
-            std::cout << "Selected option, back to item mode" << std::endl;
-            mode = SelectMode::Item;
-          }
-          break;
+
+      case SDLK_RETURN: {
+        if (mode == SelectMode::Item && selectedMenu->second.linkedMenu) {
+          // Set new active menu
+          std::cout << "Selected item, move to linked menu" << std::endl;
+          activeMenu = selectedMenu->second.linkedMenu;
+        } else if (mode == SelectMode::Item && options && options->size() > 0) {
+          // Switch to option selection mode
+          std::cout << "Selected item, switch to option mode" << std::endl;
+          mode = SelectMode::Option;
+        } else if (mode == SelectMode::Option && options && options->size() > 0) {
+          // Select the option item
+          // TODO: trigger option selectItem()
+          std::cout << "Selected option, back to item mode" << std::endl;
+          mode = SelectMode::Item;
         }
+        break;
+      }
       default:
         break;
       }
@@ -335,7 +343,7 @@ private:
   struct MenuItem {
     Menu *linkedMenu = nullptr;
     std::vector<OptionItem> optionItems = {};
-    OptionItem *selectedItem = nullptr;
+    int selectedItem = -1;
   };
   Menu *activeMenu;
   std::unordered_map<std::string, Menu> menus = {};
@@ -343,6 +351,7 @@ private:
   // Item mode means we are selecting menu items
   // Option mode means we are slecting options within items
   enum class SelectMode { Item, Option };
+  enum class ScrollDir { Up, Down };
   SelectMode mode = SelectMode::Item;
   int selectedItem = 0;
 
@@ -356,5 +365,18 @@ private:
     std::advance(it, idx);
 
     return &(*it);
+  }
+
+  // Helper method for scrolling
+  void scroll(int &selected, int size, ScrollDir dir) {
+    if (dir == ScrollDir::Down && (selected + 1) >= size) {
+      selected = 0;
+    } else if (dir == ScrollDir::Down) {
+      selected++;
+    } else if (dir == ScrollDir::Up && (selected - 1) < 0) {
+      selected = size - 1;
+    } else {
+      selected--;
+    }
   }
 };
