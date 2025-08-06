@@ -258,6 +258,7 @@ public:
       std::vector<OptionItem> *options = &selectedMenu->second.optionItems;
 
       switch (event.key.key) {
+
       case SDLK_DOWN:
         if (mode == SelectMode::Item)
           scroll(selectedItem,
@@ -281,16 +282,17 @@ public:
       case SDLK_RETURN: {
         if (mode == SelectMode::Item && selectedMenu->second.linkedMenu) {
           // Set new active menu
-          std::cout << "Selected item, move to linked menu" << std::endl;
           activeMenu = selectedMenu->second.linkedMenu;
         } else if (mode == SelectMode::Item && options && options->size() > 0) {
           // Switch to option selection mode
-          std::cout << "Selected item, switch to option mode" << std::endl;
           mode = SelectMode::Option;
         } else if (mode == SelectMode::Option && options && options->size() > 0) {
-          // Select the option item
-          // TODO: trigger option selectItem()
-          std::cout << "Selected option, back to item mode" << std::endl;
+          // Make sure selection is valid
+          if (selectedMenu->second.selectedItem >= 0 &&
+              selectedMenu->second.selectedItem < options->size()) {
+            (*options)[selectedMenu->second.selectedItem].selectItem();
+          }
+          // Back to item select mode
           mode = SelectMode::Item;
         }
         break;
