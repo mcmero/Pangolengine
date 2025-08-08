@@ -9,7 +9,7 @@ class IComponent {
 public:
   virtual ~IComponent() = default;
   virtual void update(Interactable *interactable, Dialogue *dialogue) {}
-  virtual void render(SDL_Renderer *renderer) {}
+  virtual void render(SDL_Renderer *renderer, SDL_Window *window) {}
   virtual void handleEvents(const SDL_Event &event) {}
   virtual void clean() {}
 };

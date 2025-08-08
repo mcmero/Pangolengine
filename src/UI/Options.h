@@ -8,6 +8,7 @@
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
+#include "SDL3/SDL_video.h"
 #include "UIHelper.h"
 #include <unordered_map>
 
@@ -46,7 +47,9 @@ public:
 
     // Full screen mode
     OptionItem setFullScreen = {"Yes"};
-    setFullScreen.function =  [](){ std::cout << "Full screen mode!" << std::endl; };
+    setFullScreen.function =  [this](){
+      fullscreenSet = true;
+    };
     graphicsMenuItems["Full screen"].optionItems.push_back(setFullScreen);
 
     // Resolution options
@@ -76,7 +79,14 @@ public:
     activeMenu = &menus["Main"];
   }
 
-  void render(SDL_Renderer *renderer) override {
+  void render(SDL_Renderer *renderer, SDL_Window *window) override {
+    if (fullscreenSet) {
+      SDL_SetWindowFullscreen(window, true);
+      std::cout << "Full screen mode!" << std::endl;
+      // TODO: we also need to change the render scale to fit the window dimensions
+      fullscreenSet = false;
+    }
+
     if (show && activeMenu && activeMenu->menuType == MenuType::Main) {
       // Main menu
       //------------------------------------------------------------------------
@@ -271,7 +281,7 @@ public:
 
       case SDLK_UP:
         if (mode == SelectMode::Item)
-          scroll(selectedItem, 
+          scroll(selectedItem,
                  static_cast<int>(activeMenu->menuItems.size()),
                  ScrollDir::Up);
         else if (mode == SelectMode::Option)
@@ -381,4 +391,7 @@ private:
       selected--;
     }
   }
+
+  // TEMP
+  bool fullscreenSet = false;
 };

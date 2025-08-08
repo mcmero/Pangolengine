@@ -27,7 +27,9 @@ public:
   }
   ~UIManager() { grid.clean(); }
 
-  void render(SDL_Renderer *renderer) { grid.render(renderer); }
+  void render(SDL_Renderer *renderer, SDL_Window *window) {
+    grid.render(renderer, window);
+  }
 
   void update(Interactable *interactable, Dialogue *dialogue) {
     grid.update(interactable, dialogue);

@@ -249,7 +249,7 @@ void Game::render() {
     sprite.render();
   }
 
-  uiManager->render(renderer);
+  uiManager->render(renderer, window);
 
   SDL_RenderPresent(renderer);
 }

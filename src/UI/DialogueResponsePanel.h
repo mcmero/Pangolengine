@@ -26,7 +26,7 @@ public:
 
   ~DialogueResponsePanel() { clean(); }
 
-  void render(SDL_Renderer *renderer) override {
+  void render(SDL_Renderer *renderer, SDL_Window *window) override {
     float yOffset = -scrollOffset;
     if (show) {
       TextureManager::DrawPanel(borderRect, innerRect, borderColour,

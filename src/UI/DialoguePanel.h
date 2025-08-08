@@ -28,12 +28,12 @@ public:
         (assetsPath / "audio" / "dialogue_blip.ogg").string().c_str());
   }
 
-  void render(SDL_Renderer *renderer) override {
+  void render(SDL_Renderer *renderer, SDL_Window *window) override {
     if (show) {
       TextureManager::DrawPanel(borderRect, innerRect, borderColour,
                                 innerColour);
 
-      // Keep scroll offset within bounds so that we keep text visible
+      // Keep seoffset within bounds so that we keep text visible
       if (!finishedWriting) {
         // Set max scroll offset if we haven't finished writing
         scrollOffset = messageDims.height - textRect.h;

@@ -10,9 +10,9 @@ public:
     children.push_back(child);
   };
 
-  void render(SDL_Renderer *renderer) {
+  void render(SDL_Renderer *renderer, SDL_Window *window) {
     for (auto &child : children) {
-      child->render(renderer);
+      child->render(renderer, window);
     }
   }
 

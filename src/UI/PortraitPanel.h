@@ -20,7 +20,7 @@ public:
     portraitTex = TextureManager::LoadTexture(texturePath);
   }
 
-  void render(SDL_Renderer *renderer) override {
+  void render(SDL_Renderer *renderer, SDL_Window *window) override {
     if (show) {
       TextureManager::DrawPanel(borderRect, innerRect, borderColour,
                                 innerColour);
