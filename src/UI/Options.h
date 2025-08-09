@@ -42,19 +42,25 @@ public:
 
     // Windowed mode option
     OptionItem setWindowed = {"No"};
-    setWindowed.function =  [](){ std::cout << "Windowed mode!" << std::endl; };
+    setWindowed.function = [](SDL_Window *window){
+      SDL_SetWindowFullscreen(window, false);
+      // TODO: we need to set the render scale here to match the full screen resolution
+      std::cout << "Windowed mode!" << std::endl;
+    };
     graphicsMenuItems["Full screen"].optionItems.push_back(setWindowed);
 
     // Full screen mode
     OptionItem setFullScreen = {"Yes"};
-    setFullScreen.function =  [this](){
-      fullscreenSet = true;
+    setFullScreen.function = [](SDL_Window *window){
+      SDL_SetWindowFullscreen(window, true);
+      // TODO: we need to set the render scale here to match the full screen resolution
+      std::cout << "Full screen mode!" << std::endl;
     };
     graphicsMenuItems["Full screen"].optionItems.push_back(setFullScreen);
 
     // Resolution options
     OptionItem setRes360p = {"640x360"};
-    setRes360p.function =  [](){ std::cout << "Set to 640x360!" << std::endl; };
+    setRes360p.function =  [](SDL_Window *window){ std::cout << "Set to 640x360!" << std::endl; };
     graphicsMenuItems["Resolution"].optionItems.push_back(setRes360p);
 
     Menu graphicsMenu = {
@@ -80,11 +86,10 @@ public:
   }
 
   void render(SDL_Renderer *renderer, SDL_Window *window) override {
-    if (fullscreenSet) {
-      SDL_SetWindowFullscreen(window, true);
-      std::cout << "Full screen mode!" << std::endl;
-      // TODO: we also need to change the render scale to fit the window dimensions
-      fullscreenSet = false;
+    // Handle item settings involving render changes
+    if (itemSet) {
+      itemSet->selectItem(window);
+      itemSet = nullptr; // Release pointer
     }
 
     if (show && activeMenu && activeMenu->menuType == MenuType::Main) {
@@ -300,7 +305,7 @@ public:
           // Make sure selection is valid
           if (selectedMenu->second.selectedItem >= 0 &&
               selectedMenu->second.selectedItem < options->size()) {
-            (*options)[selectedMenu->second.selectedItem].selectItem();
+            itemSet = &(*options)[selectedMenu->second.selectedItem];
           }
           // Back to item select mode
           mode = SelectMode::Item;
@@ -346,10 +351,10 @@ private:
   };
   struct OptionItem {
     std::string name = "";
-    std::function<void()> function;
-    void selectItem() {
+    std::function<void(SDL_Window*)> function;
+    void selectItem(SDL_Window* win) {
         if (function)
-            function();
+            function(win);
     }
   };
   struct MenuItem {
@@ -366,6 +371,7 @@ private:
   enum class ScrollDir { Up, Down };
   SelectMode mode = SelectMode::Item;
   int selectedItem = 0;
+  OptionItem *itemSet = nullptr;
 
   // Helper method to element from index position in unordered_map
   template<typename T>
@@ -391,7 +397,4 @@ private:
       selected--;
     }
   }
-
-  // TEMP
-  bool fullscreenSet = false;
 };
