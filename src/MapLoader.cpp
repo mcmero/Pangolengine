@@ -271,10 +271,10 @@ void MapLoader::processTransitionObject(MapObject &mapObject,
 MapObject MapLoader::loadObject(const json &object, PropertyType propertyType) {
   MapObject mapObject;
   mapObject.objectId = object.value("id", -1);
-  mapObject.height = object.value("height", 0);
-  mapObject.width = object.value("width", 0);
-  mapObject.xpos = object.value("x", 0);
-  mapObject.ypos = object.value("y", 0);
+  mapObject.height = object.value("height", 0.0f);
+  mapObject.width = object.value("width", 0.0f);
+  mapObject.xpos = object.value("x", 0.0f);
+  mapObject.ypos = object.value("y", 0.0f);
 
   // Draw order is set by iteration position, which reflects the draw
   // order in the JSON map file

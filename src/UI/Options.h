@@ -36,32 +36,41 @@ public:
     // Graphics options
     //--------------------------------------------------------------------------
     std::unordered_map<std::string, MenuItem> graphicsMenuItems = {
-      {"Full screen", {}},
       {"Resolution", {}},
     };
 
-    // Windowed mode option
-    OptionItem setWindowed = {"No"};
-    setWindowed.function = [](SDL_Window *window){
-      SDL_SetWindowFullscreen(window, false);
-      // TODO: we need to set the render scale here to match the full screen resolution
-      std::cout << "Windowed mode!" << std::endl;
-    };
-    graphicsMenuItems["Full screen"].optionItems.push_back(setWindowed);
-
-    // Full screen mode
-    OptionItem setFullScreen = {"Yes"};
-    setFullScreen.function = [](SDL_Window *window){
-      SDL_SetWindowFullscreen(window, true);
-      // TODO: we need to set the render scale here to match the full screen resolution
-      std::cout << "Full screen mode!" << std::endl;
-    };
-    graphicsMenuItems["Full screen"].optionItems.push_back(setFullScreen);
-
     // Resolution options
-    OptionItem setRes360p = {"640x360"};
-    setRes360p.function =  [](SDL_Window *window){ std::cout << "Set to 640x360!" << std::endl; };
-    graphicsMenuItems["Resolution"].optionItems.push_back(setRes360p);
+    // 180p (native)
+    OptionItem setRes180p = {"320x180"};
+    setRes180p.function = [](SDL_Renderer *renderer, SDL_Window *window){
+      SDL_SetWindowFullscreen(window, false);
+      SDL_SetWindowSize(window, 320, 180);
+      SDL_SetRenderScale(renderer, 1.0f, 1.0f);
+    };
+    graphicsMenuItems["Resolution"].optionItems.push_back(setRes180p);
+
+    // 720p
+    OptionItem setRes720p = {"1280x720"};
+    setRes720p.function = [](SDL_Renderer *renderer, SDL_Window *window){
+      SDL_SetWindowFullscreen(window, false);
+      SDL_SetWindowSize(window, 1280, 720);
+      SDL_SetRenderScale(renderer, 4.0f, 4.0f);
+    };
+    graphicsMenuItems["Resolution"].optionItems.push_back(setRes720p);
+    
+    // Full screen mode
+    OptionItem setFullScreen = {"Max"};
+    setFullScreen.function = [](SDL_Renderer *renderer, SDL_Window *window){
+      SDL_SetWindowFullscreen(window, true);
+
+      // Get the render size so that we can adapt it to full screen resolution
+      int w = 0; int h = 0;
+      SDL_GetWindowSizeInPixels(window, &w, &h);
+      float scaleX = static_cast<float>(w) / static_cast<float>(SCREEN_WIDTH);
+      float scaleY = static_cast<float>(h) / static_cast<float>(SCREEN_HEIGHT);
+      SDL_SetRenderScale(renderer, scaleX, scaleY);
+    };
+    graphicsMenuItems["Resolution"].optionItems.push_back(setFullScreen);
 
     Menu graphicsMenu = {
       "Graphics",
@@ -75,11 +84,8 @@ public:
     menus["Main"].menuItems["Graphics"].linkedMenu = &menus["Graphics"];
 
     // Set up default option settings
-    // Full screen = No
-    menus["Graphics"].menuItems["Full screen"].selectedItem = 0;
-    
-    // Resolution = 640x320
-    menus["Graphics"].menuItems["Resolution"].selectedItem = 0;
+    // Resolution = 1280x720
+    menus["Graphics"].menuItems["Resolution"].selectedItem = 1;
 
     // Initialise main menu as active
     activeMenu = &menus["Main"];
@@ -88,7 +94,7 @@ public:
   void render(SDL_Renderer *renderer, SDL_Window *window) override {
     // Handle item settings involving render changes
     if (itemSet) {
-      itemSet->selectItem(window);
+      itemSet->selectItem(renderer, window);
       itemSet = nullptr; // Release pointer
     }
 
@@ -200,7 +206,7 @@ public:
             currentTextColour,
             Align::Left,
             Align::Top,
-            {0.0f, 0.0f, 5.0f, 0.0f}
+            {0.0f, 0.0f, 10.0f, 0.0f}
         };
 
         float spacingFactor =
@@ -237,6 +243,9 @@ public:
             Align::Top
           );
           TextureManager::DrawText(optTextProps, optionContainer);
+
+          // TODO: draw triangles on left and right of option being changed to
+          // show that it can be changed
         }
         ++idx;
       }
@@ -274,26 +283,38 @@ public:
 
       switch (event.key.key) {
 
-      case SDLK_DOWN:
-        if (mode == SelectMode::Item)
-          scroll(selectedItem,
-                 static_cast<int>(activeMenu->menuItems.size()),
-                 ScrollDir::Down);
-        else if (mode == SelectMode::Option)
-          scroll(selectedMenu->second.selectedItem,
-                 static_cast<int>(options->size()), ScrollDir::Down);
-        break;
-
+      // Button selection scrolling
+      //----------------------------------------------------------------------
       case SDLK_UP:
         if (mode == SelectMode::Item)
           scroll(selectedItem,
                  static_cast<int>(activeMenu->menuItems.size()),
-                 ScrollDir::Up);
-        else if (mode == SelectMode::Option)
-          scroll(selectedMenu->second.selectedItem,
-                 static_cast<int>(options->size()), ScrollDir::Up);
+                 Scroll::Back);
         break;
 
+      case SDLK_DOWN:
+        if (mode == SelectMode::Item)
+          scroll(selectedItem,
+                 static_cast<int>(activeMenu->menuItems.size()),
+                 Scroll::Forward);
+        break;
+
+      // Option item scrolling
+      //----------------------------------------------------------------------
+      case SDLK_LEFT:
+        if (mode == SelectMode::Option)
+          scroll(selectedMenu->second.selectedItem,
+                 static_cast<int>(options->size()), Scroll::Forward);
+        break;
+
+      case SDLK_RIGHT:
+        if (mode == SelectMode::Option)
+          scroll(selectedMenu->second.selectedItem,
+                 static_cast<int>(options->size()), Scroll::Back);
+        break;
+
+      // Item selection
+      //----------------------------------------------------------------------
       case SDLK_RETURN: {
         if (mode == SelectMode::Item && selectedMenu->second.linkedMenu) {
           // Set new active menu
@@ -351,10 +372,10 @@ private:
   };
   struct OptionItem {
     std::string name = "";
-    std::function<void(SDL_Window*)> function;
-    void selectItem(SDL_Window* win) {
+    std::function<void(SDL_Renderer*, SDL_Window*)> function;
+    void selectItem(SDL_Renderer* ren, SDL_Window* win) {
         if (function)
-            function(win);
+            function(ren, win);
     }
   };
   struct MenuItem {
@@ -368,7 +389,7 @@ private:
   // Item mode means we are selecting menu items
   // Option mode means we are slecting options within items
   enum class SelectMode { Item, Option };
-  enum class ScrollDir { Up, Down };
+  enum class Scroll { Back, Forward };
   SelectMode mode = SelectMode::Item;
   int selectedItem = 0;
   OptionItem *itemSet = nullptr;
@@ -386,12 +407,12 @@ private:
   }
 
   // Helper method for scrolling
-  void scroll(int &selected, int size, ScrollDir dir) {
-    if (dir == ScrollDir::Down && (selected + 1) >= size) {
+  void scroll(int &selected, int size, Scroll dir) {
+    if (dir == Scroll::Forward && (selected + 1) >= size) {
       selected = 0;
-    } else if (dir == ScrollDir::Down) {
+    } else if (dir == Scroll::Forward) {
       selected++;
-    } else if (dir == ScrollDir::Up && (selected - 1) < 0) {
+    } else if (dir == Scroll::Back && (selected - 1) < 0) {
       selected = size - 1;
     } else {
       selected--;
