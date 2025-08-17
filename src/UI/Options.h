@@ -8,6 +8,7 @@
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
+#include "SDL3/SDL_surface.h"
 #include "SDL3/SDL_video.h"
 #include "UIHelper.h"
 #include <unordered_map>
@@ -215,13 +216,29 @@ public:
         textContainer.y = textContainer.y + spacingFactor; // Shift text down
  
         TextureManager::DrawText(textProps, textContainer);
-  
+ 
         // Right option
         //----------------------------------------------------------------------
         // Change text colour if button is selected
         SDL_Color optionTextColour = textColour;
-        if (mode == SelectMode::Option && selectedItem == idx)
+        if (mode == SelectMode::Option && selectedItem == idx) {
           optionTextColour = textSelectColour; // Highlight option if in option mode
+
+          // Left triangle
+          SDL_Texture *tex = TextureManager::LoadTexture("assets/textures/select_icon.png");
+          SDL_FRect srcRect = {0.0f, 0.0f, 4.0f, 7.0f};
+          SDL_FRect leftRect = {textContainer.x + (textContainer.w / 2.0f), textContainer.y + 5.0f,
+                                 4.0f, 7.0f};
+          TextureManager::Draw(tex, srcRect, leftRect, SDL_FLIP_HORIZONTAL);
+
+          // Right triangle
+          SDL_FRect rightRect = {textContainer.x + textContainer.w - 10.0f, textContainer.y + 5.0f,
+                                 4.0f, 7.0f};
+          TextureManager::Draw(tex, srcRect, rightRect, SDL_FLIP_NONE);
+
+          // Cleanup
+          SDL_DestroyTexture(tex);
+        }
         if (item.second.selectedItem >= 0 && item.second.selectedItem < item.second.optionItems.size()) {
           TextProperties optTextProps = {
               item.second.optionItems[item.second.selectedItem].name,
@@ -244,8 +261,6 @@ public:
           );
           TextureManager::DrawText(optTextProps, optionContainer);
 
-          // TODO: draw triangles on left and right of option being changed to
-          // show that it can be changed
         }
         ++idx;
       }
@@ -257,6 +272,7 @@ public:
   void handleEvents(const SDL_Event &event) override {
 
     // Open or close menu with escape
+    // TODO: need to handle selection mode here
     if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE) {
       if (!show)
         manager->trySetMenu(true);
