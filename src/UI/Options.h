@@ -4,6 +4,7 @@
 #include "IComponent.h"
 #include "IUIManager.h"
 #include "SDL3/SDL_events.h"
+#include "SDL3/SDL_filesystem.h"
 #include "SDL3/SDL_keycode.h"
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
@@ -13,6 +14,8 @@
 #include "UIHelper.h"
 #include <unordered_map>
 
+namespace fs = std::filesystem;
+
 class Options : public IComponent {
 public:
   Options(float borderThickness, SDL_Color borderColour,
@@ -21,6 +24,9 @@ public:
       : manager(&manager), borderThickness(borderThickness),
         pointsize(pointsize), borderColour(borderColour),
         innerColour(innerColour), buttonColour(buttonColour) {
+
+    // Load any textures
+    selectIconTex = TextureManager::LoadTexture(selectIconPath.string().c_str());
 
     std::unordered_map<std::string, MenuItem> mainMenuItems = {
       {"Graphics", {}},
@@ -225,19 +231,19 @@ public:
           optionTextColour = textSelectColour; // Highlight option if in option mode
 
           // Left triangle
-          SDL_Texture *tex = TextureManager::LoadTexture("assets/textures/select_icon.png");
-          SDL_FRect srcRect = {0.0f, 0.0f, 4.0f, 7.0f};
-          SDL_FRect leftRect = {textContainer.x + (textContainer.w / 2.0f), textContainer.y + 5.0f,
-                                 4.0f, 7.0f};
-          TextureManager::Draw(tex, srcRect, leftRect, SDL_FLIP_HORIZONTAL);
+          float tw = static_cast<float>(selectIconTex->w);
+          float th = static_cast<float>(selectIconTex->h);
+          SDL_FRect srcRect = {0.0f, 0.0f, tw, th};
+          SDL_FRect leftRect = {textContainer.x + (textContainer.w / 2.0f),
+                                textContainer.y + 5.0f, tw, th};
+          TextureManager::Draw(selectIconTex, srcRect, leftRect,
+                               SDL_FLIP_HORIZONTAL);
 
           // Right triangle
-          SDL_FRect rightRect = {textContainer.x + textContainer.w - 10.0f, textContainer.y + 5.0f,
-                                 4.0f, 7.0f};
-          TextureManager::Draw(tex, srcRect, rightRect, SDL_FLIP_NONE);
-
-          // Cleanup
-          SDL_DestroyTexture(tex);
+          SDL_FRect rightRect = {textContainer.x + textContainer.w - 10.0f,
+                                 textContainer.y + 5.0f, tw, th};
+          TextureManager::Draw(selectIconTex, srcRect, rightRect,
+                               SDL_FLIP_NONE);
         }
         if (item.second.selectedItem >= 0 && item.second.selectedItem < item.second.optionItems.size()) {
           TextProperties optTextProps = {
@@ -272,12 +278,17 @@ public:
   void handleEvents(const SDL_Event &event) override {
 
     // Open or close menu with escape
-    // TODO: need to handle selection mode here
     if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE) {
       if (!show)
         manager->trySetMenu(true);
-      else if (manager->isMenuActive() && activeMenu->menuType == MenuType::Sub)
+      else if (manager->isMenuActive() &&
+               activeMenu->menuType == MenuType::Sub &&
+               mode == SelectMode::Item)
         activeMenu = &menus["Main"]; // go back to the main menu
+      else if (manager->isMenuActive() &&
+               activeMenu->menuType == MenuType::Sub &&
+               mode == SelectMode::Option)
+        mode = SelectMode::Item; // go back to item selection
       else
         manager->trySetMenu(false);
 
@@ -355,7 +366,9 @@ public:
     }
   }
 
-  void clean() override {}
+  void clean() override {
+    SDL_DestroyTexture(selectIconTex);
+  }
 
 private:
   bool show = false;
@@ -405,10 +418,16 @@ private:
   // Item mode means we are selecting menu items
   // Option mode means we are slecting options within items
   enum class SelectMode { Item, Option };
+
+  // Back/forward scrolling handles both up/down and left/right scrolling
   enum class Scroll { Back, Forward };
   SelectMode mode = SelectMode::Item;
   int selectedItem = 0;
   OptionItem *itemSet = nullptr;
+
+  fs::path selectIconPath = fs::path(SDL_GetBasePath()) /
+                              "assets" / "textures" / "select_icon.png";
+  SDL_Texture *selectIconTex;
 
   // Helper method to element from index position in unordered_map
   template<typename T>
