@@ -83,9 +83,11 @@ private:
   // Map where index = global ID and string = texture path
   std::unordered_map<int, std::string> gidTextures = {};
 
-  enum PropertyType { TILE, SPRITE, COLLISION, TRANSITION, INTERACTION };
+  enum PropertyType { TILE, SPRITE, SPRITECOLLIDER, COLLISION, TRANSITION, INTERACTION };
 
   void processSpriteObject(MapObject &mapObject, const json &object);
+
+  void processSpriteCollider(MapObject &mapObject, const json &object);
 
   void processTransitionObject(MapObject &mapObject, const json &object);
 

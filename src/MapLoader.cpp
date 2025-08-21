@@ -99,6 +99,12 @@ MapData MapLoader::LoadMap() {
   mapData.interactionVector =
       MapLoader::loadMapObjects(interactionLayerName, INTERACTION);
 
+  // Load sprite colliders separately, then insert them into the collider vector
+  std::unordered_map<int, MapObject> spriteColliders =
+    MapLoader::loadMapObjects(spriteLayerName, SPRITECOLLIDER);
+  // TODO: consider refactoring this into something cleaner
+  //mapData.colliderVector.insert(spriteColliders.begin(), spriteColliders.end());
+
   // Load start position from first object in player layer
   std::unordered_map<int, MapObject> playerMap =
       MapLoader::loadMapObjects(playerLayerName, SPRITE);
@@ -240,10 +246,19 @@ MapData MapLoader::LoadMap() {
 
 MapLoader::~MapLoader() {};
 
-void MapLoader::processSpriteObject(MapObject &mapObject, const json &object) {
-  // TODO: at some point, add support for collision boxes specified
-  // within the object sprite
+/*
+ * Gets any collision objects attached to sprites and links them via linked_id
+ */
+void MapLoader::processSpriteCollider(MapObject &mapObject, const json &object) {
+  std::string tilesetPath = getTilesetSource(
+    static_cast<int>(object["gid"]), mapDataJson
+  );
+  // TODO: implementation -- replace mapObject coordinates with the collider coords
+  // that are present in the tilsetPath file loaded above -- we need to match the
+  // sprite with its corresponding collider
+}
 
+void MapLoader::processSpriteObject(MapObject &mapObject, const json &object) {
   // Get path to texture for sprite object
   int spritesetID = static_cast<int>(object["gid"]);
   auto it = gidTextures.find(spritesetID);
@@ -288,6 +303,9 @@ MapObject MapLoader::loadObject(const json &object, PropertyType propertyType) {
   switch (propertyType) {
   case SPRITE:
     processSpriteObject(mapObject, object);
+    break;
+  case SPRITECOLLIDER:
+    processSpriteCollider(mapObject, object);
     break;
   case TRANSITION:
     processTransitionObject(mapObject, object);
