@@ -250,12 +250,70 @@ MapLoader::~MapLoader() {};
  * Gets any collision objects attached to sprites and links them via linked_id
  */
 void MapLoader::processSpriteCollider(MapObject &mapObject, const json &object) {
-  std::string tilesetPath = getTilesetSource(
-    static_cast<int>(object["gid"]), mapDataJson
-  );
-  // TODO: implementation -- replace mapObject coordinates with the collider coords
-  // that are present in the tilsetPath file loaded above -- we need to match the
-  // sprite with its corresponding collider
+  // TODO: we need a lookup that stores the gid to tileset file mapping
+  //fs::path tilesetFile = fs::path(getTilesetSource(
+  //  static_cast<int>(object["gid"]), mapDataJson
+  //));
+
+  int gid = static_cast<int>(object["gid"]);
+  std::string source = "";
+  for (const auto &tileset : mapDataJson["tilesets"]) {
+    source = tileset.value("source", "");
+    if (tileset.value("firstgid", -1) > gid)
+      break;
+  }
+  if (source == "")
+    return;
+
+  fs::path tilesetFile = mapDir / fs::path(source);
+
+  tinyxml2::XMLDocument doc;
+  tinyxml2::XMLError eResult = doc.LoadFile(tilesetFile.string().c_str());
+
+  if (eResult != tinyxml2::XML_SUCCESS) {
+    throw std::runtime_error(
+        "Error loading XML file: " + tilesetFile.string() +
+        " (Error Code: " + std::to_string(eResult) + ")");
+  }
+
+  tinyxml2::XMLNode *root = doc.FirstChildElement("tileset");
+  if (root == nullptr) {
+    throw std::runtime_error("No root element found in tileset file: " +
+                             tilesetFile.string());
+  }
+
+  // We use the texture to find the right tile -- this is a BAD way to do this
+  // but we would need to look up the starting ID of the tile file -- this can
+  // be pulled from the mapDataJson object -- we should refactor so that we can
+  // use ID directly
+  std::string spriteTexture = gidTextures[static_cast<int>(object["gid"])];
+
+  tinyxml2::XMLElement *tileNode = root->FirstChildElement("tile");
+  while (tileNode) {
+    int id = 0;
+    eResult = tileNode->QueryIntAttribute("id", &id);
+    if (eResult != tinyxml2::XML_SUCCESS) {
+      throw std::runtime_error(
+          "No 'id' attribute found in tile node. Error Code: " +
+          std::to_string(eResult));
+    }
+
+    // Need to match sprite via image source
+    tinyxml2::XMLElement *imageElement = tileNode->FirstChildElement("image");
+    if (imageElement) {
+      const char *source = imageElement->Attribute("source");
+      fs::path imagePath = fs::canonical((tilesetFile.parent_path() /
+                                         fs::path(source)).string());
+
+      if (imagePath == spriteTexture) {
+        // Found the sprite element
+        // TODO: -- replace mapObject coordinates with the collider coords
+        std::cout << "Found sprite element; adding collider" << std::endl;
+      }
+    }
+
+    tileNode = tileNode->NextSiblingElement("tile");
+  }
 }
 
 void MapLoader::processSpriteObject(MapObject &mapObject, const json &object) {
