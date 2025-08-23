@@ -339,7 +339,7 @@ void Game::loadMap(std::string mapPath) {
     // Add the collider to linked (sprite) entity if it exists
     // otherwise create a new entity
     if (collider.linkedId > 0 && mapEntities.contains(collider.linkedId)) {
-      colliderEntity = mapEntities[collider.linkedId];
+      colliderEntity = mapEntities[collider.linkedId]; // This is actually the sprite entity
 
       // Fetch the corresponding Transform component
       auto view = registry.view<Transform>();

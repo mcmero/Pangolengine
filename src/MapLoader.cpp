@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
@@ -103,7 +104,7 @@ MapData MapLoader::LoadMap() {
   std::unordered_map<int, MapObject> spriteColliders =
     MapLoader::loadMapObjects(spriteLayerName, SPRITECOLLIDER);
   // TODO: consider refactoring this into something cleaner
-  //mapData.colliderVector.insert(spriteColliders.begin(), spriteColliders.end());
+  mapData.colliderVector.insert(spriteColliders.begin(), spriteColliders.end());
 
   // Load start position from first object in player layer
   std::unordered_map<int, MapObject> playerMap =
@@ -250,11 +251,11 @@ MapLoader::~MapLoader() {};
  * Gets any collision objects attached to sprites and links them via linked_id
  */
 void MapLoader::processSpriteCollider(MapObject &mapObject, const json &object) {
-  // TODO: we need a lookup that stores the gid to tileset file mapping
-  //fs::path tilesetFile = fs::path(getTilesetSource(
-  //  static_cast<int>(object["gid"]), mapDataJson
-  //));
+  // Link object to its own object ID because there will be a corresponding
+  // sprite with this ID -- and the engine will use this ID to link them
+  mapObject.linkedId = mapObject.objectId;
 
+  // TODO: we need a lookup that stores the gid to tileset file mapping
   int gid = static_cast<int>(object["gid"]);
   std::string source = "";
   for (const auto &tileset : mapDataJson["tilesets"]) {
@@ -286,7 +287,7 @@ void MapLoader::processSpriteCollider(MapObject &mapObject, const json &object) 
   // but we would need to look up the starting ID of the tile file -- this can
   // be pulled from the mapDataJson object -- we should refactor so that we can
   // use ID directly
-  std::string spriteTexture = gidTextures[static_cast<int>(object["gid"])];
+  std::string spriteTexture = gidTextures[gid];
 
   tinyxml2::XMLElement *tileNode = root->FirstChildElement("tile");
   while (tileNode) {
@@ -306,9 +307,26 @@ void MapLoader::processSpriteCollider(MapObject &mapObject, const json &object) 
                                          fs::path(source)).string());
 
       if (imagePath == spriteTexture) {
-        // Found the sprite element
-        // TODO: -- replace mapObject coordinates with the collider coords
-        std::cout << "Found sprite element; adding collider" << std::endl;
+        // Found the sprite element -- get collider
+        tinyxml2::XMLElement *objectGroup =
+            tileNode->FirstChildElement("objectgroup");
+        if (objectGroup) {
+          tinyxml2::XMLElement *tileObject = objectGroup->FirstChildElement("object");
+          if (tileObject) {
+            // TODO: Here we need to translate the coordinates relative to the sprite coordinates
+            tileObject->QueryFloatAttribute("x", &mapObject.xpos);
+            tileObject->QueryFloatAttribute("y", &mapObject.ypos);
+            tileObject->QueryFloatAttribute("width", &mapObject.width);
+            tileObject->QueryFloatAttribute("height", &mapObject.height);
+          }
+        } else {
+          // there is no collider
+          // TODO: handling this case properly will require refactoring
+          mapObject.xpos = -1;
+          mapObject.ypos = -1;
+          mapObject.width = 0;
+          mapObject.height = 0;
+        }
       }
     }
 

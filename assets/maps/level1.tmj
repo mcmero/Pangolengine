@@ -117,23 +117,6 @@
                  "width":77.0469585362956,
                  "x":241.035998574314,
                  "y":126.528060769871
-                }, 
-                {
-                 "height":13.40625,
-                 "id":33,
-                 "name":"",
-                 "properties":[
-                        {
-                         "name":"linked_id",
-                         "type":"int",
-                         "value":26
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":8.71875,
-                 "x":211.940340909091,
-                 "y":193.144886363636
                 }],
          "opacity":1,
          "type":"objectgroup",
