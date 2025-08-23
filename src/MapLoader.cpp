@@ -7,7 +7,6 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <map>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
@@ -313,15 +312,22 @@ void MapLoader::processSpriteCollider(MapObject &mapObject, const json &object) 
         if (objectGroup) {
           tinyxml2::XMLElement *tileObject = objectGroup->FirstChildElement("object");
           if (tileObject) {
-            // TODO: Here we need to translate the coordinates relative to the sprite coordinates
-            tileObject->QueryFloatAttribute("x", &mapObject.xpos);
-            tileObject->QueryFloatAttribute("y", &mapObject.ypos);
-            tileObject->QueryFloatAttribute("width", &mapObject.width);
-            tileObject->QueryFloatAttribute("height", &mapObject.height);
+            float xpos = 0; float ypos = 0; float width = 0; float height = 0;
+            tileObject->QueryFloatAttribute("x", &xpos);
+            tileObject->QueryFloatAttribute("y", &ypos);
+            tileObject->QueryFloatAttribute("width", &width);
+            tileObject->QueryFloatAttribute("height", &height);
+
+            // Set coordinates relative to sprite position
+            mapObject.xpos = mapObject.xpos + xpos;
+            mapObject.ypos = mapObject.ypos + ypos;
+            mapObject.width = width;
+            mapObject.height = height;
           }
         } else {
           // there is no collider
-          // TODO: handling this case properly will require refactoring
+          // TODO: ideally in this case we just return a nullptr to mapObject
+          // but this requires refactoring
           mapObject.xpos = -1;
           mapObject.ypos = -1;
           mapObject.width = 0;
@@ -329,7 +335,6 @@ void MapLoader::processSpriteCollider(MapObject &mapObject, const json &object) 
         }
       }
     }
-
     tileNode = tileNode->NextSiblingElement("tile");
   }
 }
