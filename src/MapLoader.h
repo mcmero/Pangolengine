@@ -81,8 +81,11 @@ private:
   std::string interactionLayerName;
   std::string playerLayerName;
 
-  // Map where index = global ID and string = texture path
-  std::unordered_map<int, std::string> gidTextures = {};
+  struct GidTexture {
+    int firstGid = 0;
+    std::string texPath = "";
+  };
+  std::unordered_map<int, GidTexture> gidTextures = {};
 
   enum PropertyType { TILE, SPRITE, SPRITECOLLIDER, COLLISION, TRANSITION, INTERACTION };
 

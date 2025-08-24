@@ -70,7 +70,7 @@ MapData MapLoader::LoadMap() {
   } else {
     // Get image path for tile set
     int tilesetID = static_cast<int>(tileDataJson["id"]);
-    mapData.tilesetImg = gidTextures[tilesetID];
+    mapData.tilesetImg = gidTextures[tilesetID].texPath;
 
     // Set up tile set dimensions
     mapData.height = tileDataJson["height"];
@@ -246,13 +246,15 @@ MapLoader::~MapLoader() {};
  * Gets any collision objects attached to sprites
  */
 void MapLoader::processSpriteCollider(MapObject &mapObject, const json &object) {
-  // TODO: we need a lookup that stores the gid to tileset file mapping
+  // Get the tileset source from the map file using the GID value
   int gid = static_cast<int>(object["gid"]);
+  int firstGid = gidTextures[gid].firstGid;
   std::string source = "";
   for (const auto &tileset : mapDataJson["tilesets"]) {
-    source = tileset.value("source", "");
-    if (tileset.value("firstgid", -1) > gid)
+    if (tileset.value("firstgid", -1) == firstGid) {
+      source = tileset.value("source", "");
       break;
+    }
   }
   if (source == "")
     return;
@@ -278,7 +280,7 @@ void MapLoader::processSpriteCollider(MapObject &mapObject, const json &object) 
   // but we would need to look up the starting ID of the tile file -- this can
   // be pulled from the mapDataJson object -- we should refactor so that we can
   // use ID directly
-  std::string spriteTexture = gidTextures[gid];
+  std::string spriteTexture = gidTextures[gid].texPath;
 
   tinyxml2::XMLElement *tileNode = root->FirstChildElement("tile");
   while (tileNode) {
@@ -336,7 +338,7 @@ void MapLoader::processSpriteObject(MapObject &mapObject, const json &object) {
   int spritesetID = static_cast<int>(object["gid"]);
   auto it = gidTextures.find(spritesetID);
   if (it != gidTextures.end()) {
-    mapObject.filePath = it->second;
+    mapObject.filePath = it->second.texPath;
   } else {
     throw std::runtime_error("spritesetID not found in gidTextures: " +
                              std::to_string(spritesetID));
@@ -498,7 +500,10 @@ void MapLoader::addGidTexturesFromTileset(const fs::path &tilesetFile,
     for (int i = 0; i < tileCount; ++i) {
       try {
         fs::path filePath = tilesetFile.parent_path() / fs::path(imageSource);
-        gidTextures[firstGid + i] = fs::canonical(filePath).string();
+        gidTextures[firstGid + i] = {
+          firstGid,
+          fs::canonical(filePath).string()
+        };
       } catch (const std::exception &e) {
         throw std::runtime_error("Error resolving file path for tile: " +
                                  std::string(e.what()));
@@ -523,7 +528,10 @@ void MapLoader::addGidTexturesFromTileset(const fs::path &tilesetFile,
         const char *imageSource = tileImageNode->Attribute("source");
         if (imageSource) {
           fs::path filePath = tilesetFile.parent_path() / fs::path(imageSource);
-          gidTextures[firstGid + id] = fs::canonical(filePath).string();
+          gidTextures[firstGid + id] = {
+            firstGid,
+            fs::canonical(filePath).string()
+          };
         } else {
           throw std::runtime_error("Missing 'source' attribute for tile ID " +
                                    std::to_string(id) +
