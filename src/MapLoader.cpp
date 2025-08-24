@@ -276,12 +276,6 @@ void MapLoader::processSpriteCollider(MapObject &mapObject, const json &object) 
                              tilesetFile.string());
   }
 
-  // We use the texture to find the right tile -- this is a BAD way to do this
-  // but we would need to look up the starting ID of the tile file -- this can
-  // be pulled from the mapDataJson object -- we should refactor so that we can
-  // use ID directly
-  std::string spriteTexture = gidTextures[gid].texPath;
-
   tinyxml2::XMLElement *tileNode = root->FirstChildElement("tile");
   while (tileNode) {
     int id = 0;
@@ -292,42 +286,37 @@ void MapLoader::processSpriteCollider(MapObject &mapObject, const json &object) 
           std::to_string(eResult));
     }
 
-    // Need to match sprite via image source
-    tinyxml2::XMLElement *imageElement = tileNode->FirstChildElement("image");
-    if (imageElement) {
-      const char *source = imageElement->Attribute("source");
-      fs::path imagePath = fs::canonical((tilesetFile.parent_path() /
-                                         fs::path(source)).string());
+    // Find the correct file using global ID
+    if (firstGid + id == gid) {
+      // Get collider attached to tile
+      tinyxml2::XMLElement *objectGroup =
+          tileNode->FirstChildElement("objectgroup");
+      if (objectGroup) {
+        tinyxml2::XMLElement *tileObject = objectGroup->FirstChildElement("object");
+        if (tileObject) {
+          float xpos = 0; float ypos = 0; float width = 0; float height = 0;
+          tileObject->QueryFloatAttribute("x", &xpos);
+          tileObject->QueryFloatAttribute("y", &ypos);
+          tileObject->QueryFloatAttribute("width", &width);
+          tileObject->QueryFloatAttribute("height", &height);
 
-      if (imagePath == spriteTexture) {
-        // Found the sprite element -- get collider
-        tinyxml2::XMLElement *objectGroup =
-            tileNode->FirstChildElement("objectgroup");
-        if (objectGroup) {
-          tinyxml2::XMLElement *tileObject = objectGroup->FirstChildElement("object");
-          if (tileObject) {
-            float xpos = 0; float ypos = 0; float width = 0; float height = 0;
-            tileObject->QueryFloatAttribute("x", &xpos);
-            tileObject->QueryFloatAttribute("y", &ypos);
-            tileObject->QueryFloatAttribute("width", &width);
-            tileObject->QueryFloatAttribute("height", &height);
+          // Set coordinates relative to sprite position
+          mapObject.xpos = mapObject.xpos + xpos;
+          mapObject.ypos = mapObject.ypos + ypos;
+          mapObject.width = width;
+          mapObject.height = height;
 
-            // Set coordinates relative to sprite position
-            mapObject.xpos = mapObject.xpos + xpos;
-            mapObject.ypos = mapObject.ypos + ypos;
-            mapObject.width = width;
-            mapObject.height = height;
-          }
-        } else {
-          // there is no collider
-          // TODO: ideally in this case we just return a nullptr to mapObject
-          // but this requires refactoring
-          mapObject.xpos = -1;
-          mapObject.ypos = -1;
-          mapObject.width = 0;
-          mapObject.height = 0;
+          break; // No need to keep iterating tiles
         }
       }
+      // If we've reached this code, there is no collider
+      // TODO: ideally in this case we just return a nullptr to mapObject
+      // but this requires refactoring
+      mapObject.xpos = -1;
+      mapObject.ypos = -1;
+      mapObject.width = 0;
+      mapObject.height = 0;
+      break; // Exit the loop
     }
     tileNode = tileNode->NextSiblingElement("tile");
   }
