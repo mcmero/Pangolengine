@@ -410,9 +410,6 @@ std::unique_ptr<MapObject> MapLoader::loadObject(const json &object, PropertyTyp
    return nullptr;
 }
 
-/*
- * Process player tile proprety and return true if successful
- */
 void MapLoader::processPlayerProperty(const char *name,
                                       const tinyxml2::XMLElement *tileProperty,
                                       const fs::path tilesetDir) {

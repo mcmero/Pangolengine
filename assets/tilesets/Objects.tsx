@@ -10,7 +10,7 @@
   </properties>
   <image source="../textures/player.png" width="32" height="32"/>
   <objectgroup draworder="index" id="2">
-   <object id="1" x="11.5313" y="14.0625" width="9.0625" height="15.5313"/>
+   <object id="1" x="11.5313" y="15.3713" width="9.0625" height="14.2225"/>
   </objectgroup>
  </tile>
  <tile id="0">
