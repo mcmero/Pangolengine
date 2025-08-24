@@ -89,17 +89,17 @@ private:
 
   enum PropertyType { TILE, SPRITE, SPRITECOLLIDER, COLLISION, TRANSITION, INTERACTION };
 
-  void processSpriteObject(MapObject &mapObject, const json &object);
+  bool processSpriteObject(MapObject &mapObject, const json &object);
 
-  void processSpriteCollider(MapObject &mapObject, const json &object);
+  bool processSpriteCollider(MapObject &mapObject, const json &object);
 
-  void processTransitionObject(MapObject &mapObject, const json &object);
+  bool processTransitionObject(MapObject &mapObject, const json &object);
 
   void processPlayerProperty(const char *name,
                              const tinyxml2::XMLElement *property,
                              const fs::path tilesetDir);
 
-  MapObject loadObject(const json &object, PropertyType propertyType);
+  MapObject* loadObject(const json &object, PropertyType propertyType);
 
   std::unordered_map<int, MapObject> loadMapObjects(std::string layerName,
                                                     PropertyType propertyType);

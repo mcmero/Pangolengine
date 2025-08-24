@@ -243,9 +243,9 @@ MapData MapLoader::LoadMap() {
 MapLoader::~MapLoader() {};
 
 /*
- * Gets any collision objects attached to sprites
+ * Gets any collision objects attached to sprites and returns true if successful
  */
-void MapLoader::processSpriteCollider(MapObject &mapObject, const json &object) {
+bool MapLoader::processSpriteCollider(MapObject &mapObject, const json &object) {
   // Get the tileset source from the map file using the GID value
   int gid = static_cast<int>(object["gid"]);
   int firstGid = gidTextures[gid].firstGid;
@@ -256,8 +256,12 @@ void MapLoader::processSpriteCollider(MapObject &mapObject, const json &object) 
       break;
     }
   }
-  if (source == "")
-    return;
+  // Exit function if there's no tilemap file
+  if (source == "") {
+    std::cerr << "Warning: no tilemap found for map object id: " <<
+      mapObject.objectId << std::endl;
+    return false;
+  }
 
   fs::path tilesetFile = mapDir / fs::path(source);
 
@@ -310,69 +314,80 @@ void MapLoader::processSpriteCollider(MapObject &mapObject, const json &object) 
         }
       }
       // If we've reached this code, there is no collider
-      // TODO: ideally in this case we just return a nullptr to mapObject
-      // but this requires refactoring
-      mapObject.xpos = -1;
-      mapObject.ypos = -1;
-      mapObject.width = 0;
-      mapObject.height = 0;
-      break; // Exit the loop
+      return false;
     }
     tileNode = tileNode->NextSiblingElement("tile");
   }
+  return true;
 }
 
-void MapLoader::processSpriteObject(MapObject &mapObject, const json &object) {
+/*
+ * Process sprite object and return true if successful
+ */
+bool MapLoader::processSpriteObject(MapObject &mapObject, const json &object) {
   // Get path to texture for sprite object
   int spritesetID = static_cast<int>(object["gid"]);
   auto it = gidTextures.find(spritesetID);
   if (it != gidTextures.end()) {
     mapObject.filePath = it->second.texPath;
-  } else {
-    throw std::runtime_error("spritesetID not found in gidTextures: " +
-                             std::to_string(spritesetID));
+    return true;
   }
+
+  std::cerr << "spritesetID not found in gidTextures: " +
+    std::to_string(spritesetID) << std::endl;
+  return false;
 }
 
-void MapLoader::processTransitionObject(MapObject &mapObject,
+/*
+ * Process transition object and return true if successful
+ */
+bool MapLoader::processTransitionObject(MapObject &mapObject,
                                         const json &object) {
   fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
 
   std::string mapFileName =
       MapLoader::getProperty<std::string>(object, "map").value_or("");
 
-  if (mapFileName.empty())
-    throw std::runtime_error("Map name empty!");
+  if (mapFileName.empty()) {
+    std::cerr << "Map name empty!" << std::endl;
+    return false;
+  }
 
   mapObject.filePath = (assetsPath / "maps" / mapFileName).string();
+  return true;
 }
 
-MapObject MapLoader::loadObject(const json &object, PropertyType propertyType) {
-  MapObject mapObject;
-  mapObject.objectId = object.value("id", -1);
-  mapObject.height = object.value("height", 0.0f);
-  mapObject.width = object.value("width", 0.0f);
-  mapObject.xpos = object.value("x", 0.0f);
-  mapObject.ypos = object.value("y", 0.0f);
+MapObject *MapLoader::loadObject(const json &object, PropertyType propertyType) {
+  MapObject *mapObject = new MapObject();
+  mapObject->objectId = object.value("id", -1);
+  mapObject->height = object.value("height", 0.0f);
+  mapObject->width = object.value("width", 0.0f);
+  mapObject->xpos = object.value("x", 0.0f);
+  mapObject->ypos = object.value("y", 0.0f);
 
   // Draw order is set by iteration position, which reflects the draw
   // order in the JSON map file
-  mapObject.drawOrderId = drawOrderCounter;
+  mapObject->drawOrderId = drawOrderCounter;
   drawOrderCounter++;
 
   // Check for linked ID
-  mapObject.linkedId =
+  mapObject->linkedId =
       MapLoader::getProperty<int>(object, "linked_id").value_or(-1);
 
+  bool loadSuccess = false;
   switch (propertyType) {
+  case COLLISION:
+    // Already processed, all we needed are the values already captured
+    loadSuccess = true;
+    break;
   case SPRITE:
-    processSpriteObject(mapObject, object);
+    loadSuccess = processSpriteObject(*mapObject, object);
     break;
   case SPRITECOLLIDER:
-    processSpriteCollider(mapObject, object);
+    loadSuccess = processSpriteCollider(*mapObject, object);
     break;
   case TRANSITION:
-    processTransitionObject(mapObject, object);
+    loadSuccess = processTransitionObject(*mapObject, object);
     break;
   case INTERACTION: {
     fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
@@ -380,15 +395,23 @@ MapObject MapLoader::loadObject(const json &object, PropertyType propertyType) {
     std::string sceneFileName =
         MapLoader::getProperty<std::string>(object, "scene_file").value_or("");
 
-    mapObject.filePath = (assetsPath / "scenes" / sceneFileName).string();
+    mapObject->filePath = (assetsPath / "scenes" / sceneFileName).string();
+    loadSuccess = true;
     break;
   }
   default:
     break;
   }
-  return mapObject;
+
+  if (loadSuccess)
+    return mapObject;
+  else
+   return nullptr;
 }
 
+/*
+ * Process player tile proprety and return true if successful
+ */
 void MapLoader::processPlayerProperty(const char *name,
                                       const tinyxml2::XMLElement *tileProperty,
                                       const fs::path tilesetDir) {
@@ -450,8 +473,9 @@ MapLoader::loadMapObjects(std::string layerName, PropertyType propertyType) {
 
   drawOrderCounter = 0; // Reset the draw order for new layer
   for (const auto &object : objectDataJson["objects"]) {
-    MapObject mapObject = loadObject(object, propertyType);
-    mapObjects[mapObject.objectId] = mapObject;
+    MapObject *mapObject = loadObject(object, propertyType);
+    if (mapObject)
+      mapObjects[mapObject->objectId] = *mapObject;
   }
 
   return mapObjects;
