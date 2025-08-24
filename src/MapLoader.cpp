@@ -92,18 +92,14 @@ MapData MapLoader::LoadMap() {
   }
 
   mapData.spriteVector = MapLoader::loadMapObjects(spriteLayerName, SPRITE);
+  mapData.spriteColliderVector =
+      MapLoader::loadMapObjects(spriteLayerName, SPRITECOLLIDER);
   mapData.colliderVector =
       MapLoader::loadMapObjects(collisionLayerName, COLLISION);
   mapData.transitionVector =
       MapLoader::loadMapObjects(transitionLayerName, TRANSITION);
   mapData.interactionVector =
       MapLoader::loadMapObjects(interactionLayerName, INTERACTION);
-
-  // Load sprite colliders separately, then insert them into the collider vector
-  std::unordered_map<int, MapObject> spriteColliders =
-    MapLoader::loadMapObjects(spriteLayerName, SPRITECOLLIDER);
-  // TODO: consider refactoring this into something cleaner
-  mapData.colliderVector.insert(spriteColliders.begin(), spriteColliders.end());
 
   // Load start position from first object in player layer
   std::unordered_map<int, MapObject> playerMap =
@@ -247,13 +243,9 @@ MapData MapLoader::LoadMap() {
 MapLoader::~MapLoader() {};
 
 /*
- * Gets any collision objects attached to sprites and links them via linked_id
+ * Gets any collision objects attached to sprites
  */
 void MapLoader::processSpriteCollider(MapObject &mapObject, const json &object) {
-  // Link object to its own object ID because there will be a corresponding
-  // sprite with this ID -- and the engine will use this ID to link them
-  mapObject.linkedId = mapObject.objectId;
-
   // TODO: we need a lookup that stores the gid to tileset file mapping
   int gid = static_cast<int>(object["gid"]);
   std::string source = "";

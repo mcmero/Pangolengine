@@ -45,6 +45,7 @@ struct MapData {
   PlayerObject playerObject = {};
   std::string tilesetImg = "";
   std::unordered_map<int, MapObject> spriteVector;
+  std::unordered_map<int, MapObject> spriteColliderVector;
   std::unordered_map<int, MapObject> colliderVector;
   std::unordered_map<int, MapObject> transitionVector;
   std::unordered_map<int, MapObject> interactionVector;

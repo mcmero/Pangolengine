@@ -331,6 +331,30 @@ void Game::loadMap(std::string mapPath) {
     mapEntities[spriteObject.first] = spriteEntity;
   }
 
+  // Process sprite colliders
+  for (auto &colliderObject : mapData.spriteColliderVector) {
+    MapObject &collider = colliderObject.second;
+
+    // Skip this collider if it doesn't have a corresponding sprite
+    if (!mapEntities.contains(collider.objectId))
+      continue;
+
+    // Get sprite entity -- it has the same ID as the collider
+    entt::entity spriteEntity = entt::null;
+    spriteEntity = mapEntities[collider.objectId];
+
+    // Fetch the corresponding Transform component
+    auto view = registry.view<Transform>();
+    auto &transform = view.get<Transform>(spriteEntity);
+
+    // Calculate offsets here because the collider may move
+    Offset offset = {collider.xpos - transform.position.x,
+                      collider.ypos - transform.position.y};
+    registry.emplace<Collider>(spriteEntity, transform.position.x,
+                                transform.position.y, collider.width,
+                                collider.height, offset);
+  }
+
   // Process colliders, adding to existing sprite if they are linked
   for (auto &colliderObject : mapData.colliderVector) {
     entt::entity colliderEntity = entt::null;
