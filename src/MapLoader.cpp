@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
@@ -357,8 +358,8 @@ bool MapLoader::processTransitionObject(MapObject &mapObject,
   return true;
 }
 
-MapObject *MapLoader::loadObject(const json &object, PropertyType propertyType) {
-  MapObject *mapObject = new MapObject();
+std::unique_ptr<MapObject> MapLoader::loadObject(const json &object, PropertyType propertyType) {
+  std::unique_ptr<MapObject> mapObject = std::make_unique<MapObject>();
   mapObject->objectId = object.value("id", -1);
   mapObject->height = object.value("height", 0.0f);
   mapObject->width = object.value("width", 0.0f);
@@ -473,7 +474,7 @@ MapLoader::loadMapObjects(std::string layerName, PropertyType propertyType) {
 
   drawOrderCounter = 0; // Reset the draw order for new layer
   for (const auto &object : objectDataJson["objects"]) {
-    MapObject *mapObject = loadObject(object, propertyType);
+    std::unique_ptr<MapObject> mapObject = loadObject(object, propertyType);
     if (mapObject)
       mapObjects[mapObject->objectId] = *mapObject;
   }

@@ -99,7 +99,7 @@ private:
                              const tinyxml2::XMLElement *property,
                              const fs::path tilesetDir);
 
-  MapObject* loadObject(const json &object, PropertyType propertyType);
+  std::unique_ptr<MapObject> loadObject(const json &object, PropertyType propertyType);
 
   std::unordered_map<int, MapObject> loadMapObjects(std::string layerName,
                                                     PropertyType propertyType);
