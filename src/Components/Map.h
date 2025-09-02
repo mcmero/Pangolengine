@@ -51,10 +51,17 @@ public:
 
   void render() {
     for (auto &tile : tiles) {
-      srcRect.x = float(tile.index * tile.width);
-      srcRect.y = float(0);
+      int xidx = tile.index % (tile.texture->w / tile.width);
+      int yidx = tile.index / (tile.texture->w / tile.width);
+
+      // Make sure index doesn't exceed the texture height
+      assert((yidx + 1) * tile.height <= tile.texture->h);
+
+      srcRect.x = float(xidx * tile.width);
+      srcRect.y = float(yidx * tile.height);
       destRect.x = float(tile.position.x);
       destRect.y = float(tile.position.y);
+
       TextureManager::Draw(tile.texture, srcRect, destRect, SDL_FLIP_NONE);
     }
   }
