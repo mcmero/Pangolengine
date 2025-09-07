@@ -350,7 +350,7 @@ bool MapLoader::processTransitionObject(MapObject &mapObject,
       MapLoader::getProperty<std::string>(object, "map").value_or("");
 
   if (mapFileName.empty()) {
-    std::cerr << "Map name empty!" << std::endl;
+    std::cerr << "Warning: Map name empty!" << std::endl;
     return false;
   }
 
@@ -465,7 +465,7 @@ MapLoader::loadMapObjects(std::string layerName, PropertyType propertyType) {
 
   std::unordered_map<int, MapObject> mapObjects;
   if (objectDataJson.size() == 0) {
-    std::cerr << "Layer " << layerName << " not found." << std::endl;
+    std::cerr << "Warning: Layer " << layerName << " not found." << std::endl;
     return mapObjects;
   }
 

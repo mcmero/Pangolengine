@@ -16,7 +16,7 @@
  <tile id="0">
   <image source="../textures/npc.png" width="32" height="32"/>
   <objectgroup draworder="index" id="2">
-   <object id="1" x="11.5036" y="12.9846" width="9.05823" height="17.0832"/>
+   <object id="1" x="11.5036" y="14.4846" width="9.05823" height="15.5832"/>
   </objectgroup>
  </tile>
  <tile id="1">
