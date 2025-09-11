@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.0" name="objects" tilewidth="160" tileheight="180" tilecount="3" columns="0" objectalignment="topleft">
+<tileset version="1.10" tiledversion="1.11.0" name="objects" tilewidth="160" tileheight="180" tilecount="4" columns="0" objectalignment="topleft">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="2" type="player">
   <properties>
@@ -10,7 +10,7 @@
   </properties>
   <image source="../textures/player.png" width="32" height="32"/>
   <objectgroup draworder="index" id="2">
-   <object id="1" x="11.5313" y="15.3713" width="9.0625" height="14.2225"/>
+   <object id="1" x="11.5313" y="17.8713" width="9.0625" height="11.7225"/>
   </objectgroup>
  </tile>
  <tile id="0">
@@ -21,5 +21,11 @@
  </tile>
  <tile id="1">
   <image source="../textures/SpritesheetBuilding.png" width="160" height="180"/>
+ </tile>
+ <tile id="6">
+  <image source="../textures/tree.png" width="64" height="96"/>
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="28.125" y="64.875" width="11.125" height="30.625"/>
+  </objectgroup>
  </tile>
 </tileset>
