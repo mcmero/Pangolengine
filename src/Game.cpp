@@ -236,11 +236,17 @@ void Game::render() {
   for (auto entity : spriteView) {
     auto &transform = spriteView.get<Transform>(entity);
 
-    entityDrawOrder.push_back({transform.position.y, entity});
+    entityDrawOrder.push_back({
+      transform.position.y + transform.height,
+      entity
+    });
 
     // Sort vector by Y coordinate
     std::sort(entityDrawOrder.begin(), entityDrawOrder.end(),
-              [](const auto a, const auto b) { return a.first < b.first; });
+              [](const auto a,
+                       const auto b) {
+                return a.first < b.first;
+              });
   }
 
   // Render the sprites based on draw order (topdown assumed)
