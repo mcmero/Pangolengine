@@ -59,18 +59,6 @@
          "name":"Sprites",
          "objects":[
                 {
-                 "gid":44,
-                 "height":180,
-                 "id":27,
-                 "name":"",
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":160,
-                 "x":205.666666666667,
-                 "y":0.5
-                }, 
-                {
                  "gid":49,
                  "height":96,
                  "id":57,
@@ -81,6 +69,18 @@
                  "width":64,
                  "x":79,
                  "y":64
+                }, 
+                {
+                 "gid":50,
+                 "height":178,
+                 "id":58,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":72,
+                 "x":192,
+                 "y":-3
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -116,28 +116,6 @@
          "id":4,
          "name":"Collision",
          "objects":[
-                {
-                 "height":125.10491753702,
-                 "id":8,
-                 "name":"",
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":333.047879291909,
-                 "x":209.5350778187,
-                 "y":1.16327616188017
-                }, 
-                {
-                 "height":16.4621970417013,
-                 "id":9,
-                 "name":"",
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":70.0469585362956,
-                 "x":282.702665240981,
-                 "y":129.528060769871
-                }, 
                 {
                  "height":17.6666666666667,
                  "id":43,
@@ -207,8 +185,8 @@
                  "type":"",
                  "visible":true,
                  "width":12.1193181818182,
-                 "x":258.221590909092,
-                 "y":128.988636363636
+                 "x":265.721590909092,
+                 "y":155.488636363636
                 }],
          "opacity":0.9,
          "type":"objectgroup",
@@ -217,7 +195,7 @@
          "y":0
         }],
  "nextlayerid":8,
- "nextobjectid":58,
+ "nextobjectid":59,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.0",
