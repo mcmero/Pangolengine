@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.0" name="objects" tilewidth="160" tileheight="180" tilecount="5" columns="0" objectalignment="topleft">
+<tileset version="1.10" tiledversion="1.11.0" name="objects" tilewidth="96" tileheight="220" tilecount="5" columns="0" objectalignment="topleft">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="2" type="player">
   <properties>
@@ -19,9 +19,6 @@
    <object id="1" x="11.5036" y="14.4846" width="9.05823" height="15.5832"/>
   </objectgroup>
  </tile>
- <tile id="1">
-  <image source="../textures/SpritesheetBuilding.png" width="160" height="180"/>
- </tile>
  <tile id="6">
   <image source="../textures/tree.png" width="64" height="96"/>
   <objectgroup draworder="index" id="2">
@@ -29,9 +26,15 @@
   </objectgroup>
  </tile>
  <tile id="7">
-  <image source="../textures/tower_building_left_end.png" width="72" height="178"/>
+  <image source="../textures/tower_building_left_end.png" width="80" height="180"/>
   <objectgroup draworder="index" id="2">
    <object id="1" x="10.3333" y="13.3333" width="61.3333" height="161.333"/>
+  </objectgroup>
+ </tile>
+ <tile id="8">
+  <image source="../textures/clock_tower.png" width="96" height="220"/>
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="10" y="30.3333" width="76.3333" height="185.667"/>
   </objectgroup>
  </tile>
 </tileset>
