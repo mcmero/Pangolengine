@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.0" name="objects" tilewidth="96" tileheight="220" tilecount="5" columns="0" objectalignment="topleft">
+<tileset version="1.10" tiledversion="1.11.0" name="objects" tilewidth="96" tileheight="220" tilecount="8" columns="0" objectalignment="topleft">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="2" type="player">
   <properties>
@@ -25,16 +25,34 @@
    <object id="1" x="28.125" y="64.875" width="11.125" height="30.625"/>
   </objectgroup>
  </tile>
+ <tile id="8">
+  <image source="../textures/clock_tower.png" width="96" height="220"/>
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="10" y="30.3333" width="76.3333" height="185.667"/>
+  </objectgroup>
+ </tile>
  <tile id="7">
   <image source="../textures/tower_building_left_end.png" width="80" height="180"/>
   <objectgroup draworder="index" id="2">
    <object id="1" x="10.3333" y="13.3333" width="61.3333" height="161.333"/>
   </objectgroup>
  </tile>
- <tile id="8">
-  <image source="../textures/clock_tower.png" width="96" height="220"/>
+ <tile id="10">
+  <image source="../textures/tower_building_center.png" width="64" height="180"/>
   <objectgroup draworder="index" id="2">
-   <object id="1" x="10" y="30.3333" width="76.3333" height="185.667"/>
+   <object id="1" x="7.33333" y="18.3333" width="47.6667" height="155.333"/>
+  </objectgroup>
+ </tile>
+ <tile id="11">
+  <image source="../textures/tower_building_door.png" width="64" height="180"/>
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="7.66667" y="17" width="49" height="126.333"/>
+  </objectgroup>
+ </tile>
+ <tile id="12">
+  <image source="../textures/tower_building_right_end.png" width="80" height="180"/>
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="7" y="16" width="60" height="156.333"/>
   </objectgroup>
  </tile>
 </tileset>
