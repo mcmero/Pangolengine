@@ -1,7 +1,9 @@
 #pragma once
 
 #include "../Camera.h"
-#include "../TextureManager.h"
+#include "../Game.h"
+#include "SDL3/SDL_pixels.h"
+#include "SDL3/SDL_render.h"
 #include "Transform.h"
 
 class Collider {
@@ -33,6 +35,13 @@ public:
 
     destRect.x = collider.x - Camera::position.x;
     destRect.y = collider.y - Camera::position.y;
+  }
+
+  void render() {
+    SDL_SetRenderDrawColor(Game::renderer, 0, 255, 0,
+                           SDL_ALPHA_OPAQUE);
+    SDL_RenderRect(Game::renderer, &destRect);
+    SDL_RenderFillRect(Game::renderer, &destRect);
   }
 
 private:

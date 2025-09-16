@@ -79,7 +79,7 @@
                  "type":"",
                  "visible":true,
                  "width":96,
-                 "x":249.333333333333,
+                 "x":258.333333333333,
                  "y":-13.6666666666667
                 }, 
                 {
@@ -91,7 +91,7 @@
                  "type":"",
                  "visible":true,
                  "width":80,
-                 "x":184.333333333333,
+                 "x":193.333333333333,
                  "y":-4.33333333333334
                 }, 
                 {
@@ -103,7 +103,7 @@
                  "type":"",
                  "visible":true,
                  "width":64,
-                 "x":331,
+                 "x":340,
                  "y":-5.66666666666667
                 }, 
                 {
@@ -115,7 +115,7 @@
                  "type":"",
                  "visible":true,
                  "width":64,
-                 "x":383,
+                 "x":392,
                  "y":-4.75
                 }, 
                 {
@@ -127,7 +127,7 @@
                  "type":"",
                  "visible":true,
                  "width":80,
-                 "x":435.757575757576,
+                 "x":444.757575757576,
                  "y":-4.72727272727272
                 }],
          "opacity":1,
@@ -196,6 +196,28 @@
                  "width":15,
                  "x":802.25,
                  "y":64
+                }, 
+                {
+                 "height":12.75,
+                 "id":76,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":13.5,
+                 "x":401.5,
+                 "y":145.625
+                }, 
+                {
+                 "height":13.5,
+                 "id":77,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":13.5,
+                 "x":433.25,
+                 "y":145.625
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -220,7 +242,7 @@
          "name":"Transition",
          "objects":[
                 {
-                 "height":14.0113636363636,
+                 "height":13.0113636363636,
                  "id":13,
                  "name":"",
                  "properties":[
@@ -232,9 +254,9 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":21.0284090909091,
-                 "x":404.554924242425,
-                 "y":144.700757575757
+                 "width":12.7784090909091,
+                 "x":417.929924242425,
+                 "y":145.575757575757
                 }],
          "opacity":0.9,
          "type":"objectgroup",
@@ -243,7 +265,7 @@
          "y":0
         }],
  "nextlayerid":8,
- "nextobjectid":76,
+ "nextobjectid":78,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.0",

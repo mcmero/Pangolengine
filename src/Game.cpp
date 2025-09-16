@@ -195,18 +195,8 @@ void Game::update() {
       Game::unloadMap();
       Game::loadMap(mapPath);
 
-      // Replace transform and collider components on the player to reset
-      // position
-      registry.replace<Transform>(
-          player, mapData.startPos.x, mapData.startPos.y,
-          mapData.playerObject.width, mapData.playerObject.height, true);
-
-      registry.replace<Collider>(player, playerTransform.position.x,
-                                 playerTransform.position.y,
-                                 mapData.playerObject.collider.width,
-                                 mapData.playerObject.collider.height,
-                                 Offset{mapData.playerObject.collider.xpos,
-                                        mapData.playerObject.collider.ypos});
+      registry.destroy(player);
+      Game::loadPlayer();
 
       break;
     }
@@ -253,6 +243,15 @@ void Game::render() {
   for (auto entityOrderEntry : entityDrawOrder) {
     auto &sprite = spriteView.get<Sprite>(entityOrderEntry.second);
     sprite.render();
+  }
+
+  // Render colliders -- this is only for debugging
+  if (RENDER_COLLIDERS) {
+    auto colliderView = registry.view<Collider>();
+    for (auto entity : colliderView) {
+      auto &collider = colliderView.get<Collider>(entity);
+      collider.render();
+    }
   }
 
   uiManager->render(renderer, window);
