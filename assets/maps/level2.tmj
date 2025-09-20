@@ -39,7 +39,7 @@
          "name":"Sprites",
          "objects":[
                 {
-                 "gid":43,
+                 "gid":57,
                  "height":32,
                  "id":13,
                  "name":"",
@@ -62,7 +62,7 @@
          "name":"Player",
          "objects":[
                 {
-                 "gid":45,
+                 "gid":59,
                  "height":32,
                  "id":4,
                  "name":"",
@@ -207,7 +207,7 @@
          "source":"..\/tilesets\/TilemapOutdoor.tsx"
         }, 
         {
-         "firstgid":43,
+         "firstgid":57,
          "source":"..\/tilesets\/Objects.tsx"
         }],
  "tilewidth":16,
