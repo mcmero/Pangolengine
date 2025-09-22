@@ -248,7 +248,7 @@ MapLoader::~MapLoader() {};
  */
 bool MapLoader::processSpriteCollider(MapObject &mapObject, const json &object) {
   // Get the tileset source from the map file using the GID value
-  int gid = static_cast<int>(object["gid"]);
+  int gid = object.value("gid", -1);
   int firstGid = gidTextures[gid].firstGid;
   std::string source = "";
   for (const auto &tileset : mapDataJson["tilesets"]) {
@@ -327,7 +327,7 @@ bool MapLoader::processSpriteCollider(MapObject &mapObject, const json &object) 
  */
 bool MapLoader::processSpriteObject(MapObject &mapObject, const json &object) {
   // Get path to texture for sprite object
-  int spritesetID = static_cast<int>(object["gid"]);
+  int spritesetID = object.value("gid", -1);
   auto it = gidTextures.find(spritesetID);
   if (it != gidTextures.end()) {
     mapObject.filePath = it->second.texPath;
