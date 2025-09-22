@@ -44,13 +44,11 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
 
   // Define paths to assets
   fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
-  std::string level1Map = (assetsPath / "maps" / "level1.tmj").string();
-  std::string s001_dialogue =
-      (assetsPath / "scenes" / "S001_Test.json").string();
-  std::string level1Music = (assetsPath / "audio" / "walking.ogg").string();
+
+  std::string entryMap = (assetsPath / "maps" / ENTRY_MAP).string();
 
   // Set up map data
-  Game::loadMap(level1Map);
+  Game::loadMap(entryMap);
 
   // Set up player character
   Game::loadPlayer();
@@ -59,6 +57,7 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   uiManager = new UIManager();
 
   // Load music
+  // std::string level1Music = (assetsPath / "audio" / "walking.ogg").string();
   // auto music = Mix_LoadMUS(level1Music.c_str());
   // Mix_PlayMusic(music, 2);
 
