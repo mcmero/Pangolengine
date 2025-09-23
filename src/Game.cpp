@@ -6,6 +6,7 @@
 #include "Constants.h"
 #include "MapLoader.h"
 #include "SDL3/SDL_events.h"
+#include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
 #include "SDL3/SDL_video.h"
@@ -210,6 +211,8 @@ void Game::update() {
 }
 
 void Game::render() {
+  // Set screen to black and clear renderer
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
   SDL_RenderClear(renderer);
 
   // draw map
