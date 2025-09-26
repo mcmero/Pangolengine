@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../TextureManager.h"
-#include "IComponent.h"
+#include "IUIComponent.h"
 #include "SDL3/SDL_keycode.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
@@ -10,7 +10,7 @@
 #include <ostream>
 #include <sstream>
 
-class DialogueResponsePanel : public IComponent {
+class DialogueResponsePanel : public IUIComponent {
 public:
   DialogueResponsePanel(float xpos, float ypos, float width, float height,
                         float borderThickness, SDL_Color borderColour,
