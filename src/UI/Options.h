@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../TextureManager.h"
-#include "IComponent.h"
+#include "IUIComponent.h"
 #include "IUIManager.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_filesystem.h"
@@ -16,7 +16,7 @@
 
 namespace fs = std::filesystem;
 
-class Options : public IComponent {
+class Options : public IUIComponent {
 public:
   Options(float borderThickness, SDL_Color borderColour,
           SDL_Color innerColour, SDL_Color buttonColour,

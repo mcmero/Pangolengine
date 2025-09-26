@@ -44,7 +44,7 @@ PRIVATE
     src/Components/Components.h
     src/UI/UIManager.h
     src/UI/Grid.h
-    src/UI/IComponent.h
+    src/UI/IUIComponent.h
     src/UI/IUIManager.h
     src/UI/UIComponents.h
     src/iosLaunchScreen.storyboard

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../TextureManager.h"
-#include "IComponent.h"
+#include "IUIComponent.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
@@ -12,7 +12,7 @@
 #include <sstream>
 #include <string>
 
-class DialoguePanel : public IComponent {
+class DialoguePanel : public IUIComponent {
 public:
   DialoguePanel(float xpos, float ypos, float width, float height,
                 float borderThickness, SDL_Color borderColour,
