@@ -10,9 +10,6 @@
 class Collider : IComponent {
 public:
   SDL_FRect collider;
-
-  SDL_Texture *tex;
-  SDL_FRect destRect;
   Offset offset;
 
   Collider(float xpos, float ypos, float width, float height,
@@ -27,13 +24,13 @@ public:
     destRect.w = width;
     destRect.h = height;
 
-    this->transform = transform;
+    this->transform = &transform;
     this->offset = offset;
   }
 
   void update() override {
-    collider.x = transform.position.x + offset.x;
-    collider.y = transform.position.y + offset.y;
+    collider.x = transform->position.x + offset.x;
+    collider.y = transform->position.y + offset.y;
 
     destRect.x = collider.x - Camera::position.x;
     destRect.y = collider.y - Camera::position.y;
@@ -47,5 +44,6 @@ public:
   }
 
 private:
-  Transform transform = {};
+  SDL_FRect destRect;
+  Transform *transform;
 };
