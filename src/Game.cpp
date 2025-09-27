@@ -117,7 +117,7 @@ void Game::update() {
     auto &collider = colliderView.get<Collider>(entity);
     auto &transform = colliderView.get<Transform>(entity);
     transform.update();
-    collider.update(transform);
+    collider.update();
   }
 
   // Check for collision with player (if moving) and abort move on colllision
@@ -308,6 +308,7 @@ void Game::loadPlayer() {
   registry.emplace<Collider>(player, transform.position.x, transform.position.y,
                              mapData.playerObject.collider.width,
                              mapData.playerObject.collider.height,
+                             transform,
                              Offset{mapData.playerObject.collider.xpos +
                                         mapData.playerObject.spriteOffset.x,
                                     mapData.playerObject.collider.ypos +
@@ -359,7 +360,7 @@ void Game::loadMap(std::string mapPath) {
                       collider.ypos - transform.position.y};
     registry.emplace<Collider>(spriteEntity, transform.position.x,
                                 transform.position.y, collider.width,
-                                collider.height, offset);
+                                collider.height, transform, offset);
   }
 
   // Process colliders, adding to existing sprite if they are linked
@@ -381,14 +382,19 @@ void Game::loadMap(std::string mapPath) {
                        collider.ypos - transform.position.y};
       registry.emplace<Collider>(colliderEntity, transform.position.x,
                                  transform.position.y, collider.width,
-                                 collider.height, offset);
+                                 collider.height, transform, offset);
     } else {
       // Non-linked static collider, treat as its own entity
       colliderEntity = registry.create();
-      registry.emplace<Collider>(colliderEntity, collider.xpos, collider.ypos,
-                                 collider.width, collider.height);
       registry.emplace<Transform>(colliderEntity, collider.xpos, collider.ypos,
                                   collider.width, collider.height);
+
+      // Fetch a reference to the transform created above
+      auto view = registry.view<Transform>();
+      auto &transform = view.get<Transform>(colliderEntity);
+
+      registry.emplace<Collider>(colliderEntity, collider.xpos, collider.ypos,
+                                 collider.width, collider.height, transform);
 
       mapEntities[colliderObject.first] = colliderEntity;
     }
