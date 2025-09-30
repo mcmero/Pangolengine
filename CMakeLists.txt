@@ -42,6 +42,7 @@ PRIVATE
     src/Vector2D.cpp
     src/Collision.cpp
     src/Components/Components.h
+    src/Components/ECS.h
     src/UI/UIManager.h
     src/UI/Grid.h
     src/UI/IUIComponent.h

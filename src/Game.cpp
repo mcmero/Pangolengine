@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "Camera.h"
 #include "Collision.h"
+#include "Components/ECS.h"
 #include "Components/Components.h"
 #include "Components/KeyboardController.h"
 #include "Constants.h"
@@ -14,6 +15,7 @@
 #include "UI/UIManager.h"
 #include <filesystem>
 #include <iostream>
+#include <iterator>
 #include <ostream>
 #include <string>
 #include <unordered_map>
@@ -61,6 +63,11 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   // std::string level1Music = (assetsPath / "audio" / "walking.ogg").string();
   // auto music = Mix_LoadMUS(level1Music.c_str());
   // Mix_PlayMusic(music, 2);
+
+  // TESTING of ECS here
+  EntityRegistry entityRegistry = {};
+  EntityId entity = entityRegistry.create();
+  std::cout << "Created a new entity with ID: " << entity << std::endl;
 
   return true;
 }
