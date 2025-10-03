@@ -15,7 +15,7 @@
 #include "UI/UIManager.h"
 #include <filesystem>
 #include <iostream>
-#include <iterator>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <unordered_map>
@@ -71,6 +71,8 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
 
   Transform transform = Transform(0.0f, 0.0f, 0.0f, 0.0f);
   entityRegistry.addComponent<Collider>(entity, 0.0f, 0.0f, 0.0f, 0.0f, transform);
+
+  auto &collider = entityRegistry.getComponent<Collider>(entity);
 
   return true;
 }

@@ -84,9 +84,14 @@ public:
 
     // Make sure the component exists in the lookup
     const std::string typeName = typeid(T).name();
-    asset(componentLookup.contains(typeName) && "Component not found in lookup!");
+    assert(componentLookup.contains(typeName) && "Component not found in lookup!");
 
-    // TODO: Return the component for the given entity
+    // Make sure the entity has the component
+    ComponentId cid = componentLookup[typeName];
+    assert(entityMap[entityId]->componentBitset[cid] && "Entity does not have component!");
+
+    // Return component pointer cast back to T* and dereference
+    return *static_cast<T*>(entityMap[entityId]->componentArray[cid].get());
   }
 
   /*
