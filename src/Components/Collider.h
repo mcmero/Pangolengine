@@ -7,7 +7,7 @@
 #include "Transform.h"
 #include "ECS.h"
 
-class Collider : IComponent {
+class Collider : public IComponent {
 public:
   SDL_FRect collider;
   Offset offset;
