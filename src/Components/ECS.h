@@ -43,7 +43,7 @@ public:
    * Add component to entity and initialise
    */
   template<typename T, typename... TArgs>
-  void addComponent(EntityId entityId, TArgs&&... mArgs) {
+  T& addComponent(EntityId entityId, TArgs&&... mArgs) {
     // Make sure the entity exists
     assert(entityMap.contains(entityId) && "Entity not found!");
 
@@ -72,6 +72,9 @@ public:
     entity->componentArray[cid] = std::unique_ptr<IComponent>(
         static_cast<IComponent*>(new T(std::forward<TArgs>(mArgs)...))
     );
+
+    // Return component pointer - cast back to T* and dereference
+    return *static_cast<T*>(entityMap[entityId]->componentArray[cid].get());
   };
 
   /*
@@ -79,18 +82,13 @@ public:
    */
   template<typename T>
   T& getComponent(EntityId entityId) {
-    // Make sure the entity exists
+    // Make sure the entity exists and has this component
     assert(entityMap.contains(entityId) && "Entity not found!");
+    assert(hasComponent<T>(entityId) && "Entity does not have this component!");
 
-    // Make sure the component exists in the lookup
+    // Get component and return pointer to it
     const std::string typeName = typeid(T).name();
-    assert(componentLookup.contains(typeName) && "Component not found in lookup!");
-
-    // Make sure the entity has the component
     ComponentId cid = componentLookup[typeName];
-    assert(entityMap[entityId]->componentBitset[cid] && "Entity does not have component!");
-
-    // Return component pointer cast back to T* and dereference
     return *static_cast<T*>(entityMap[entityId]->componentArray[cid].get());
   }
 
@@ -98,18 +96,38 @@ public:
    * Get all components of type T and return vector of entity IDs
    * that have those components.
    */
-  template<typename T, typename... TArgs>
-  std::vector<EntityId> getEntitiesWithComponents() {}
+  template<typename... ComponentTypes>
+  std::vector<EntityId> getEntitiesWithComponents() {
+    std::vector<EntityId> result = {};
+
+    for (auto& [id, entity] : entityMap) {
+        if (entity && hasComponents<ComponentTypes...>(id)) {
+            result.push_back(id);
+        }
+    }
+
+    return result;
+  }
 
   /*
    * Remove the entity from the registry.
    */
-  void remove(Entity &entity) {}
+  void destroy(EntityId entityId) {
+    // Do nothing if entity doesnt' exist
+    if (!entityMap.contains(entityId))
+      return;
+
+    entityMap.erase(entityId);
+  }
 
   /*
-  * Clear all entities in the registry
+  * Clear all entities in the registry and reset entity ID
+  * Components lookup is not cleared to allow reuse
   */
-  void clear() {};
+  void clear() {
+    entityMap.clear();
+    lastEntityId = 0;
+  };
 
   ~EntityRegistry() = default;
 
@@ -118,4 +136,26 @@ private:
   std::map<std::string, ComponentId> componentLookup;
   EntityId lastEntityId = 0;
   ComponentId lastComponentId = 0;
+
+  /*
+   * Return true if all components of a given type are held
+   * by the entity
+   */
+  template<typename... ComponentTypes>
+  bool hasComponents(const EntityId entityId) {
+      return (hasComponent<ComponentTypes>(entityId) && ...);
+  }
+
+  /*
+  * Return true if entity has component and false otherwise.
+  * Component must exist in the component lookup.
+  */
+  template<typename T>
+  bool hasComponent(EntityId entityId) {
+    const std::string typeName = typeid(T).name();
+    assert(componentLookup.contains(typeName) && "Component not found in lookup!");
+
+    ComponentId cid = componentLookup[typeName];
+    return entityMap[entityId]->componentBitset[cid];
+  }
 };

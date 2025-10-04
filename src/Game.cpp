@@ -15,7 +15,6 @@
 #include "UI/UIManager.h"
 #include <filesystem>
 #include <iostream>
-#include <memory>
 #include <ostream>
 #include <string>
 #include <unordered_map>
@@ -73,6 +72,7 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   entityRegistry.addComponent<Collider>(entity, 0.0f, 0.0f, 0.0f, 0.0f, transform);
 
   auto &collider = entityRegistry.getComponent<Collider>(entity);
+  auto ewc = entityRegistry.getEntitiesWithComponents<Collider>();
 
   return true;
 }
