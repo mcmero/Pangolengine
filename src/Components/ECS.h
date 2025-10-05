@@ -2,7 +2,6 @@
 
 #include <bitset>
 #include <cstdint>
-#include <map>
 #include <memory>
 #include <array>
 #include <unordered_map>
@@ -12,6 +11,9 @@
 
 constexpr std::size_t maxComponents = 32;
 
+//------------------------------------------------------------------------------
+// Components
+//------------------------------------------------------------------------------
 class IComponent {
 public:
 	virtual void update() {}
@@ -19,14 +21,36 @@ public:
   virtual ~IComponent() = default;
 };
 
-using EntityId = std::size_t;
 using ComponentId = std::uint8_t;
+class ComponentIdGenerator {
+private:
+    static inline ComponentId nextId = 0;
 
+public:
+    template<typename T>
+    static ComponentId getId() {
+        static ComponentId id = nextId++;
+        return id;
+    }
+};
+
+template<typename T>
+ComponentId getComponentId() {
+    return ComponentIdGenerator::getId<T>();
+}
+
+//------------------------------------------------------------------------------
+// Entity
+//------------------------------------------------------------------------------
+using EntityId = std::size_t;
 struct Entity {
   std::array<std::unique_ptr<IComponent>, maxComponents> componentArray = {};
   std::bitset<maxComponents> componentBitset = 0;
 };
 
+//------------------------------------------------------------------------------
+// Registry
+//------------------------------------------------------------------------------
 class EntityRegistry {
 public:
   EntityRegistry() {};
@@ -51,18 +75,10 @@ public:
     // Make sure the component inherits from IComponent
     static_assert(std::is_base_of<IComponent, T>::value, "Supplied class is not a component!");
 
-    // Register component in lookup if needed and return component ID
-    const std::string typeName = typeid(T).name();
-    if (!componentLookup.contains(typeName)) {
-      lastComponentId++;
-      assert(lastComponentId <= maxComponents && "Too many component types!");
-      componentLookup[typeName] = lastComponentId;
-    }
-    ComponentId cid = componentLookup[typeName];
-
     Entity* entity = entityMap[entityId].get();
 
     // An entity cannot have more than one component of the same type
+    ComponentId cid = getComponentId<T>();
     assert(!entity->componentBitset[cid] &&
            "Component exists for entity!");
 
@@ -89,12 +105,10 @@ public:
     // Make sure the component inherits from IComponent
     static_assert(std::is_base_of<IComponent, T>::value, "Supplied class is not a component!");
 
-    // Make sure that the component is in the lookup
-    const std::string typeName = typeid(T).name();
-    assert(componentLookup.contains(typeName) && "Component not found in lookup!");
-    ComponentId cid = componentLookup[typeName];
-
+    // Get entity pointer and component ID
     Entity* entity = entityMap[entityId].get();
+    ComponentId cid = getComponentId<T>();
+
     // An entity cannot have more than one component of the same type
     assert(entity->componentBitset[cid] &&
            "Component does not exist for entity!");
@@ -123,8 +137,7 @@ public:
     assert(hasComponent<T>(entityId) && "Entity does not have this component!");
 
     // Get component and return pointer to it
-    const std::string typeName = typeid(T).name();
-    ComponentId cid = componentLookup[typeName];
+    ComponentId cid = getComponentId<T>();
     return *static_cast<T*>(entityMap[entityId]->componentArray[cid].get());
   }
 
@@ -169,9 +182,7 @@ public:
 
 private:
   std::unordered_map<EntityId, std::unique_ptr<Entity>> entityMap = {};
-  std::map<std::string, ComponentId> componentLookup;
   EntityId lastEntityId = 0;
-  ComponentId lastComponentId = 0;
 
   /*
    * Return true if all components of a given type are held
@@ -188,10 +199,7 @@ private:
   */
   template<typename T>
   bool hasComponent(EntityId entityId) {
-    const std::string typeName = typeid(T).name();
-    assert(componentLookup.contains(typeName) && "Component not found in lookup!");
-
-    ComponentId cid = componentLookup[typeName];
+    ComponentId cid = getComponentId<T>();
     return entityMap[entityId]->componentBitset[cid];
   }
 };
