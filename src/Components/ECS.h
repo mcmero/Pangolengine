@@ -6,6 +6,7 @@
 #include <memory>
 #include <array>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 #include <cassert>
 
@@ -76,6 +77,41 @@ public:
     // Return component pointer - cast back to T* and dereference
     return *static_cast<T*>(entityMap[entityId]->componentArray[cid].get());
   };
+
+  /*
+   * Remove component from entity
+   */
+  template<typename T, typename... TArgs>
+  void removeComponent(EntityId entityId) {
+    // Make sure the entity exists
+    assert(entityMap.contains(entityId) && "Entity not found!");
+
+    // Make sure the component inherits from IComponent
+    static_assert(std::is_base_of<IComponent, T>::value, "Supplied class is not a component!");
+
+    // Make sure that the component is in the lookup
+    const std::string typeName = typeid(T).name();
+    assert(componentLookup.contains(typeName) && "Component not found in lookup!");
+    ComponentId cid = componentLookup[typeName];
+
+    Entity* entity = entityMap[entityId].get();
+    // An entity cannot have more than one component of the same type
+    assert(entity->componentBitset[cid] &&
+           "Component does not exist for entity!");
+
+    // Now we can remove it
+    entity->componentBitset[cid] = false;
+    entity->componentArray[cid].reset();
+  }
+
+  /*
+   * Replace component belonging to a given entity
+   */
+  template<typename T, typename... TArgs>
+  T& replaceComponent(EntityId entityId, TArgs&&... mArgs) {
+    removeComponent<T>(entityId);
+    addComponent<T>(entityId, std::forward<TArgs>(mArgs)...);
+  }
 
   /*
    * Return the component associated with the specified entity

@@ -73,6 +73,7 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
 
   auto &collider = entityRegistry.getComponent<Collider>(entity);
   auto ewc = entityRegistry.getEntitiesWithComponents<Collider>();
+  entityRegistry.removeComponent<Collider>(entity);
 
   return true;
 }
