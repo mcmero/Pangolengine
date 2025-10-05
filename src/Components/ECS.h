@@ -3,7 +3,6 @@
 #include <bitset>
 #include <cstdint>
 #include <memory>
-#include <array>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -12,8 +11,17 @@
 constexpr std::size_t maxComponents = 32;
 
 //------------------------------------------------------------------------------
+// Entity
+//------------------------------------------------------------------------------
+using EntityId = std::size_t;
+struct Entity {
+  std::bitset<maxComponents> componentBitset = 0;
+};
+
+//------------------------------------------------------------------------------
 // Components
 //------------------------------------------------------------------------------
+
 class IComponent {
 public:
 	virtual void update() {}
@@ -39,13 +47,47 @@ ComponentId getComponentId() {
     return ComponentIdGenerator::getId<T>();
 }
 
-//------------------------------------------------------------------------------
-// Entity
-//------------------------------------------------------------------------------
-using EntityId = std::size_t;
-struct Entity {
-  std::array<std::unique_ptr<IComponent>, maxComponents> componentArray = {};
-  std::bitset<maxComponents> componentBitset = 0;
+class IComponentArray {
+public:
+    virtual ~IComponentArray() = default;
+    virtual void removeComponent(EntityId entityId) = 0;
+};
+
+template<typename T>
+class ComponentArray : public IComponentArray {
+public:
+  T& addComponent(EntityId entityId, T &component) {
+    std::size_t index = components.size();
+    components.push_back(std::move(component));
+    entityToIndex[entityId] = index;
+    indexToEntity[index] = entityId;
+    return components[entityToIndex[entityId]];
+  }
+
+  T& getComponent(EntityId entityId) {
+      return components[entityToIndex[entityId]];
+  }
+
+  void removeComponent(EntityId entityId) override {
+    std::size_t indexToRemove = entityToIndex[entityId];
+    std::size_t lastIndex = components.size() - 1;
+
+    if (indexToRemove != lastIndex) {
+      components[indexToRemove] = std::move(components[lastIndex]);
+      EntityId lastEntityId = indexToEntity[lastIndex];
+      entityToIndex[lastEntityId] = indexToRemove;
+      indexToEntity[indexToRemove] = lastEntityId;
+    }
+
+    components.pop_back();
+    entityToIndex.erase(entityId);
+    indexToEntity.erase(lastIndex);
+  }
+
+private:
+    std::vector<T> components = {};
+    std::unordered_map<EntityId, std::size_t> entityToIndex = {};
+    std::unordered_map<std::size_t, EntityId> indexToEntity = {};
 };
 
 //------------------------------------------------------------------------------
@@ -59,9 +101,9 @@ public:
    * Add an entity to the manager and return its ID
    */
   EntityId create() {
-    lastEntityId++;
-    entityMap[lastEntityId] = std::unique_ptr<Entity>(new Entity{});
-    return lastEntityId;
+    EntityId entityId = nextEntityId++;
+    entityMap[entityId] = std::unique_ptr<Entity>(new Entity{});
+    return entityId;
   };
 
   /*
@@ -71,10 +113,6 @@ public:
   T& addComponent(EntityId entityId, TArgs&&... mArgs) {
     // Make sure the entity exists
     assert(entityMap.contains(entityId) && "Entity not found!");
-
-    // Make sure the component inherits from IComponent
-    static_assert(std::is_base_of<IComponent, T>::value, "Supplied class is not a component!");
-
     Entity* entity = entityMap[entityId].get();
 
     // An entity cannot have more than one component of the same type
@@ -85,13 +123,17 @@ public:
     // Set component bit
     entity->componentBitset[cid] = true;
 
-    // Initialise the component and add to the entity's component array
-    entity->componentArray[cid] = std::unique_ptr<IComponent>(
-        static_cast<IComponent*>(new T(std::forward<TArgs>(mArgs)...))
-    );
+    // Create the component
+    T component(std::forward<TArgs>(mArgs)...);
 
-    // Return component pointer - cast back to T* and dereference
-    return *static_cast<T*>(entityMap[entityId]->componentArray[cid].get());
+    // Create component array if it doesn't exist
+    if (!componentArrays.contains(cid)) {
+        componentArrays[cid] = std::make_unique<ComponentArray<T>>();
+    }
+
+    // Get component array and add component
+    auto* typedArray = static_cast<ComponentArray<T>*>(componentArrays[cid].get());
+    return typedArray->addComponent(entityId, component);
   };
 
   /*
@@ -101,9 +143,6 @@ public:
   void removeComponent(EntityId entityId) {
     // Make sure the entity exists
     assert(entityMap.contains(entityId) && "Entity not found!");
-
-    // Make sure the component inherits from IComponent
-    static_assert(std::is_base_of<IComponent, T>::value, "Supplied class is not a component!");
 
     // Get entity pointer and component ID
     Entity* entity = entityMap[entityId].get();
@@ -115,7 +154,8 @@ public:
 
     // Now we can remove it
     entity->componentBitset[cid] = false;
-    entity->componentArray[cid].reset();
+    auto* typedArray = static_cast<ComponentArray<T>*>(componentArrays[cid].get());
+    typedArray->removeComponent(entityId);
   }
 
   /*
@@ -138,7 +178,8 @@ public:
 
     // Get component and return pointer to it
     ComponentId cid = getComponentId<T>();
-    return *static_cast<T*>(entityMap[entityId]->componentArray[cid].get());
+    auto* typedArray = static_cast<ComponentArray<T>*>(componentArrays[cid].get());
+    return typedArray->getComponent(entityId);
   }
 
   /*
@@ -150,9 +191,9 @@ public:
     std::vector<EntityId> result = {};
 
     for (auto& [id, entity] : entityMap) {
-        if (entity && hasComponents<ComponentTypes...>(id)) {
-            result.push_back(id);
-        }
+      if (entity && hasComponents<ComponentTypes...>(id)) {
+        result.push_back(id);
+      }
     }
 
     return result;
@@ -175,14 +216,15 @@ public:
   */
   void clear() {
     entityMap.clear();
-    lastEntityId = 0;
+    nextEntityId = 0;
   };
 
   ~EntityRegistry() = default;
 
 private:
   std::unordered_map<EntityId, std::unique_ptr<Entity>> entityMap = {};
-  EntityId lastEntityId = 0;
+  std::unordered_map<ComponentId, std::unique_ptr<IComponentArray>> componentArrays = {};
+  EntityId nextEntityId = 0;
 
   /*
    * Return true if all components of a given type are held
@@ -190,7 +232,7 @@ private:
    */
   template<typename... ComponentTypes>
   bool hasComponents(const EntityId entityId) {
-      return (hasComponent<ComponentTypes>(entityId) && ...);
+    return (hasComponent<ComponentTypes>(entityId) && ...);
   }
 
   /*
