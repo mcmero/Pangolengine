@@ -94,7 +94,7 @@ public:
    * Add an entity to the manager and return its ID
    */
   EntityId create() {
-    EntityId entityId = nextEntityId++;
+    EntityId entityId = ++entityIdCounter;
     entityMap[entityId] = std::unique_ptr<Entity>(new Entity{});
     return entityId;
   };
@@ -196,7 +196,7 @@ public:
    * Remove the entity from the registry.
    */
   void destroy(EntityId entityId) {
-    // Do nothing if entity doesnt' exist
+    // Do nothing if entity doesn't exist
     if (!entityMap.contains(entityId))
       return;
 
@@ -210,7 +210,7 @@ public:
   void clear() {
     entityMap.clear();
     componentArrays.clear();
-    nextEntityId = 0;
+    entityIdCounter = 0;
   };
 
   ~EntityRegistry() = default;
@@ -218,7 +218,7 @@ public:
 private:
   std::unordered_map<EntityId, std::unique_ptr<Entity>> entityMap = {};
   std::unordered_map<ComponentId, std::unique_ptr<IComponentArray>> componentArrays = {};
-  EntityId nextEntityId = 0;
+  EntityId entityIdCounter = 0;
 
   /*
    * Return true if all components of a given type are held
