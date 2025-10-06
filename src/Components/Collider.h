@@ -5,9 +5,8 @@
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_render.h"
 #include "Transform.h"
-#include "ECS.h"
 
-class Collider : public IComponent {
+class Collider {
 public:
   SDL_FRect collider;
   Offset offset;
@@ -28,7 +27,7 @@ public:
     this->offset = offset;
   }
 
-  void update() override {
+  void update() {
     collider.x = transform->position.x + offset.x;
     collider.y = transform->position.y + offset.y;
 
@@ -36,7 +35,7 @@ public:
     destRect.y = collider.y - Camera::position.y;
   }
 
-  void render() override {
+  void render() {
     SDL_SetRenderDrawColor(Game::renderer, 0, 255, 0,
                            SDL_ALPHA_OPAQUE);
     SDL_RenderRect(Game::renderer, &destRect);

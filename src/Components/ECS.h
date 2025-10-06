@@ -22,13 +22,6 @@ struct Entity {
 // Components
 //------------------------------------------------------------------------------
 
-class IComponent {
-public:
-	virtual void update() {}
-	virtual void render() {}
-  virtual ~IComponent() = default;
-};
-
 using ComponentId = std::uint8_t;
 class ComponentIdGenerator {
 private:
@@ -216,6 +209,7 @@ public:
   */
   void clear() {
     entityMap.clear();
+    componentArrays.clear();
     nextEntityId = 0;
   };
 
