@@ -132,7 +132,7 @@ void Game::update() {
     auto &collider = registry.getComponent<Collider>(entity);
     auto &transform = registry.getComponent<Transform>(entity);
     transform.update();
-    collider.update();
+    collider.update(transform);
   }
 
   // Check for collision with player (if moving) and abort move on colllision

@@ -23,13 +23,12 @@ public:
     destRect.w = width;
     destRect.h = height;
 
-    this->transform = &transform;
     this->offset = offset;
   }
 
-  void update() {
-    collider.x = transform->position.x + offset.x;
-    collider.y = transform->position.y + offset.y;
+  void update(Transform &transform) {
+    collider.x = transform.position.x + offset.x;
+    collider.y = transform.position.y + offset.y;
 
     destRect.x = collider.x - Camera::position.x;
     destRect.y = collider.y - Camera::position.y;
@@ -44,5 +43,4 @@ public:
 
 private:
   SDL_FRect destRect;
-  Transform *transform;
 };
