@@ -62,6 +62,10 @@ public:
   }
 
   void removeComponent(EntityId entityId) override {
+    if (!entityToIndex.contains(entityId)) {
+        return;
+    }
+
     std::size_t indexToRemove = entityToIndex[entityId];
     std::size_t lastIndex = components.size() - 1;
 
