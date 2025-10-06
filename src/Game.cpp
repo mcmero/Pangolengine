@@ -185,16 +185,16 @@ void Game::update() {
   }
 
   // Update all sprites
-  auto spritegetEntitiesWithComponents = registry.getEntitiesWithComponents<Sprite, Transform>();
-  for (auto entity : spritegetEntitiesWithComponents) {
+  auto spriteEntities = registry.getEntitiesWithComponents<Sprite, Transform>();
+  for (auto entity : spriteEntities) {
     auto &sprite = registry.getComponent<Sprite>(entity);
     auto &transform = registry.getComponent<Transform>(entity);
     sprite.update(transform);
   }
 
   // Update maps
-  auto mapgetEntitiesWithComponents = registry.getEntitiesWithComponents<Map>();
-  for (auto mapEntity : mapgetEntitiesWithComponents) {
+  auto mapEntities = registry.getEntitiesWithComponents<Map>();
+  for (auto mapEntity : mapEntities) {
     auto &map = registry.getComponent<Map>(mapEntity);
     map.update();
   }
@@ -244,8 +244,8 @@ void Game::render() {
 
   // Build a vector of sprites, sorted by Y coordinate
   std::vector<std::pair<float, EntityId>> entityDrawOrder = {};
-  auto spritegetEntitiesWithComponents = registry.getEntitiesWithComponents<Sprite, Transform>();
-  for (auto entity : spritegetEntitiesWithComponents) {
+  auto spriteEntities = registry.getEntitiesWithComponents<Sprite, Transform>();
+  for (auto entity : spriteEntities) {
     auto &transform = registry.getComponent<Transform>(entity);
 
     entityDrawOrder.push_back({
@@ -269,8 +269,8 @@ void Game::render() {
 
   // Render colliders -- this is only for debugging
   if (RENDER_COLLIDERS) {
-    auto collidergetEntitiesWithComponents = registry.getEntitiesWithComponents<Collider>();
-    for (auto entity : collidergetEntitiesWithComponents) {
+    auto colliderEntities = registry.getEntitiesWithComponents<Collider>();
+    for (auto entity : colliderEntities) {
       auto &collider = registry.getComponent<Collider>(entity);
       collider.render();
     }

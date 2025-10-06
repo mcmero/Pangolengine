@@ -200,6 +200,11 @@ public:
     if (!entityMap.contains(entityId))
       return;
 
+    // Remove all components from entity
+    for (auto& [cid, array] : componentArrays) {
+        array->removeComponent(entityId);
+    }
+
     entityMap.erase(entityId);
   }
 
