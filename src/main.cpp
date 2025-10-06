@@ -75,7 +75,6 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
   // Create the AppContext and initialize the game
   auto *app = new AppContext{window, renderer};
-  entt::registry registry;
 
   if (!app->game.initialise(window, renderer)) {
     return SDL_Fail();

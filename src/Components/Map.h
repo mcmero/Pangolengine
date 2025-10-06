@@ -17,13 +17,6 @@ public:
     SDL_Texture *texture;
   };
 
-  int tileSize;
-  MapData *mapData;
-  std::vector<Tile> tiles;
-
-  SDL_FRect srcRect, destRect;
-  SDL_Texture *tileMapTex;
-
   Map(MapData *mapData, const char *tileMapImage, int tileSize) {
     assert(mapData->width > 0 && mapData->height > 0);
 
@@ -79,4 +72,12 @@ public:
   }
 
   ~Map() { clean(); }
+
+private:
+  int tileSize;
+  MapData *mapData;
+  std::vector<Tile> tiles;
+
+  SDL_FRect srcRect, destRect;
+  SDL_Texture *tileMapTex;
 };

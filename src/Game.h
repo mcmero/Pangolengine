@@ -1,11 +1,11 @@
 #pragma once
 
+#include "Components/ECS.h"
 #include "MapLoader.h"
 #include "SDL3/SDL_events.h"
 #include "UI/UIManager.h"
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
-#include <third_party/entt/entt.hpp>
 #include <unordered_map>
 
 class Game {
@@ -33,12 +33,11 @@ private:
   bool running;
   SDL_Window *window;
 
-  entt::registry registry;
-  static entt::entity player;
-  static entt::entity npc;
-  static entt::entity map;
+  EntityRegistry registry = {};
+  static EntityId playerId;
+  static EntityId mapId;
 
-  static std::unordered_map<int, entt::entity> mapEntities;
+  static std::unordered_map<int, EntityId> mapEntities;
 
   void loadPlayer();
   void unloadMap();

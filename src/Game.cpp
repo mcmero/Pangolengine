@@ -13,20 +13,20 @@
 #include "SDL3/SDL_video.h"
 #include "SDL3_mixer/SDL_mixer.h"
 #include "UI/UIManager.h"
+#include <exception>
 #include <filesystem>
 #include <iostream>
 #include <ostream>
 #include <string>
-#include <unordered_map>
 
 namespace fs = std::filesystem;
 
 SDL_Renderer *Game::renderer = nullptr;
 
-entt::entity Game::player = entt::null;
-entt::entity Game::map = entt::null;
+EntityId Game::playerId = 0;
+EntityId Game::mapId = 0;
 
-std::unordered_map<int, entt::entity> Game::mapEntities = {};
+std::unordered_map<int, EntityId> Game::mapEntities = {};
 
 MapData Game::mapData;
 
@@ -64,6 +64,7 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   // Mix_PlayMusic(music, 2);
 
   // TESTING of ECS here
+  /*
   EntityRegistry entityRegistry = {};
   EntityId entity = entityRegistry.create();
   std::cout << "Created a new entity with ID: " << entity << std::endl;
@@ -74,21 +75,22 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   auto &collider = entityRegistry.getComponent<Collider>(entity);
   auto ewc = entityRegistry.getEntitiesWithComponents<Collider>();
   entityRegistry.removeComponent<Collider>(entity);
+  */
 
   return true;
 }
 
 void Game::handleEvents(SDL_Event *event) {
-  auto &controller = registry.get<KeyboardController>(player);
-  auto &transform = registry.get<Transform>(player);
-  auto &sprite = registry.get<Sprite>(player);
+  auto &controller = registry.getComponent<KeyboardController>(playerId);
+  auto &transform = registry.getComponent<Transform>(playerId);
+  auto &sprite = registry.getComponent<Sprite>(playerId);
 
   // Iterate through interactable components to check
   // if any can be interacted with
-  auto interactView = registry.view<Interactable>();
+  auto interactgetEntitiesWithComponents = registry.getEntitiesWithComponents<Interactable>();
   Interactable *intObject = nullptr;
-  for (auto intEntity : interactView) {
-    auto &interactable = interactView.get<Interactable>(intEntity);
+  for (auto intEntity : interactgetEntitiesWithComponents) {
+    auto &interactable = registry.getComponent<Interactable>(intEntity);
     if (interactable.canInteract) {
       intObject = &interactable;
       break; // only one object should be interactable at any one time
@@ -104,8 +106,8 @@ void Game::handleEvents(SDL_Event *event) {
 
 void Game::updateCamera() {
   // Update camera position based on player position
-  auto view = registry.view<Transform>();
-  auto &playerTransform = view.get<Transform>(player);
+  auto getEntitiesWithComponents = registry.getEntitiesWithComponents<Transform>();
+  auto &playerTransform = registry.getComponent<Transform>(playerId);
   int xpos = static_cast<int>(playerTransform.position.x +
                               float(mapData.playerObject.width) / 2.0f -
                               float(SCREEN_WIDTH) / 2.0f);
@@ -117,18 +119,18 @@ void Game::updateCamera() {
 
 void Game::update() {
   // Get player collider and transform components
-  auto playerView =
-      registry.view<Sprite, Transform, Collider, KeyboardController>();
-  auto &playerCollider = playerView.get<Collider>(player);
-  auto &playerTransform = playerView.get<Transform>(player);
-  auto &playerController = playerView.get<KeyboardController>(player);
-  auto &playerSprite = playerView.get<Sprite>(player);
+  auto playergetEntitiesWithComponents =
+      registry.getEntitiesWithComponents<Sprite, Transform, Collider, KeyboardController>();
+  auto &playerCollider = registry.getComponent<Collider>(playerId);
+  auto &playerTransform = registry.getComponent<Transform>(playerId);
+  auto &playerController = registry.getComponent<KeyboardController>(playerId);
+  auto &playerSprite = registry.getComponent<Sprite>(playerId);
 
   // Update all colliders
-  auto colliderView = registry.view<Collider, Transform>();
-  for (auto entity : colliderView) {
-    auto &collider = colliderView.get<Collider>(entity);
-    auto &transform = colliderView.get<Transform>(entity);
+  auto collidergetEntitiesWithComponents = registry.getEntitiesWithComponents<Collider, Transform>();
+  for (auto entity : collidergetEntitiesWithComponents) {
+    auto &collider = registry.getComponent<Collider>(entity);
+    auto &transform = registry.getComponent<Transform>(entity);
     transform.update();
     collider.update();
   }
@@ -144,11 +146,11 @@ void Game::update() {
     futureCollider.h = playerCollider.collider.h;
     futureCollider.w = playerCollider.collider.w;
 
-    for (auto entity : colliderView) {
-      if (entity == player)
+    for (auto entity : collidergetEntitiesWithComponents) {
+      if (entity == playerId)
         continue;
 
-      auto &collider = colliderView.get<Collider>(entity);
+      auto &collider = registry.getComponent<Collider>(entity);
       if (Collision::AABB(futureCollider, collider.collider)) {
         std::cout << "Player collision!" << std::endl;
         playerTransform.abortMove();
@@ -158,18 +160,23 @@ void Game::update() {
   }
 
   // Update all Interactable
-  auto interactView = registry.view<Interactable, Transform>();
+  auto interactgetEntitiesWithComponents = registry.getEntitiesWithComponents<Interactable, Transform>();
   Interactable *intObject = nullptr;
   Dialogue *dialogue = nullptr;
-  for (auto entity : interactView) {
-    auto &interact = interactView.get<Interactable>(entity);
-    auto &transform = interactView.get<Transform>(entity);
+  for (auto entity : interactgetEntitiesWithComponents) {
+    auto &interact = registry.getComponent<Interactable>(entity);
+    auto &transform = registry.getComponent<Transform>(entity);
     interact.canInteract = false;
-    if (entity != player &&
+    if (entity != playerId &&
         Collision::AABB(playerCollider.collider, interact.interactArea)) {
       interact.canInteract = true;
       intObject = &interact;
-      dialogue = registry.try_get<Dialogue>(entity);
+      try {
+        // TODO: better way to handle this?
+        dialogue = &registry.getComponent<Dialogue>(entity);
+      } catch(const std::exception &e) {
+        std::cout << "Could not get dialogue " << e.what() << std::endl;
+      }
     } else {
       interact.canInteract = false;
     }
@@ -178,25 +185,25 @@ void Game::update() {
   }
 
   // Update all sprites
-  auto spriteView = registry.view<Sprite, Transform>();
-  for (auto entity : spriteView) {
-    auto &sprite = spriteView.get<Sprite>(entity);
-    auto &transform = spriteView.get<Transform>(entity);
+  auto spritegetEntitiesWithComponents = registry.getEntitiesWithComponents<Sprite, Transform>();
+  for (auto entity : spritegetEntitiesWithComponents) {
+    auto &sprite = registry.getComponent<Sprite>(entity);
+    auto &transform = registry.getComponent<Transform>(entity);
     sprite.update(transform);
   }
 
   // Update maps
-  auto mapView = registry.view<Map>();
-  for (auto mapEntity : mapView) {
-    auto &map = mapView.get<Map>(mapEntity);
+  auto mapgetEntitiesWithComponents = registry.getEntitiesWithComponents<Map>();
+  for (auto mapEntity : mapgetEntitiesWithComponents) {
+    auto &map = registry.getComponent<Map>(mapEntity);
     map.update();
   }
 
   // Update all transitions
-  auto transitionView = registry.view<Transition, Transform>();
-  for (auto entity : transitionView) {
-    auto &transition = transitionView.get<Transition>(entity);
-    auto &transform = transitionView.get<Transform>(entity);
+  auto transitiongetEntitiesWithComponents = registry.getEntitiesWithComponents<Transition, Transform>();
+  for (auto entity : transitiongetEntitiesWithComponents) {
+    auto &transition = registry.getComponent<Transition>(entity);
+    auto &transform = registry.getComponent<Transform>(entity);
 
     transform.update();
     transition.update(transform);
@@ -208,7 +215,7 @@ void Game::update() {
       Game::unloadMap();
       Game::loadMap(mapPath);
 
-      registry.destroy(player);
+      registry.destroy(playerId);
       Game::loadPlayer();
 
       break;
@@ -229,17 +236,17 @@ void Game::render() {
   SDL_RenderClear(renderer);
 
   // draw map
-  auto mapView = registry.view<Map>();
-  for (auto mapEntity : mapView) {
-    auto &map = mapView.get<Map>(mapEntity);
+  std::vector<EntityId> mapEntities = registry.getEntitiesWithComponents<Map>();
+  for (auto mapEntity : mapEntities) {
+    auto &map = registry.getComponent<Map>(mapEntity);
     map.render();
   }
 
   // Build a vector of sprites, sorted by Y coordinate
-  std::vector<std::pair<float, entt::entity>> entityDrawOrder = {};
-  auto spriteView = registry.view<Sprite, Transform>();
-  for (auto entity : spriteView) {
-    auto &transform = spriteView.get<Transform>(entity);
+  std::vector<std::pair<float, EntityId>> entityDrawOrder = {};
+  auto spritegetEntitiesWithComponents = registry.getEntitiesWithComponents<Sprite, Transform>();
+  for (auto entity : spritegetEntitiesWithComponents) {
+    auto &transform = registry.getComponent<Transform>(entity);
 
     entityDrawOrder.push_back({
       transform.position.y + transform.height,
@@ -256,15 +263,15 @@ void Game::render() {
 
   // Render the sprites based on draw order (topdown assumed)
   for (auto entityOrderEntry : entityDrawOrder) {
-    auto &sprite = spriteView.get<Sprite>(entityOrderEntry.second);
+    auto &sprite = registry.getComponent<Sprite>(entityOrderEntry.second);
     sprite.render();
   }
 
   // Render colliders -- this is only for debugging
   if (RENDER_COLLIDERS) {
-    auto colliderView = registry.view<Collider>();
-    for (auto entity : colliderView) {
-      auto &collider = colliderView.get<Collider>(entity);
+    auto collidergetEntitiesWithComponents = registry.getEntitiesWithComponents<Collider>();
+    for (auto entity : collidergetEntitiesWithComponents) {
+      auto &collider = registry.getComponent<Collider>(entity);
       collider.render();
     }
   }
@@ -285,38 +292,33 @@ void Game::clean() {
 
 void Game::unloadMap() {
   clearEntities(mapEntities);
-
-  if (registry.valid(map)) {
-    registry.destroy(map);
-  }
+  registry.destroy(mapId);
 }
 
 template <typename T>
 void Game::clearEntities(std::unordered_map<int, T> entityVector) {
   for (auto &entityEntry : entityVector) {
-    entt::entity &entity = entityEntry.second;
-    if (registry.valid(entity)) {
-      registry.destroy(entity);
-    }
+    EntityId &entity = entityEntry.second;
+    registry.destroy(entity);
   }
   entityVector.clear();
 }
 
 void Game::loadPlayer() {
-  player = registry.create();
+  playerId = registry.create();
 
-  registry.emplace<Sprite>(
-      player, mapData.playerObject.spriteSheet.c_str(),
+  registry.addComponent<Sprite>(
+      playerId, mapData.playerObject.spriteSheet.c_str(),
       mapData.playerObject.width, mapData.playerObject.height,
       mapData.playerObject.spriteOffset, mapData.playerObject.animations);
 
-  registry.emplace<Transform>(player, mapData.startPos.x, mapData.startPos.y,
+  registry.addComponent<Transform>(playerId, mapData.startPos.x, mapData.startPos.y,
                               mapData.playerObject.width,
                               mapData.playerObject.height, true);
 
-  auto view = registry.view<Transform>();
-  auto &transform = view.get<Transform>(player);
-  registry.emplace<Collider>(player, transform.position.x, transform.position.y,
+  auto getEntitiesWithComponents = registry.getEntitiesWithComponents<Transform>();
+  auto &transform = registry.getComponent<Transform>(playerId);
+  registry.addComponent<Collider>(playerId, transform.position.x, transform.position.y,
                              mapData.playerObject.collider.width,
                              mapData.playerObject.collider.height,
                              transform,
@@ -325,7 +327,7 @@ void Game::loadPlayer() {
                                     mapData.playerObject.collider.ypos +
                                         mapData.playerObject.spriteOffset.y});
 
-  registry.emplace<KeyboardController>(player);
+  registry.addComponent<KeyboardController>(playerId);
 }
 
 void Game::loadMap(std::string mapPath) {
@@ -333,18 +335,18 @@ void Game::loadMap(std::string mapPath) {
   MapLoader mapLoader = MapLoader(mapPath, TILE_SIZE);
   mapData = mapLoader.LoadMap();
 
-  map = registry.create();
-  registry.emplace<Map>(map, &mapData, mapData.tilesetImg.c_str(), TILE_SIZE);
+  mapId = registry.create();
+  registry.addComponent<Map>(mapId, &mapData, mapData.tilesetImg.c_str(), TILE_SIZE);
 
   // Create entities from sprites first
   for (auto &spriteObject : mapData.spriteVector) {
-    entt::entity spriteEntity = registry.create();
+    EntityId spriteEntity = registry.create();
 
     MapObject &sprite = spriteObject.second;
-    registry.emplace<Sprite>(spriteEntity, sprite.filePath.c_str(),
+    registry.addComponent<Sprite>(spriteEntity, sprite.filePath.c_str(),
                              sprite.width, sprite.height, Offset{0, 0},
                              std::vector<Animation>{}, sprite.drawOrderId);
-    registry.emplace<Transform>(spriteEntity, sprite.xpos, sprite.ypos,
+    registry.addComponent<Transform>(spriteEntity, sprite.xpos, sprite.ypos,
                                 sprite.width, sprite.height);
 
     mapEntities[spriteObject.first] = spriteEntity;
@@ -359,24 +361,24 @@ void Game::loadMap(std::string mapPath) {
       continue;
 
     // Get sprite entity -- it has the same ID as the collider
-    entt::entity spriteEntity = entt::null;
+    EntityId spriteEntity = 0;
     spriteEntity = mapEntities[collider.objectId];
 
     // Fetch the corresponding Transform component
-    auto view = registry.view<Transform>();
-    auto &transform = view.get<Transform>(spriteEntity);
+    auto getEntitiesWithComponents = registry.getEntitiesWithComponents<Transform>();
+    auto &transform = registry.getComponent<Transform>(spriteEntity);
 
     // Calculate offsets here because the collider may move
     Offset offset = {collider.xpos - transform.position.x,
                       collider.ypos - transform.position.y};
-    registry.emplace<Collider>(spriteEntity, transform.position.x,
+    registry.addComponent<Collider>(spriteEntity, transform.position.x,
                                 transform.position.y, collider.width,
                                 collider.height, transform, offset);
   }
 
   // Process colliders, adding to existing sprite if they are linked
   for (auto &colliderObject : mapData.colliderVector) {
-    entt::entity colliderEntity = entt::null;
+    EntityId colliderEntity = 0;
     MapObject &collider = colliderObject.second;
 
     // Add the collider to linked (sprite) entity if it exists
@@ -385,26 +387,26 @@ void Game::loadMap(std::string mapPath) {
       colliderEntity = mapEntities[collider.linkedId]; // This is actually the sprite entity
 
       // Fetch the corresponding Transform component
-      auto view = registry.view<Transform>();
-      auto &transform = view.get<Transform>(colliderEntity);
+      auto getEntitiesWithComponents = registry.getEntitiesWithComponents<Transform>();
+      auto &transform = registry.getComponent<Transform>(colliderEntity);
 
       // Calculate offsets here because the collider may move
       Offset offset = {collider.xpos - transform.position.x,
                        collider.ypos - transform.position.y};
-      registry.emplace<Collider>(colliderEntity, transform.position.x,
+      registry.addComponent<Collider>(colliderEntity, transform.position.x,
                                  transform.position.y, collider.width,
                                  collider.height, transform, offset);
     } else {
       // Non-linked static collider, treat as its own entity
       colliderEntity = registry.create();
-      registry.emplace<Transform>(colliderEntity, collider.xpos, collider.ypos,
+      registry.addComponent<Transform>(colliderEntity, collider.xpos, collider.ypos,
                                   collider.width, collider.height);
 
       // Fetch a reference to the transform created above
-      auto view = registry.view<Transform>();
-      auto &transform = view.get<Transform>(colliderEntity);
+      auto getEntitiesWithComponents = registry.getEntitiesWithComponents<Transform>();
+      auto &transform = registry.getComponent<Transform>(colliderEntity);
 
-      registry.emplace<Collider>(colliderEntity, collider.xpos, collider.ypos,
+      registry.addComponent<Collider>(colliderEntity, collider.xpos, collider.ypos,
                                  collider.width, collider.height, transform);
 
       mapEntities[colliderObject.first] = colliderEntity;
@@ -413,14 +415,14 @@ void Game::loadMap(std::string mapPath) {
 
   // Process transitions -- they are not linked to anything (yet...)
   for (auto &transitionObject : mapData.transitionVector) {
-    entt::entity transitionEntity = registry.create();
+    EntityId transitionEntity = registry.create();
     MapObject &transition = transitionObject.second;
 
-    auto &transform = registry.emplace<Transform>(
+    auto &transform = registry.addComponent<Transform>(
         transitionEntity, transition.xpos, transition.ypos, transition.width,
         transition.height);
 
-    registry.emplace<Transition>(transitionEntity, transform,
+    registry.addComponent<Transition>(transitionEntity, transform,
                                  transition.filePath);
 
     mapEntities[transitionObject.first] = transitionEntity;
@@ -428,7 +430,7 @@ void Game::loadMap(std::string mapPath) {
 
   // Process interaction objects and link to existing sprite
   for (auto &interactionObject : mapData.interactionVector) {
-    entt::entity interactionEntity = entt::null;
+    EntityId interactionEntity = 0;
     MapObject &interaction = interactionObject.second;
 
     // Add the interaction to linked (sprite) entity if it exists
@@ -438,20 +440,20 @@ void Game::loadMap(std::string mapPath) {
       interactionEntity = mapEntities[interaction.linkedId];
 
       // Fetch the corresponding Transform component
-      auto view = registry.view<Transform>();
-      auto &transform = view.get<Transform>(interactionEntity);
+      auto getEntitiesWithComponents = registry.getEntitiesWithComponents<Transform>();
+      auto &transform = registry.getComponent<Transform>(interactionEntity);
 
       // Calculate offsets here because the interaction may move
       Offset offset = {interaction.xpos - transform.position.x,
                        interaction.ypos - transform.position.y};
-      registry.emplace<Interactable>(interactionEntity, transform.position.x,
-                                     transform.position.y, interaction.width,
-                                     interaction.height, offset);
+      registry.addComponent<Interactable>(interactionEntity, transform.position.x,
+                                          transform.position.y, interaction.width,
+                                          interaction.height, offset);
 
       // Add dialogue file if there is one
       if (!interaction.filePath.empty())
-        registry.emplace<Dialogue>(interactionEntity,
-                                   interaction.filePath.c_str());
+        registry.addComponent<Dialogue>(interactionEntity,
+                                        interaction.filePath.c_str());
     } else {
       std::cerr << "No linked ID found for interaction object ID: "
                 << interaction.objectId << std::endl;
