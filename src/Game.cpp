@@ -63,20 +63,6 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   // auto music = Mix_LoadMUS(level1Music.c_str());
   // Mix_PlayMusic(music, 2);
 
-  // TESTING of ECS here
-  /*
-  EntityRegistry entityRegistry = {};
-  EntityId entity = entityRegistry.create();
-  std::cout << "Created a new entity with ID: " << entity << std::endl;
-
-  Transform transform = Transform(0.0f, 0.0f, 0.0f, 0.0f);
-  entityRegistry.addComponent<Collider>(entity, 0.0f, 0.0f, 0.0f, 0.0f, transform);
-
-  auto &collider = entityRegistry.getComponent<Collider>(entity);
-  auto ewc = entityRegistry.getEntitiesWithComponents<Collider>();
-  entityRegistry.removeComponent<Collider>(entity);
-  */
-
   return true;
 }
 
