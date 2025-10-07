@@ -71,7 +71,7 @@ public:
     tiles.clear();
   }
 
-  ~Map() { }
+  ~Map() {}
 
 private:
   int tileSize;
