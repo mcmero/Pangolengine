@@ -180,6 +180,21 @@ public:
   }
 
   /*
+   * Try to get the component associated with the entity (if it exists).
+   * otherwise return a null pointer.
+   */
+  template<typename T>
+  T* tryGetComponent(EntityId entityId) {
+    if (!entityMap.contains(entityId) || !hasComponent<T>(entityId))
+      return nullptr;
+
+    // Get component and return pointer to it
+    ComponentId cid = getComponentId<T>();
+    auto* typedArray = static_cast<ComponentArray<T>*>(componentArrays[cid].get());
+    return &typedArray->getComponent(entityId);
+  }
+
+  /*
    * Return true if all components of a given type are held
    * by the entity
    */
