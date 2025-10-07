@@ -157,12 +157,7 @@ void Game::update() {
         Collision::AABB(playerCollider.collider, interact.interactArea)) {
       interact.canInteract = true;
       intObject = &interact;
-      try {
-        // TODO: better way to handle this?
-        dialogue = &registry.getComponent<Dialogue>(entity);
-      } catch(const std::exception &e) {
-        std::cout << "Could not get dialogue " << e.what() << std::endl;
-      }
+      dialogue = registry.tryGetComponent<Dialogue>(entity);
     } else {
       interact.canInteract = false;
     }
@@ -271,8 +266,10 @@ void Game::render() {
 void Game::clean() {
   Game::unloadMap();
 
-  registry.getComponent<Sprite>(playerId).clean();
-  registry.destroy(playerId);
+  // Clean player sprite -- other sprites are cleared by unloadMap()
+  Sprite *sprite = registry.tryGetComponent<Sprite>(playerId);
+  if (sprite)
+    sprite->clean();
 
   registry.clear();
 
@@ -282,9 +279,11 @@ void Game::clean() {
 
 void Game::unloadMap() {
   clearEntities(mapEntities);
-  mapEntities.clear();
-  registry.getComponent<Map>(mapId).clean(); // clear map textures
+  Map *map = registry.tryGetComponent<Map>(mapId);
+  if (map)
+    map->clean();
   registry.destroy(mapId);
+  mapEntities.clear();
 }
 
 template <typename T>
@@ -293,9 +292,9 @@ void Game::clearEntities(std::unordered_map<int, T> entityVector) {
     EntityId entityId = entityEntry.second;
 
     // clear sprite textures
-    if (registry.hasComponent<Sprite>(entityId)) {
-      registry.getComponent<Sprite>(entityId).clean();
-    }
+    Sprite *sprite = registry.tryGetComponent<Sprite>(entityId);
+    if (sprite)
+      sprite->clean();
 
     registry.destroy(entityId);
   }
