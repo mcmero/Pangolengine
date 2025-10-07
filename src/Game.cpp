@@ -201,6 +201,7 @@ void Game::update() {
       Game::unloadMap();
       Game::loadMap(mapPath);
 
+      registry.getComponent<Sprite>(playerId).clean();
       registry.destroy(playerId);
       Game::loadPlayer();
 
@@ -270,6 +271,9 @@ void Game::render() {
 void Game::clean() {
   Game::unloadMap();
 
+  registry.getComponent<Sprite>(playerId).clean();
+  registry.destroy(playerId);
+
   registry.clear();
 
   // No need to destroy window and renderer as they are managed outside
@@ -278,14 +282,22 @@ void Game::clean() {
 
 void Game::unloadMap() {
   clearEntities(mapEntities);
+  mapEntities.clear();
+  registry.getComponent<Map>(mapId).clean(); // clear map textures
   registry.destroy(mapId);
 }
 
 template <typename T>
 void Game::clearEntities(std::unordered_map<int, T> entityVector) {
   for (auto &entityEntry : entityVector) {
-    EntityId &entity = entityEntry.second;
-    registry.destroy(entity);
+    EntityId entityId = entityEntry.second;
+
+    // clear sprite textures
+    if (registry.hasComponent<Sprite>(entityId)) {
+      registry.getComponent<Sprite>(entityId).clean();
+    }
+
+    registry.destroy(entityId);
   }
   entityVector.clear();
 }

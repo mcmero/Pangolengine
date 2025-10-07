@@ -180,6 +180,25 @@ public:
   }
 
   /*
+   * Return true if all components of a given type are held
+   * by the entity
+   */
+  template<typename... ComponentTypes>
+  bool hasComponents(const EntityId entityId) {
+    return (hasComponent<ComponentTypes>(entityId) && ...);
+  }
+
+  /*
+  * Return true if entity has component and false otherwise.
+  * Component must exist in the component lookup.
+  */
+  template<typename T>
+  bool hasComponent(EntityId entityId) {
+    ComponentId cid = getComponentId<T>();
+    return entityMap[entityId]->componentBitset[cid];
+  }
+
+  /*
    * Get all components of type T and return vector of entity IDs
    * that have those components.
    */
@@ -228,23 +247,4 @@ private:
   std::unordered_map<EntityId, std::unique_ptr<Entity>> entityMap = {};
   std::unordered_map<ComponentId, std::unique_ptr<IComponentArray>> componentArrays = {};
   EntityId entityIdCounter = 0;
-
-  /*
-   * Return true if all components of a given type are held
-   * by the entity
-   */
-  template<typename... ComponentTypes>
-  bool hasComponents(const EntityId entityId) {
-    return (hasComponent<ComponentTypes>(entityId) && ...);
-  }
-
-  /*
-  * Return true if entity has component and false otherwise.
-  * Component must exist in the component lookup.
-  */
-  template<typename T>
-  bool hasComponent(EntityId entityId) {
-    ComponentId cid = getComponentId<T>();
-    return entityMap[entityId]->componentBitset[cid];
-  }
 };
