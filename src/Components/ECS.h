@@ -161,7 +161,7 @@ public:
   template<typename T, typename... TArgs>
   T& replaceComponent(EntityId entityId, TArgs&&... mArgs) {
     removeComponent<T>(entityId);
-    addComponent<T>(entityId, std::forward<TArgs>(mArgs)...);
+    return addComponent<T>(entityId, std::forward<TArgs>(mArgs)...);
   }
 
   /*
