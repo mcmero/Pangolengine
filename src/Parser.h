@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <execution>
 #include <iostream>
 #include <string>
 #include <map>
@@ -47,52 +48,18 @@ public:
 
     Json json = {};
     State state = State::Begin;
-    char ch;
-    while (f.get(ch)) {
-      if (state == State::Begin) {
-        switch(getCharType(ch)) {
 
-          case CharType::ObjectStart: {
-            // Next character should be a whitespace
-            f.get(ch);
-            if (getCharType(ch) != CharType::Whitespace) {
-              state = State::Error;
-              break;
-            }
+    bool isObject = parseObjectStart(f);
+    if (!isObject)
+      state = State::Error;
+    else {
+      std::string key = parseString(f);
+      json[key] = std::unique_ptr<IJsonNode>();
+    }
 
-            // Check for object end
-            f.get(ch);
-            CharType type = getCharType(ch);
-            if (type == CharType::ObjectEnd) {
-              // This is an empty object, go back to begin state
-              state = State::Begin;
-              break;
-            }
-            f.putback(ch);
-
-            // Now we expect a label
-            std::string label = parseString(f);
-
-            // We either expect ObjectEnd (empty) or a value string
-            break;
-          }
-          default:
-            // Something other than an object, end
-            state = State::End;
-            break;
-        }
-      } else if (state == State::Name) {
-        // We expect a label, parse
-      }
-
-      if (state == State::End)
-        break;
-
-      if (state == State::Error) {
-        std::cerr << "Unexpected state reading file " <<
-          file << ". Exiting." << std::endl;
-        break;
-      }
+    if (state == State::Error) {
+      std::cerr << "Unexpected state reading file " <<
+        file << "." << std::endl;
     }
 
     return json;
@@ -141,6 +108,42 @@ private:
         else
           return CharType::Other;
     }
+  }
+
+  // Move to first key of object, return false if we don't match
+  // object start, whitespace then quote. Handles empty object by
+  // moving to the next object, where it starts parsing again.
+  static bool parseObjectStart(std::ifstream &f) {
+    char ch;
+
+    f.get(ch);
+    // First char should be {
+    if (getCharType(ch) != CharType::ObjectStart)
+      return false;
+
+    // Next char is whitespace
+    f.get(ch);
+    if (getCharType(ch) != CharType::Whitespace)
+      return false;
+
+    // Check for object end, in which case, parse again
+    f.get(ch);
+    if (getCharType(ch) == CharType::ObjectEnd) {
+      f.get(ch);
+      if (getCharType(ch) == CharType::Separator) {
+        f.get(ch);
+        if (getCharType(ch) == CharType::Whitespace) {
+          return parseObjectStart(f);
+        }
+      }
+    }
+
+    // If we haven't reached a quote, something has gone wrong
+    if (getCharType(ch) != CharType::Quote)
+      return false;
+
+    f.putback(ch); // return to quote char, ready to parse string
+    return true;
   }
 
   static std::string parseString(std::ifstream &f) {
