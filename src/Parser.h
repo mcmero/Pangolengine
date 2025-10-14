@@ -49,7 +49,7 @@ public:
     Json json = {};
     State state = State::Begin;
 
-    bool isObject = parseObjectStart(f);
+    bool isObject = matchObjectStart(f);
     if (!isObject)
       state = State::Error;
     else {
@@ -110,10 +110,27 @@ private:
     }
   }
 
-  // Move to first key of object, return false if we don't match
-  // object start, whitespace then quote. Handles empty object by
-  // moving to the next object, where it starts parsing again.
-  static bool parseObjectStart(std::ifstream &f) {
+  /*
+  * Return true if stream matches end-separator-whitespace pattern
+  * denoting end of object
+  */
+  static bool matchObjectEnd(std::ifstream &f, char &ch) {
+    f.get(ch);
+    if (getCharType(ch) != CharType::ObjectEnd)
+        return false;
+    f.get(ch);
+    if (getCharType(ch) != CharType::Separator)
+        return false;
+    f.get(ch);
+    return getCharType(ch) == CharType::Whitespace;
+  }
+
+  /*
+  * Move to first key of object, return false if we don't match
+  * object start, whitespace then quote. Handles empty object by
+  * moving to the next object, where it starts parsing again.
+  */
+  static bool matchObjectStart(std::ifstream &f) {
     char ch;
 
     f.get(ch);
@@ -127,16 +144,8 @@ private:
       return false;
 
     // Check for object end, in which case, parse again
-    f.get(ch);
-    if (getCharType(ch) == CharType::ObjectEnd) {
-      f.get(ch);
-      if (getCharType(ch) == CharType::Separator) {
-        f.get(ch);
-        if (getCharType(ch) == CharType::Whitespace) {
-          return parseObjectStart(f);
-        }
-      }
-    }
+    if (matchObjectEnd(f, ch))
+      return matchObjectStart(f);
 
     // If we haven't reached a quote, something has gone wrong
     if (getCharType(ch) != CharType::Quote)
