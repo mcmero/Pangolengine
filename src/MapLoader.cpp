@@ -32,7 +32,7 @@ MapLoader::MapLoader(std::string mapFile, int tileSize,
 MapData MapLoader::LoadMap() {
 
   // TESTING parser
-  Json testMapJson = Parser::parse_json(mapFile);
+  Json testMapJson = Parser::parseJson(mapFile);
 
   std::ifstream f(mapFile);
   if (!f.is_open()) {

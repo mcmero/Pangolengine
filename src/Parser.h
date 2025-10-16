@@ -25,19 +25,21 @@ public:
 
   Content data;
 
-  bool is_value() const { return std::holds_alternative<Value>(data);}
+  bool is_value() const { return std::holds_alternative<Value>(data); }
 
-  bool is_json() const { return std::holds_alternative<Json>(data);}
+  bool is_json() const { return std::holds_alternative<Json>(data); }
 
-  const Value& get_value() const { return std::get<Value>(data);}
+  const Value& get_value() const { return std::get<Value>(data); }
 
-  const Json& get_json() const { return std::get<Json>(data);}
-
+  const Json& get_json() const { return std::get<Json>(data); }
 };
 
 class Parser{
 public:
-  static Json parse_json(std::string file) {
+  /*
+   * Parse JSON file, returning a map of JSON objects
+   */
+  static Json parseJson(std::string file) {
 
     std::ifstream f(file);
     if (!f.is_open()) {
@@ -47,23 +49,14 @@ public:
     }
 
     Json json = {};
-    State state = State::Begin;
-
-    bool isObject = matchObjectStart(f);
-    if (!isObject)
-      state = State::Error;
-    else {
+    while(matchObjectStart(f) || matchNextItem(f)) {
       std::string key = parseString(f);
-      json[key] = std::unique_ptr<IJsonNode>();
-    }
-
-    if (state == State::Error) {
-      std::cerr << "Unexpected state reading file " <<
-        file << "." << std::endl;
+      json[key] = parseJsonNode(f);
     }
 
     return json;
   }
+
 private:
   enum class State { Begin, Name, Value, End, Error };
   enum class CharType {
@@ -79,6 +72,18 @@ private:
     Escape,
     Other
   };
+
+  /*
+   * Returns a pointer to a Json Node given a file stream. Will recursively keep
+   * parsing until it reaches the bottom of the hierarchy.
+   */
+  static std::unique_ptr<IJsonNode> parseJsonNode(std::ifstream &f) {
+    // Handle case string
+    // Handle case bool
+    // Handle case int
+    // Handle case array (recursive parse)
+    return std::unique_ptr<IJsonNode>();
+  }
 
   static CharType getCharType(char ch) {
     switch(ch) {
@@ -135,26 +140,65 @@ private:
 
     f.get(ch);
     // First char should be {
-    if (getCharType(ch) != CharType::ObjectStart)
+    if (getCharType(ch) != CharType::ObjectStart) {
+      f.putback(ch);
       return false;
+    }
 
     // Next char is whitespace
     f.get(ch);
-    if (getCharType(ch) != CharType::Whitespace)
+    if (getCharType(ch) != CharType::Whitespace) {
+      f.putback(ch);
       return false;
+    }
 
     // Check for object end, in which case, parse again
+    // This case means it is an empty object.
     if (matchObjectEnd(f, ch))
       return matchObjectStart(f);
 
     // If we haven't reached a quote, something has gone wrong
-    if (getCharType(ch) != CharType::Quote)
+    if (getCharType(ch) != CharType::Quote) {
+      f.putback(ch);
       return false;
+    }
 
     f.putback(ch); // return to quote char, ready to parse string
     return true;
   }
 
+  /*
+  * Return true if there's another item next, typically comma then whitespace
+  */
+  static bool matchNextItem(std::ifstream &f) {
+    char ch;
+
+    f.get(ch);
+    // First char should be {
+    if (getCharType(ch) != CharType::Separator) {
+      f.putback(ch);
+      return false;
+    }
+    // Next char is whitespace
+    f.get(ch);
+    if (getCharType(ch) != CharType::Whitespace) {
+      f.putback(ch);
+      return false;
+    }
+
+    // If we haven't reached a quote, something has gone wrong
+    if (getCharType(ch) != CharType::Quote) {
+      f.putback(ch);
+      return false;
+    }
+
+    f.putback(ch); // return to quote char, ready to parse string
+    return true;
+  }
+
+  /*
+  * Parse string in format "mystring" from file stream . Must include quotes.
+  */
   static std::string parseString(std::ifstream &f) {
     char ch; f.get(ch);
 
