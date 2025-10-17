@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cassert>
-#include <execution>
 #include <iostream>
 #include <string>
 #include <map>
@@ -50,7 +49,24 @@ public:
 
     Json json = {};
     while(matchObjectStart(f) || matchNextItem(f)) {
+      // TODO: handle object end case
       std::string key = parseString(f);
+
+      // TODO: maybe a generic expectNext function?
+      // Make sure next char is a colon
+      char ch; f.get(ch);
+      if (getCharType(ch) != CharType::Colon) {
+        std::stringstream ss;
+        ss << "Colon not found after string for " << key <<
+          ". Instead found " << ch << std::endl;
+        throw std::runtime_error(ss.str());
+      }
+
+      // Optional whitespace -- put the character back if not
+      f.get(ch);
+      if (getCharType(ch) != CharType::Whitespace)
+        f.putback(ch);
+
       json[key] = parseJsonNode(f);
     }
 
@@ -68,7 +84,7 @@ private:
     ArrayEnd,
     Separator,
     Quote,
-    Digit,
+    Numeric,
     Escape,
     Other
   };
@@ -78,10 +94,22 @@ private:
    * parsing until it reaches the bottom of the hierarchy.
    */
   static std::unique_ptr<IJsonNode> parseJsonNode(std::ifstream &f) {
-    // Handle case string
+    char ch; f.get(ch);
+
+    if (getCharType(ch) == CharType::ArrayStart) {
+      // Special logic handling arrays, recursively
+    }
+
+    if (getCharType(ch) == CharType::Quote) {
+      f.putback(ch); // need full string with quote
+      auto node = std::make_unique<JsonNode<std::string>>();
+      node->data = parseString(f);
+      return node;
+    }
+
     // Handle case bool
     // Handle case int
-    // Handle case array (recursive parse)
+
     return std::unique_ptr<IJsonNode>();
   }
 
@@ -108,8 +136,8 @@ private:
       case '\\':
         return CharType::Escape;
       default:
-        if (isdigit(ch))
-          return CharType::Digit;
+        if (isdigit(ch) || ch == '-' || ch =='.')
+          return CharType::Numeric;
         else
           return CharType::Other;
     }
