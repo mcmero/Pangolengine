@@ -82,6 +82,7 @@ private:
     Quote,
     Numeric,
     Escape,
+    Alpha,
     Other
   };
 
@@ -92,26 +93,27 @@ private:
   static std::unique_ptr<IJsonNode> parseJsonNode(std::ifstream &f) {
     char ch; f.get(ch);
 
+    // TODO: error handling for parse functions
     if (getCharType(ch) == CharType::ArrayStart) {
       // TODO: Special logic handling arrays, recursively
-    }
-
-    if (getCharType(ch) == CharType::Quote) {
+    } else if (getCharType(ch) == CharType::Quote) {
       f.putback(ch); // need full string with quote
       auto node = std::make_unique<JsonNode<std::string>>();
       node->data = parseString(f);
       return node;
-    }
-
-    if (getCharType(ch) == CharType::Numeric) {
+    } else if (getCharType(ch) == CharType::Numeric) {
       f.putback(ch);
       auto node = std::make_unique<JsonNode<float>>();
       node->data = parseNumber(f);
       return node;
+    } else if (getCharType(ch) == CharType::Alpha) {
+      f.putback(ch);
+      auto node = std::make_unique<JsonNode<bool>>();
+      node->data = parseBool(f);
+      return node;
     }
 
-    // TODO: Handle case bool
-
+    // Nothing matched, return null pointer
     return std::unique_ptr<IJsonNode>();
   }
 
@@ -140,6 +142,8 @@ private:
       default:
         if (isdigit(ch))
           return CharType::Numeric;
+        else if (isalpha(ch))
+          return CharType::Alpha;
         else
           return CharType::Other;
     }
@@ -294,5 +298,24 @@ private:
       }
     }
     return std::stof(result.str());
+  }
+
+  /*
+  * Parse stream for boolean
+  */
+  static bool parseBool(std::ifstream &f) {
+    char ch;
+    std::stringstream result;
+    while (f.get(ch)) {
+      if (getCharType(ch) == CharType::Alpha)
+        result << ch;
+      else {
+        f.putback(ch);
+        break;
+      }
+    }
+    // TODO: This is obviously not right -- it should only be false if we find the
+    // value 'false'. Need to fix this with proper error return values.
+    return result.str() == "true";
   }
 };
