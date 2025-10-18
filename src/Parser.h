@@ -52,20 +52,16 @@ public:
       // TODO: handle object end case
       std::string key = parseString(f);
 
-      // TODO: maybe a generic expectNext function?
       // Make sure next char is a colon
-      char ch; f.get(ch);
-      if (getCharType(ch) != CharType::Colon) {
+      if (!expectNextChar(f,CharType::Colon)) {
+        // TODO: better error handling/error state?
         std::stringstream ss;
-        ss << "Colon not found after string for " << key <<
-          ". Instead found " << ch << std::endl;
+        ss << "Colon not found after string for " << key << "." << std::endl;
         throw std::runtime_error(ss.str());
       }
 
-      // Optional whitespace -- put the character back if not
-      f.get(ch);
-      if (getCharType(ch) != CharType::Whitespace)
-        f.putback(ch);
+      // Optional whitespace
+      expectNextChar(f, CharType::Whitespace);
 
       json[key] = parseJsonNode(f);
     }
@@ -97,7 +93,7 @@ private:
     char ch; f.get(ch);
 
     if (getCharType(ch) == CharType::ArrayStart) {
-      // Special logic handling arrays, recursively
+      // TODO: Special logic handling arrays, recursively
     }
 
     if (getCharType(ch) == CharType::Quote) {
@@ -107,8 +103,14 @@ private:
       return node;
     }
 
-    // Handle case bool
-    // Handle case int
+    if (getCharType(ch) == CharType::Numeric) {
+      f.putback(ch);
+      auto node = std::make_unique<JsonNode<float>>();
+      node->data = parseNumber(f);
+      return node;
+    }
+
+    // TODO: Handle case bool
 
     return std::unique_ptr<IJsonNode>();
   }
@@ -119,9 +121,7 @@ private:
         return CharType::ObjectStart;
       case '}':
         return CharType::ObjectEnd;
-      case ' ':
-        return CharType::Whitespace;
-      case '\n':
+      case ' ': case '\n':
         return CharType::Whitespace;
       case ':':
         return CharType::Colon;
@@ -135,8 +135,10 @@ private:
         return CharType::Quote;
       case '\\':
         return CharType::Escape;
+      case '-': case '.':
+        return CharType::Numeric;
       default:
-        if (isdigit(ch) || ch == '-' || ch =='.')
+        if (isdigit(ch))
           return CharType::Numeric;
         else
           return CharType::Other;
@@ -207,11 +209,11 @@ private:
       f.putback(ch);
       return false;
     }
-    // Next char is whitespace
-    f.get(ch);
-    if (getCharType(ch) != CharType::Whitespace) {
-      f.putback(ch);
-      return false;
+    // Next chars can be whitespace
+    while(f.get(ch)) {
+      if (getCharType(ch)!= CharType::Whitespace) {
+        break;
+      }
     }
 
     // If we haven't reached a quote, something has gone wrong
@@ -225,7 +227,21 @@ private:
   }
 
   /*
-  * Parse string in format "mystring" from file stream . Must include quotes.
+   * Returns true if the next character is the expected one, otherwise false.
+   * If the character is not expected, it will put it back in the stream.
+   */
+  static bool expectNextChar(std::ifstream &f, CharType charType) {
+    char ch;
+    f.get(ch);
+    if (getCharType(ch) == charType) {
+      return true;
+    }
+    f.putback(ch);
+    return false;
+  }
+
+  /*
+  * Parse string in format "mystring" from file stream. Must include quotes.
   */
   static std::string parseString(std::ifstream &f) {
     char ch; f.get(ch);
@@ -261,5 +277,22 @@ private:
 
     }
     return result.str();
+  }
+
+  /*
+  * Parse stream for numeric values
+  */
+  static float parseNumber(std::ifstream &f) {
+    char ch;
+    std::stringstream result;
+    while (f.get(ch)) {
+      if (getCharType(ch) == CharType::Numeric)
+        result << ch;
+      else {
+        f.putback(ch);
+        break;
+      }
+    }
+    return std::stof(result.str());
   }
 };
