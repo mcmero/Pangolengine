@@ -29,10 +29,6 @@ struct JsonToken {
   } type;
 
   std::string value = "";
-
-  uint32_t line = 1;
-  uint32_t column = 1;
-
 };
 
 class JsonTokeniser {
@@ -40,7 +36,6 @@ public:
   JsonTokeniser(std::istream &in) : in(in), line(1), column(1) {};
 
   JsonToken getToken() {
-    // TODO: use safe character getter (check for EOF using if on get())
     // TODO: skip whitespace including all whitespace chars
     JsonToken token = JsonToken{JsonToken::Type::Error, ""};
     return token;
@@ -55,6 +50,17 @@ private:
   std::istream &in;
   uint32_t line = 1;
   uint32_t column = 1;
+
+  char getChar() {
+    char ch = in.get();
+    if (ch == '\n') {
+      line++;
+      column = 1;
+    } else if (ch != EOF) {
+      column++;
+    }
+    return ch;
+  }
 };
 
 class IJsonNode {
@@ -64,7 +70,7 @@ public:
 
 using Json = std::map<std::string, std::unique_ptr<IJsonNode>>;
 
-// TODO: make separate struct for each type
+// TODO: make separate class for each type
 template<typename T>
 class JsonNode : public IJsonNode {
 public:
@@ -82,7 +88,7 @@ public:
   const Json& get_json() const { return std::get<Json>(data); }
 };
 
-class Parser {
+class JsonParser {
 public:
   /*
    * Parse JSON file, returning a map of JSON objects

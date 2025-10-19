@@ -13,7 +13,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
-#include "Parser.h"
+#include "JsonParser.h"
 
 namespace fs = std::filesystem;
 
@@ -32,7 +32,7 @@ MapLoader::MapLoader(std::string mapFile, int tileSize,
 MapData MapLoader::LoadMap() {
 
   // TESTING parser
-  Json testMapJson = Parser::parseJson(mapFile);
+  Json testMapJson = JsonParser::parseJson(mapFile);
 
   std::ifstream f(mapFile);
   if (!f.is_open()) {
