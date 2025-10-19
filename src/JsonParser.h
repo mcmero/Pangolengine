@@ -29,6 +29,9 @@ struct JsonToken {
   } type;
 
   std::string value = "";
+
+  uint32_t line = 1;
+  uint32_t column = 1;
 };
 
 class JsonTokeniser {
@@ -36,12 +39,52 @@ public:
   JsonTokeniser(std::istream &in) : in(in), line(1), column(1) {};
 
   JsonToken getToken() {
-    // TODO: skip whitespace including all whitespace chars
-    JsonToken token = JsonToken{JsonToken::Type::Error, ""};
-    return token;
+    skipWhitespace();
+
+    char ch = in.peek();
+    if (static_cast<int>(ch) == EOF) {
+      return JsonToken{JsonToken::Type::EndOfFile};
+    }
+
+    switch(ch) {
+      case '{': {
+        getChar();
+        return makeToken("{", JsonToken::Type::LeftBrace);
+      }
+      case '}': {
+        getChar();
+        return makeToken("}", JsonToken::Type::RightBrace);
+      }
+      case ':': {
+        getChar();
+        return makeToken(":", JsonToken::Type::Colon);
+      }
+      case '[': {
+        getChar();
+        return makeToken("[", JsonToken::Type::LeftBracket);
+      }
+      case ']': {
+        getChar();
+        return makeToken("]", JsonToken::Type::RightBracket);
+      }
+      case ',': {
+        getChar();
+        return makeToken(",", JsonToken::Type::Comma);
+      }
+      case '"':
+        // TODO: parse string
+        return makeToken("", JsonToken::Type::String);
+      default:
+        if (isalpha(ch)) // handle boolean
+          return makeToken("true", JsonToken::Type::True);
+        else
+          return makeToken("", JsonToken::Type::Number); // handle number
+    }
+
+    return makeToken("", JsonToken::Type::Error);
   }
 
-  JsonToken peek() {
+  JsonToken peekToken() {
     JsonToken token = JsonToken{JsonToken::Type::Error, ""};
     return token;
   }
@@ -51,15 +94,35 @@ private:
   uint32_t line = 1;
   uint32_t column = 1;
 
+  void skipWhitespace() {
+     while (true) {
+        char ch = in.peek();
+        if (static_cast<int>(ch) == EOF)
+          return;
+        if (std::isspace(static_cast<unsigned char>(ch))) {
+            getChar();
+            continue;
+        }
+        break;
+    }
+  }
+
   char getChar() {
     char ch = in.get();
     if (ch == '\n') {
       line++;
       column = 1;
-    } else if (ch != EOF) {
+    } else if (static_cast<int>(ch) != EOF) {
       column++;
     }
     return ch;
+  }
+
+  JsonToken makeToken(std::string value, JsonToken::Type type) {
+    JsonToken token {type, value};
+    token.line = line;
+    token.column = column;
+    return token;
   }
 };
 
@@ -103,6 +166,22 @@ public:
     }
 
     Json json = {};
+
+    JsonTokeniser tokeniser {f};
+
+    while (true) {
+      JsonToken token = tokeniser.getToken();
+
+      if (token.type == JsonToken::Type::EndOfFile)
+        break;
+
+      if (token.type == JsonToken::Type::Error) {
+        // report error
+        break;
+      }
+    }
+
+    /*
     while(matchObjectStart(f) || matchNextItem(f)) {
       // TODO: handle object end case
       std::string key = parseString(f);
@@ -120,6 +199,7 @@ public:
 
       json[key] = parseJsonNode(f);
     }
+    */
 
     return json;
   }
