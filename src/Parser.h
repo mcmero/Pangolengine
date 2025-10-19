@@ -1,13 +1,61 @@
 #pragma once
 
 #include <cassert>
+#include <cstdint>
 #include <iostream>
+#include <istream>
 #include <string>
 #include <map>
 #include <memory>
 #include <variant>
 #include <fstream>
 #include <sstream>
+
+struct JsonToken {
+  enum class Type {
+    LeftBrace,      // {
+    RightBrace,     // }
+    LeftBracket,    // [
+    RightBracket,   // ]
+    Colon,          // :
+    Comma,          // ,
+    String,         // ".."
+    Number,         // 0-9, -1.23, 1e10
+    True,           // true
+    False,          // false
+    Null,           // null
+    EndOfFile,
+    Error
+  } type;
+
+  std::string value = "";
+
+  uint32_t line = 1;
+  uint32_t column = 1;
+
+};
+
+class JsonTokeniser {
+public:
+  JsonTokeniser(std::istream &in) : in(in), line(1), column(1) {};
+
+  JsonToken getToken() {
+    // TODO: use safe character getter (check for EOF using if on get())
+    // TODO: skip whitespace including all whitespace chars
+    JsonToken token = JsonToken{JsonToken::Type::Error, ""};
+    return token;
+  }
+
+  JsonToken peek() {
+    JsonToken token = JsonToken{JsonToken::Type::Error, ""};
+    return token;
+  }
+
+private:
+  std::istream &in;
+  uint32_t line = 1;
+  uint32_t column = 1;
+};
 
 class IJsonNode {
 public:
@@ -16,6 +64,7 @@ public:
 
 using Json = std::map<std::string, std::unique_ptr<IJsonNode>>;
 
+// TODO: make separate struct for each type
 template<typename T>
 class JsonNode : public IJsonNode {
 public:
@@ -33,7 +82,7 @@ public:
   const Json& get_json() const { return std::get<Json>(data); }
 };
 
-class Parser{
+class Parser {
 public:
   /*
    * Parse JSON file, returning a map of JSON objects
@@ -256,6 +305,7 @@ private:
 
     bool end = false;
     bool escapeNext = false;
+    // TODO: fix escape handing
     std::stringstream result;
     while (f.get(ch)) {
       switch(getCharType(ch)) {
