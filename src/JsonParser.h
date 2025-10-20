@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <iostream>
 #include <istream>
+#include <stdexcept>
 #include <string>
 #include <map>
 #include <memory>
@@ -71,9 +72,10 @@ public:
         getChar();
         return makeToken(",", JsonToken::Type::Comma);
       }
-      case '"':
-        // TODO: parse string
-        return makeToken("", JsonToken::Type::String);
+      case '"': {
+        std::string str = parseString();
+        return makeToken(str, JsonToken::Type::String);
+      }
       default:
         if (isalpha(ch)) // handle boolean
           return makeToken("true", JsonToken::Type::True);
@@ -123,6 +125,58 @@ private:
     token.line = line;
     token.column = column;
     return token;
+  }
+
+  /*
+  * Parse string in format "mystring" from file stream. Must include quotes.
+  */
+  std::string parseString() {
+    char ch = getChar();
+
+    // We first need a quote character
+    // TODO: make error function that prints line and col numbers
+    if (ch != '"')
+      std::runtime_error("Expected quote at start of string.");
+
+    std::stringstream result;
+    while (true) {
+      ch = getChar();
+
+      if (static_cast<int>(ch) == EOF) {
+        std::runtime_error("Unexpected end of file while parsing string.");
+      }
+
+      if (ch == '"')
+        break; // end of string
+
+      if (ch == '\\') {
+          int esc = in.get();
+          if (esc == EOF)
+            throw std::runtime_error(
+            "Unexpected end of file in escape sequence."
+          );
+
+          char ec = static_cast<char>(esc);
+          switch (ec) {
+            case '"':  result << '"' ; break;
+            case '\\': result << '\\'; break;
+            case '/':  result << '/' ; break;
+            case 'b':  result << '\b'; break;
+            case 'f':  result << '\f'; break;
+            case 'n':  result << '\n'; break;
+            case 'r':  result << '\r'; break;
+            case 't':  result << '\t'; break;
+            case 'u':
+                throw std::runtime_error("\\u escapes not implemented");
+            default:
+                throw std::runtime_error(
+                  std::string("Invalid escape: \\") + ec
+                );
+          }
+      } else
+        result << ch;
+    }
+    return result.str();
   }
 };
 
