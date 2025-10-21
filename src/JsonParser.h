@@ -88,7 +88,8 @@ public:
           else
             return makeToken(str, JsonToken::Type::Error);
         } else {
-          return makeToken("", JsonToken::Type::Number); // handle number
+          std::string str = parseNumber();
+          return makeToken(str, JsonToken::Type::Number); // handle number
         }
     }
     return makeToken(std::string{ch}, JsonToken::Type::Error);
@@ -191,7 +192,7 @@ private:
   * Parse alphabetical values (not strings)
   */
   std::string parseAlpha() {
-    char ch = getChar();
+    char ch;
 
     std::stringstream result;
     while (true) {
@@ -209,9 +210,74 @@ private:
         break;
       else
         std::runtime_error(
-          "Unexpected character found parsing alphabetical value."
+          "Unexpected character while parsing alphabetical value."
         );
     }
+    return result.str();
+  }
+
+  /*
+   * Parse numeric values
+   */
+  std::string parseNumber() {
+    char ch = getChar();
+
+    if (static_cast<int>(ch) == EOF) {
+      std::runtime_error(
+        "Unexpected end of file while parsing number value."
+      );
+    }
+
+    std::stringstream result;
+
+    // Handle negative numbers
+    if (ch == '-') {
+      result << ch;
+    }
+
+    // Left hand digits
+    while (true) {
+      ch = getChar();
+      if (isdigit(ch))
+        result << ch;
+      else if (std::isspace(ch) || ch == ',')
+        return result.str();
+      else if (ch == '.' || ch == 'e') {
+        result << ch;
+        break;
+      } else {
+        std::runtime_error(
+          "Unexpected character while parsing numeric value."
+        );
+      }
+    }
+
+    // Right of decimal
+    if (ch == '.') {
+      while (true) {
+        ch = getChar();
+        if (isdigit(ch))
+          result << ch;
+        else if (std::isspace(ch) || ch == ',')
+        return result.str();
+        else if (ch == 'e') {
+          result << ch;
+          break;
+        } else {
+          std::runtime_error(
+            "Unexpected character while parsing numeric value."
+          );
+        }
+      }
+    }
+
+    if (ch == 'e') {
+      // TODO exponents
+      std::runtime_error(
+            "Exponents not yet supported."
+      );
+    }
+
     return result.str();
   }
 };
