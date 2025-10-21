@@ -77,13 +77,21 @@ public:
         return makeToken(str, JsonToken::Type::String);
       }
       default:
-        if (isalpha(ch)) // handle boolean
-          return makeToken("true", JsonToken::Type::True);
-        else
+        if (isalpha(ch)) {
+          std::string str = parseAlpha();
+          if (str == "true")
+            return makeToken(str, JsonToken::Type::True);
+          else if (str == "false")
+            return makeToken(str, JsonToken::Type::False);
+          else if (str == "null")
+            return makeToken(str, JsonToken::Type::Null);
+          else
+            return makeToken(str, JsonToken::Type::Error);
+        } else {
           return makeToken("", JsonToken::Type::Number); // handle number
+        }
     }
-
-    return makeToken("", JsonToken::Type::Error);
+    return makeToken(std::string{ch}, JsonToken::Type::Error);
   }
 
   JsonToken peekToken() {
@@ -175,6 +183,34 @@ private:
           }
       } else
         result << ch;
+    }
+    return result.str();
+  }
+
+  /*
+  * Parse alphabetical values (not strings)
+  */
+  std::string parseAlpha() {
+    char ch = getChar();
+
+    std::stringstream result;
+    while (true) {
+      ch = getChar();
+
+      if (static_cast<int>(ch) == EOF) {
+        std::runtime_error(
+          "Unexpected end of file while parsing alphabetical value."
+        );
+      }
+
+      if (isalpha(ch))
+        result << ch;
+      else if (ch == ',' || std::isspace(ch))
+        break;
+      else
+        std::runtime_error(
+          "Unexpected character found parsing alphabetical value."
+        );
     }
     return result.str();
   }
