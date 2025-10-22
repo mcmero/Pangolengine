@@ -145,14 +145,14 @@ private:
     // We first need a quote character
     // TODO: make error function that prints line and col numbers
     if (ch != '"')
-      std::runtime_error("Expected quote at start of string.");
+      raiseError("Expected quote at start of string");
 
     std::stringstream result;
     while (true) {
       ch = getChar();
 
       if (static_cast<int>(ch) == EOF) {
-        std::runtime_error("Unexpected end of file while parsing string.");
+        raiseError("Unexpected end of file while parsing string");
       }
 
       if (ch == '"')
@@ -161,9 +161,7 @@ private:
       if (ch == '\\') {
           int esc = in.get();
           if (esc == EOF)
-            throw std::runtime_error(
-            "Unexpected end of file in escape sequence."
-          );
+            raiseError("Unexpected end of file in escape sequence");
 
           char ec = static_cast<char>(esc);
           switch (ec) {
@@ -176,9 +174,9 @@ private:
             case 'r':  result << '\r'; break;
             case 't':  result << '\t'; break;
             case 'u':
-                throw std::runtime_error("\\u escapes not implemented");
+                raiseError("\\u escapes not implemented");
             default:
-                throw std::runtime_error(
+                raiseError(
                   std::string("Invalid escape: \\") + ec
                 );
           }
@@ -195,13 +193,12 @@ private:
     char ch;
 
     std::stringstream result;
+    std::string errorMsg = "Unexpected character while parsing alphabetical value";
     while (true) {
       ch = getChar();
 
       if (static_cast<int>(ch) == EOF) {
-        std::runtime_error(
-          "Unexpected end of file while parsing alphabetical value."
-        );
+        raiseError(errorMsg);
       }
 
       if (isalpha(ch))
@@ -209,9 +206,7 @@ private:
       else if (ch == ',' || std::isspace(ch))
         break;
       else
-        std::runtime_error(
-          "Unexpected character while parsing alphabetical value."
-        );
+        raiseError(errorMsg);
     }
     return result.str();
   }
@@ -220,65 +215,82 @@ private:
    * Parse numeric values
    */
   std::string parseNumber() {
-    char ch = getChar();
+    char ch = in.peek();
+    std::string errorMsg = "Unexpected character while parsing number value";
 
-    if (static_cast<int>(ch) == EOF) {
-      std::runtime_error(
-        "Unexpected end of file while parsing number value."
-      );
-    }
+    if (static_cast<int>(ch) == EOF)
+      raiseError(errorMsg);
 
     std::stringstream result;
 
     // Handle negative numbers
     if (ch == '-') {
-      result << ch;
+      result << getChar();
+      ch = in.peek();
     }
 
-    // Left hand digits
-    while (true) {
-      ch = getChar();
+    if (ch == '0') { // leading zero
+      result << getChar();
+      ch = in.peek();
+    } else if (std::isdigit(ch))
+      result << parseDigits();
+    else
+      raiseError(errorMsg);
+
+    ch = in.peek();
+    if (ch == '.') { // decimal
+      result << getChar();
+      ch = in.peek();
       if (isdigit(ch))
-        result << ch;
-      else if (std::isspace(ch) || ch == ',')
-        return result.str();
-      else if (ch == '.' || ch == 'e') {
-        result << ch;
-        break;
-      } else {
-        std::runtime_error(
-          "Unexpected character while parsing numeric value."
-        );
-      }
+        result << parseDigits();
+      else
+        raiseError(errorMsg);
     }
 
-    // Right of decimal
-    if (ch == '.') {
-      while (true) {
-        ch = getChar();
-        if (isdigit(ch))
-          result << ch;
-        else if (std::isspace(ch) || ch == ',')
-        return result.str();
-        else if (ch == 'e') {
-          result << ch;
-          break;
-        } else {
-          std::runtime_error(
-            "Unexpected character while parsing numeric value."
-          );
-        }
-      }
-    }
+    ch = in.peek();
+    if (ch == 'e' || ch == 'E') {
+      result << getChar();
+      ch = in.peek();
 
-    if (ch == 'e') {
-      // TODO exponents
-      std::runtime_error(
-            "Exponents not yet supported."
-      );
+      if (ch == '+' || ch == '-') {
+        result << getChar();
+        ch = in.peek();
+      }
+
+      if (isdigit(ch))
+        result << parseDigits();
+      else
+        raiseError(errorMsg);
     }
 
     return result.str();
+  }
+
+  /*
+   * Return digits as string while input stream consists of them.
+   */
+  std::string parseDigits() {
+    char ch = in.peek();
+    std::stringstream result;
+
+    while (true) {
+      if (isdigit(ch)) {
+        result << getChar();
+        ch = in.peek();
+      } else
+        break;
+    }
+
+    return result.str();
+  }
+
+  /*
+   * Raise exception with message and report line and column numbers.
+   */
+  void raiseError(std::string message) {
+    std::stringstream msg;
+    msg << message << " at line " << line << ", column " << column;
+    throw std::runtime_error(msg.str());
   }
 };
 
