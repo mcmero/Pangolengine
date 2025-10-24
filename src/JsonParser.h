@@ -335,21 +335,38 @@ public:
     }
 
     JsonTokeniser tokeniser {f};
-
-    while (true) {
-      JsonToken token = tokeniser.getToken();
-
-      if (token.type == JsonToken::Type::EndOfFile)
-        break;
-
-      if (token.type == JsonToken::Type::Error) {
-        // report error
-        break;
-      }
-    }
-
-    return JsonObject{};
+    return parseObject(tokeniser);
   }
 
 private:
+  /*
+  * Parse JSON object
+  */
+  static JsonObject parseObject(JsonTokeniser &tokeniser) {
+    JsonObject object = {};
+
+    JsonToken token = tokeniser.getToken();
+    if (token.type != JsonToken::Type::LeftBrace)
+        throw std::runtime_error(
+        "Unexpected character found at start of object. Expected brace"
+        );
+
+    while (true) {
+      token = tokeniser.getToken();
+      if (token.type != JsonToken::Type::String)
+          throw std::runtime_error("No string found at start of object");
+
+      std::string string = token.value;
+
+      token = tokeniser.getToken();
+      if (token.type != JsonToken::Type::Colon)
+          throw std::runtime_error("No colon found after object string");
+
+      token = tokeniser.getToken();
+      // parse different possible values
+      break;
+    }
+
+    return object;
+  }
 };
