@@ -301,19 +301,28 @@ private:
 // Json value definitions
 //------------------------------------------------------------------------------
 
-struct JsonValue; // Forward definition
+class JsonValue; // Forward definition
 using JsonArray  = std::vector<JsonValue>;
 using JsonObject = std::map<std::string, JsonValue>;
 
-struct JsonValue {
-  std::variant<
+class JsonValue {
+public:
+  using Variant = std::variant<
     double,
     bool,
     std::string,
     std::monostate, // null type
     JsonArray,
     JsonObject
-  > value;
+  >;
+  Variant value;
+
+  JsonValue()                 : value(std::monostate{}) {}
+  JsonValue(double d)         : value(d) {}
+  JsonValue(bool b)           : value(b) {}
+  JsonValue(std::string s)    : value(std::move(s)) {}
+  JsonValue(JsonArray a)      : value(std::move(a)) {}
+  JsonValue(JsonObject o)     : value(std::move(o)) {}
 };
 
 //------------------------------------------------------------------------------
@@ -363,7 +372,9 @@ private:
           throw std::runtime_error("No colon found after object string");
 
       token = tokeniser.getToken();
-      // parse different possible values
+      if (token.type == JsonToken::Type::Number) {
+        object[string] = JsonValue{token.value};
+      }
       break;
     }
 
