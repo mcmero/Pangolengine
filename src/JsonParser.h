@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <iostream>
 #include <istream>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <map>
@@ -43,130 +44,86 @@ public:
   JsonTokeniser(std::istream &in) : in(in), line(1), column(1) {};
 
   JsonToken getToken() {
-    skipWhitespace();
-
-    char ch = in.peek();
-    if (static_cast<int>(ch) == EOF) {
-      return JsonToken{JsonToken::Type::EndOfFile};
+    if (lookahead_) {
+      JsonToken t = *lookahead_;
+      lookahead_.reset();
+      return t;
     }
-
-    switch(ch) {
-      case '{': {
-        getChar();
-        return makeToken("{", JsonToken::Type::LeftBrace);
-      }
-      case '}': {
-        getChar();
-        return makeToken("}", JsonToken::Type::RightBrace);
-      }
-      case ':': {
-        getChar();
-        return makeToken(":", JsonToken::Type::Colon);
-      }
-      case '[': {
-        getChar();
-        return makeToken("[", JsonToken::Type::LeftBracket);
-      }
-      case ']': {
-        getChar();
-        return makeToken("]", JsonToken::Type::RightBracket);
-      }
-      case ',': {
-        getChar();
-        return makeToken(",", JsonToken::Type::Comma);
-      }
-      case '"': {
-        std::string str = parseString();
-        return makeToken(str, JsonToken::Type::String);
-      }
-      default:
-        if (isalpha(ch)) {
-          std::string str = parseAlpha();
-          if (str == "true")
-            return makeToken(str, JsonToken::Type::True);
-          else if (str == "false")
-            return makeToken(str, JsonToken::Type::False);
-          else if (str == "null")
-            return makeToken(str, JsonToken::Type::Null);
-          else
-            return makeToken(str, JsonToken::Type::Error);
-        } else {
-          std::string str = parseNumber();
-          return makeToken(str, JsonToken::Type::Number); // handle number
-        }
-    }
-    return makeToken(std::string{ch}, JsonToken::Type::Error);
+    return getTokenImpl();
   }
 
   JsonToken peekToken() {
-    skipWhitespace();
-
-    char ch = in.peek();
-    if (static_cast<int>(ch) == EOF) {
-      return JsonToken{JsonToken::Type::EndOfFile};
-    }
-
-    switch(ch) {
-      case '{': {
-        return makeToken("{", JsonToken::Type::LeftBrace);
-      }
-      case '}': {
-        return makeToken("}", JsonToken::Type::RightBrace);
-      }
-      case ':': {
-        return makeToken(":", JsonToken::Type::Colon);
-      }
-      case '[': {
-        return makeToken("[", JsonToken::Type::LeftBracket);
-      }
-      case ']': {
-        return makeToken("]", JsonToken::Type::RightBracket);
-      }
-      case ',': {
-        return makeToken(",", JsonToken::Type::Comma);
-      }
-      case '"': {
-        std::string str = parseString();
-        putBackString(str);
-        return makeToken(str, JsonToken::Type::String);
-      }
-      default:
-        if (isalpha(ch)) {
-          std::string str = parseAlpha();
-          putBackString(str);
-          if (str == "true")
-            return makeToken(str, JsonToken::Type::True);
-          else if (str == "false")
-            return makeToken(str, JsonToken::Type::False);
-          else if (str == "null")
-            return makeToken(str, JsonToken::Type::Null);
-          else
-            return makeToken(str, JsonToken::Type::Error);
-        } else {
-          std::string str = parseNumber();
-          putBackString(str);
-          return makeToken(str, JsonToken::Type::Number); // handle number
-        }
-    }
-    return makeToken(std::string{ch}, JsonToken::Type::Error);
+    if (!lookahead_)
+      lookahead_ = getTokenImpl();
+    return *lookahead_;
   }
 
 private:
   std::istream &in;
+  std::optional<JsonToken> lookahead_;
   uint32_t line = 1;
   uint32_t column = 1;
 
-  void putBackString(std::string str) {
-    for (int i = int(str.size() - 1); i >= 0; i--) {
-      in.putback(str[i]);
-      column--;
+  JsonToken getTokenImpl() {
+    skipWhitespace();
+
+    char ch = in.peek();
+    if (static_cast<int>(ch) == EOF) {
+      return JsonToken{JsonToken::Type::EndOfFile};
     }
+
+    switch(ch) {
+      case '{': {
+        getChar();
+        return makeToken("{", JsonToken::Type::LeftBrace);
+      }
+      case '}': {
+        getChar();
+        return makeToken("}", JsonToken::Type::RightBrace);
+      }
+      case ':': {
+        getChar();
+        return makeToken(":", JsonToken::Type::Colon);
+      }
+      case '[': {
+        getChar();
+        return makeToken("[", JsonToken::Type::LeftBracket);
+      }
+      case ']': {
+        getChar();
+        return makeToken("]", JsonToken::Type::RightBracket);
+      }
+      case ',': {
+        getChar();
+        return makeToken(",", JsonToken::Type::Comma);
+      }
+      case '"': {
+        std::string str = parseString();
+        return makeToken(str, JsonToken::Type::String);
+      }
+      default:
+        if (isalpha(static_cast<unsigned char>(ch))) {
+          std::string str = parseAlpha();
+          if (str == "true")
+            return makeToken(str, JsonToken::Type::True);
+          else if (str == "false")
+            return makeToken(str, JsonToken::Type::False);
+          else if (str == "null")
+            return makeToken(str, JsonToken::Type::Null);
+          else
+            return makeToken(str, JsonToken::Type::Error);
+        } else {
+          std::string str = parseNumber();
+          return makeToken(str, JsonToken::Type::Number); // handle number
+        }
+    }
+    return makeToken(std::string{ch}, JsonToken::Type::Error);
   }
 
   void skipWhitespace() {
      while (true) {
-        char ch = in.peek();
-        if (static_cast<int>(ch) == EOF)
+        int ch = in.peek();
+        if (ch == EOF)
           return;
         if (std::isspace(static_cast<unsigned char>(ch))) {
             getChar();
@@ -177,11 +134,11 @@ private:
   }
 
   char getChar() {
-    char ch = in.get();
+    int ch = in.get();
     if (ch == '\n') {
       line++;
       column = 1;
-    } else if (static_cast<int>(ch) != EOF) {
+    } else if (ch != EOF) {
       column++;
     }
     return ch;
@@ -195,28 +152,28 @@ private:
   }
 
   /*
-  * Parse string in format "mystring" from file stream. Must include quotes.
+  * Parse string in format "mystring" from filegetChar(getChar()) stream. Must include quotes.
   */
   std::string parseString() {
-    char ch = getChar();
+    int ch = getChar();
 
     // We first need a quote character
-    if (ch != '"')
+    if (static_cast<char>(ch) != '"')
       raiseError("Expected quote at start of string");
 
     std::stringstream result;
     while (true) {
       ch = getChar();
 
-      if (static_cast<int>(ch) == EOF) {
+      if (ch == EOF) {
         raiseError("Unexpected end of file while parsing string");
       }
 
-      if (ch == '"')
+      if (static_cast<char>(ch) == '"')
         break; // end of string
 
-      if (ch == '\\') {
-          int esc = in.get();
+      if (static_cast<char>(ch) == '\\') {
+          int esc = getChar();
           if (esc == EOF)
             raiseError("Unexpected end of file in escape sequence");
 
@@ -238,7 +195,7 @@ private:
                 );
           }
       } else
-        result << ch;
+        result << static_cast<char>(ch);
     }
     return result.str();
   }
@@ -247,20 +204,20 @@ private:
   * Parse alphabetical values (not strings)
   */
   std::string parseAlpha() {
-    char ch;
+    int ch;
 
     std::stringstream result;
     std::string errorMsg = "Unexpected character while parsing alphabetical value";
     while (true) {
       ch = in.peek();
 
-      if (static_cast<int>(ch) == EOF) {
+      if (ch == EOF) {
         raiseError(errorMsg);
       }
 
       if (isalpha(ch))
-        result << getChar();
-      else if (ch == ',' || std::isspace(ch))
+        result << static_cast<char>(getChar());
+      else if (ch == ',' || std::isspace(static_cast<unsigned char>(ch)))
         break;
       else
         raiseError(errorMsg);
@@ -282,21 +239,21 @@ private:
 
     // Handle negative numbers
     if (ch == '-') {
-      result << getChar();
+      result << static_cast<char>(getChar());
       ch = in.peek();
     }
 
     if (ch == '0') { // leading zero
       result << getChar();
       ch = in.peek();
-    } else if (std::isdigit(ch))
+    } else if (std::isdigit(static_cast<unsigned char>(ch)))
       result << parseDigits();
     else
       raiseError(errorMsg);
 
     ch = in.peek();
     if (ch == '.') { // decimal
-      result << getChar();
+      result << static_cast<char>(getChar());
       ch = in.peek();
       if (isdigit(ch))
         result << parseDigits();
@@ -306,11 +263,11 @@ private:
 
     ch = in.peek();
     if (ch == 'e' || ch == 'E') {
-      result << getChar();
+      result << static_cast<char>(getChar());
       ch = in.peek();
 
       if (ch == '+' || ch == '-') {
-        result << getChar();
+        result << static_cast<char>(getChar());
         ch = in.peek();
       }
 
@@ -327,12 +284,12 @@ private:
    * Return digits as string while input stream consists of them.
    */
   std::string parseDigits() {
-    char ch = in.peek();
+    int ch = in.peek();
     std::stringstream result;
 
     while (true) {
-      if (isdigit(ch)) {
-        result << getChar();
+      if (isdigit(static_cast<char>(ch))) {
+        result << static_cast<char>(getChar());
         ch = in.peek();
       } else
         break;
@@ -521,6 +478,10 @@ private:
           break;
         case JsonToken::Type::LeftBrace:
           array.push_back(parseObject(tokeniser));
+          break;
+        case JsonToken::Type::RightBracket:
+          // End of array
+          break;
         default:
           raiseError(token, "Unexpected token found");
           break;
