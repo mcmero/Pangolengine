@@ -99,8 +99,62 @@ public:
   }
 
   JsonToken peekToken() {
-    JsonToken token = JsonToken{JsonToken::Type::Error, ""};
-    return token;
+    skipWhitespace();
+
+    char ch = in.peek();
+    if (static_cast<int>(ch) == EOF) {
+      return JsonToken{JsonToken::Type::EndOfFile};
+    }
+
+    switch(ch) {
+      case '{': {
+        return makeToken("{", JsonToken::Type::LeftBrace);
+      }
+      case '}': {
+        return makeToken("}", JsonToken::Type::RightBrace);
+      }
+      case ':': {
+        return makeToken(":", JsonToken::Type::Colon);
+      }
+      case '[': {
+        return makeToken("[", JsonToken::Type::LeftBracket);
+      }
+      case ']': {
+        return makeToken("]", JsonToken::Type::RightBracket);
+      }
+      case ',': {
+        return makeToken(",", JsonToken::Type::Comma);
+      }
+      case '"': {
+        std::string str = parseString();
+        for (int i = int(str.size()) - 1; i >= 0; i--) {
+          in.putback(str[i]);
+        }
+        return makeToken(str, JsonToken::Type::String);
+      }
+      default:
+        if (isalpha(ch)) {
+          std::string str = parseAlpha();
+          for (int i = int(str.size()) - 1; i >= 0; i--) {
+            in.putback(str[i]);
+          }
+          if (str == "true")
+            return makeToken(str, JsonToken::Type::True);
+          else if (str == "false")
+            return makeToken(str, JsonToken::Type::False);
+          else if (str == "null")
+            return makeToken(str, JsonToken::Type::Null);
+          else
+            return makeToken(str, JsonToken::Type::Error);
+        } else {
+          std::string str = parseNumber();
+          for (int i = int(str.size() - 1); i >= 0; i--) {
+            in.putback(str[i]);
+          }
+          return makeToken(str, JsonToken::Type::Number); // handle number
+        }
+    }
+    return makeToken(std::string{ch}, JsonToken::Type::Error);
   }
 
 private:
@@ -146,7 +200,6 @@ private:
     char ch = getChar();
 
     // We first need a quote character
-    // TODO: make error function that prints line and col numbers
     if (ch != '"')
       raiseError("Expected quote at start of string");
 
@@ -198,14 +251,14 @@ private:
     std::stringstream result;
     std::string errorMsg = "Unexpected character while parsing alphabetical value";
     while (true) {
-      ch = getChar();
+      ch = in.peek();
 
       if (static_cast<int>(ch) == EOF) {
         raiseError(errorMsg);
       }
 
       if (isalpha(ch))
-        result << ch;
+        result << getChar();
       else if (ch == ',' || std::isspace(ch))
         break;
       else
@@ -363,21 +416,133 @@ private:
     while (true) {
       token = tokeniser.getToken();
       if (token.type != JsonToken::Type::String)
-          throw std::runtime_error("No string found at start of object");
+        raiseError(token, "No string found at start of object");
 
       std::string string = token.value;
 
       token = tokeniser.getToken();
       if (token.type != JsonToken::Type::Colon)
-          throw std::runtime_error("No colon found after object string");
+        raiseError(token,
+                   "No colon found between string and object value");
+
+      token = tokeniser.peekToken();
+      switch (token.type) {
+        case JsonToken::Type::Error:
+          raiseError(token, "Error token found");
+          break;
+        case JsonToken::Type::Null:
+          object[string] = JsonValue{};
+          break;
+        case JsonToken::Type::String: {
+          token = tokeniser.getToken();
+          object[string] = JsonValue{token.value};
+          break;
+        }
+        case JsonToken::Type::Number: {
+          token = tokeniser.getToken();
+          object[string] = JsonValue{std::stod(token.value)};
+          break;
+        }
+        case JsonToken::Type::True: {
+          token = tokeniser.getToken();
+          object[string] = JsonValue{true};
+          break;
+        }
+        case JsonToken::Type::False: {
+          token = tokeniser.getToken();
+          object[string] = JsonValue{false};
+          break;
+        }
+        case JsonToken::Type::LeftBracket:
+          object[string] = parseArray(tokeniser);
+          break;
+        default:
+          raiseError(token, "Unexpected token found");
+          break;
+      }
 
       token = tokeniser.getToken();
-      if (token.type == JsonToken::Type::Number) {
-        object[string] = JsonValue{token.value};
+      if (token.type == JsonToken::Type::RightBrace)
+        break; // end of object
+      else if (token.type != JsonToken::Type::Comma) {
+        raiseError(token,
+                   "No comma found to indicate next value in object");
+        break;
       }
-      break;
     }
-
     return object;
+  }
+
+/*
+  * Parse JSON array
+  */
+  static JsonValue parseArray(JsonTokeniser &tokeniser) {
+    JsonToken token = tokeniser.getToken();
+    if (token.type != JsonToken::Type::LeftBracket)
+        throw std::runtime_error(
+        "Unexpected character found at start of array. Expected bracket"
+        );
+
+    JsonArray array {};
+    while (true) {
+      token = tokeniser.peekToken();
+      switch (token.type) {
+        case JsonToken::Type::Error:
+          raiseError(token, "Error token found");
+          break;
+        case JsonToken::Type::Null: {
+          token = tokeniser.getToken();
+          array.push_back(JsonValue{});
+          break;
+        }
+        case JsonToken::Type::String: {
+          token = tokeniser.getToken();
+          array.push_back(JsonValue{token.value});
+          break;
+        }
+        case JsonToken::Type::Number: {
+          token = tokeniser.getToken();
+          array.push_back(JsonValue{std::stod(token.value)});
+          break;
+        }
+        case JsonToken::Type::True: {
+          token = tokeniser.getToken();
+          array.push_back(JsonValue{true});
+          break;
+        }
+        case JsonToken::Type::False: {
+          token = tokeniser.getToken();
+          array.push_back(JsonValue{false});
+          break;
+        }
+        case JsonToken::Type::LeftBracket:
+          array.push_back(parseArray(tokeniser));
+          break;
+        case JsonToken::Type::LeftBrace:
+          array.push_back(parseObject(tokeniser));
+        default:
+          raiseError(token, "Unexpected token found");
+          break;
+      }
+
+      token = tokeniser.getToken();
+      if (token.type == JsonToken::Type::RightBracket)
+        break; // end of array
+      else if (token.type != JsonToken::Type::Comma) {
+        raiseError(token,
+                   "No comma found to indicate next value in array");
+        break;
+      }
+    }
+    return JsonValue(array);
+  }
+
+  /*
+   * Raise exception with message and report line and column numbers.
+   */
+  static void raiseError(JsonToken token, std::string message) {
+    std::stringstream msg;
+    msg << message << " at line " << token.line << ", column " << token.column;
+    throw std::runtime_error(msg.str());
   }
 };
