@@ -127,17 +127,13 @@ public:
       }
       case '"': {
         std::string str = parseString();
-        for (int i = int(str.size()) - 1; i >= 0; i--) {
-          in.putback(str[i]);
-        }
+        putBackString(str);
         return makeToken(str, JsonToken::Type::String);
       }
       default:
         if (isalpha(ch)) {
           std::string str = parseAlpha();
-          for (int i = int(str.size()) - 1; i >= 0; i--) {
-            in.putback(str[i]);
-          }
+          putBackString(str);
           if (str == "true")
             return makeToken(str, JsonToken::Type::True);
           else if (str == "false")
@@ -148,9 +144,7 @@ public:
             return makeToken(str, JsonToken::Type::Error);
         } else {
           std::string str = parseNumber();
-          for (int i = int(str.size() - 1); i >= 0; i--) {
-            in.putback(str[i]);
-          }
+          putBackString(str);
           return makeToken(str, JsonToken::Type::Number); // handle number
         }
     }
@@ -161,6 +155,13 @@ private:
   std::istream &in;
   uint32_t line = 1;
   uint32_t column = 1;
+
+  void putBackString(std::string str) {
+    for (int i = int(str.size() - 1); i >= 0; i--) {
+      in.putback(str[i]);
+      column--;
+    }
+  }
 
   void skipWhitespace() {
      while (true) {
