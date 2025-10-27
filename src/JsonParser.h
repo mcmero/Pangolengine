@@ -67,57 +67,73 @@ private:
   JsonToken getTokenImpl() {
     skipWhitespace();
 
-    char ch = in.peek();
-    if (static_cast<int>(ch) == EOF) {
+    int ch = in.peek();
+    if (ch == EOF) {
       return JsonToken{JsonToken::Type::EndOfFile};
     }
+
+    uint32_t startLine = line;
+    uint32_t startCol  = column;
 
     switch(ch) {
       case '{': {
         getChar();
-        return makeToken("{", JsonToken::Type::LeftBrace);
+        return makeToken("{", JsonToken::Type::LeftBrace,
+                         startLine, startCol);
       }
       case '}': {
         getChar();
-        return makeToken("}", JsonToken::Type::RightBrace);
+        return makeToken("}", JsonToken::Type::RightBrace,
+                         startLine, startCol);
       }
       case ':': {
         getChar();
-        return makeToken(":", JsonToken::Type::Colon);
+        return makeToken(":", JsonToken::Type::Colon,
+                         startLine, startCol);
       }
       case '[': {
         getChar();
-        return makeToken("[", JsonToken::Type::LeftBracket);
+        return makeToken("[", JsonToken::Type::LeftBracket,
+                         startLine, startCol);
       }
       case ']': {
         getChar();
-        return makeToken("]", JsonToken::Type::RightBracket);
+        return makeToken("]", JsonToken::Type::RightBracket,
+                         startLine, startCol);
       }
       case ',': {
         getChar();
-        return makeToken(",", JsonToken::Type::Comma);
+        return makeToken(",", JsonToken::Type::Comma,
+                         startLine, startCol);
       }
       case '"': {
         std::string str = parseString();
-        return makeToken(str, JsonToken::Type::String);
+        return makeToken(str, JsonToken::Type::String, startLine, startCol);
       }
       default:
         if (isalpha(static_cast<unsigned char>(ch))) {
           std::string str = parseAlpha();
           if (str == "true")
-            return makeToken(str, JsonToken::Type::True);
+            return makeToken(str, JsonToken::Type::True,
+                             startLine, startCol);
           else if (str == "false")
-            return makeToken(str, JsonToken::Type::False);
+            return makeToken(str, JsonToken::Type::False,
+                             startLine, startCol);
           else if (str == "null")
-            return makeToken(str, JsonToken::Type::Null);
+            return makeToken(str, JsonToken::Type::Null,
+                             startLine, startCol);
           else
-            return makeToken(str, JsonToken::Type::Error);
+            return makeToken(str, JsonToken::Type::Error,
+                             startLine, startCol);
+
         } else {
           std::string str = parseNumber();
-          return makeToken(str, JsonToken::Type::Number); // handle number
+          return makeToken(str, JsonToken::Type::Number,
+                           startLine, startCol); // handle number
         }
     }
-    return makeToken(std::string{ch}, JsonToken::Type::Error);
+    return makeToken(std::string{static_cast<char>(ch)},
+                     JsonToken::Type::Error, startLine, startCol);
   }
 
   void skipWhitespace() {
@@ -133,7 +149,7 @@ private:
     }
   }
 
-  char getChar() {
+  int getChar() {
     int ch = in.get();
     if (ch == '\n') {
       line++;
@@ -144,10 +160,11 @@ private:
     return ch;
   }
 
-  JsonToken makeToken(std::string value, JsonToken::Type type) {
+  JsonToken makeToken(std::string value, JsonToken::Type type,
+                      uint32_t startLine, uint32_t startCol) {
     JsonToken token {type, value};
-    token.line = line;
-    token.column = column;
+    token.line = startLine;
+    token.column = startCol;
     return token;
   }
 
@@ -215,7 +232,7 @@ private:
         raiseError(errorMsg);
       }
 
-      if (isalpha(ch))
+      if (isalpha(static_cast<unsigned char>(ch)))
         result << static_cast<char>(getChar());
       else if (ch == ',' || std::isspace(static_cast<unsigned char>(ch)))
         break;
@@ -229,7 +246,7 @@ private:
    * Parse numeric values
    */
   std::string parseNumber() {
-    char ch = in.peek();
+    int ch = in.peek();
     std::string errorMsg = "Unexpected character while parsing number value";
 
     if (static_cast<int>(ch) == EOF)
@@ -244,7 +261,7 @@ private:
     }
 
     if (ch == '0') { // leading zero
-      result << getChar();
+      result << static_cast<char>(getChar());
       ch = in.peek();
     } else if (std::isdigit(static_cast<unsigned char>(ch)))
       result << parseDigits();
@@ -255,7 +272,7 @@ private:
     if (ch == '.') { // decimal
       result << static_cast<char>(getChar());
       ch = in.peek();
-      if (isdigit(ch))
+      if (isdigit(static_cast<unsigned char>(ch)))
         result << parseDigits();
       else
         raiseError(errorMsg);
@@ -271,7 +288,7 @@ private:
         ch = in.peek();
       }
 
-      if (isdigit(ch))
+      if (isdigit(static_cast<unsigned char>(ch)))
         result << parseDigits();
       else
         raiseError(errorMsg);
@@ -301,7 +318,7 @@ private:
   /*
    * Raise exception with message and report line and column numbers.
    */
-  void raiseError(std::string message) {
+  [[noreturn]] void raiseError(std::string message) {
     std::stringstream msg;
     msg << message << " at line " << line << ", column " << column;
     throw std::runtime_error(msg.str());
@@ -411,7 +428,7 @@ private:
           object[string] = JsonValue{false};
           break;
         }
-        case JsonToken::Type::LeftBracket:
+        case JsonToken::Type::LeftBracket: // nested array
           object[string] = parseArray(tokeniser);
           break;
         default:
@@ -438,12 +455,17 @@ private:
     JsonToken token = tokeniser.getToken();
     if (token.type != JsonToken::Type::LeftBracket)
         throw std::runtime_error(
-        "Unexpected character found at start of array. Expected bracket"
+        "Unexpected character found at start of array. Expected '['"
         );
 
     JsonArray array {};
+
     while (true) {
       token = tokeniser.peekToken();
+      if (token.type == JsonToken::Type::RightBracket) {
+        tokeniser.getToken();
+        return JsonValue(array);
+      }
       switch (token.type) {
         case JsonToken::Type::Error:
           raiseError(token, "Error token found");
@@ -479,9 +501,6 @@ private:
         case JsonToken::Type::LeftBrace:
           array.push_back(parseObject(tokeniser));
           break;
-        case JsonToken::Type::RightBracket:
-          // End of array
-          break;
         default:
           raiseError(token, "Unexpected token found");
           break;
@@ -490,6 +509,8 @@ private:
       token = tokeniser.getToken();
       if (token.type == JsonToken::Type::RightBracket)
         break; // end of array
+      else if (token.type == JsonToken::Type::Comma)
+        continue; // go to next element
       else if (token.type != JsonToken::Type::Comma) {
         raiseError(token,
                    "No comma found to indicate next value in array");
