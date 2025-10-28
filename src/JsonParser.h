@@ -351,6 +351,41 @@ public:
   JsonValue(std::string s)    : value(std::move(s)) {}
   JsonValue(JsonArray a)      : value(std::move(a)) {}
   JsonValue(JsonObject o)     : value(std::move(o)) {}
+
+  bool isNull()   const {
+    return std::holds_alternative<std::monostate>(value);
+  }
+  bool isBool()   const {
+    return std::holds_alternative<bool>(value);
+  }
+  bool isNumber() const {
+    return std::holds_alternative<double>(value);
+  }
+  bool isString() const {
+    return std::holds_alternative<std::string>(value);
+  }
+  bool isArray()  const {
+    return std::holds_alternative<JsonArray>(value);
+  }
+  bool isObject() const {
+    return std::holds_alternative<JsonObject>(value);
+  }
+
+  bool getBool() {
+    return std::get<bool>(value);
+  }
+  double getNumber() {
+    return std::get<double>(value);
+  }
+  std::string& getString() {
+    return std::get<std::string>(value);
+  }
+  JsonArray& getArray() {
+    return std::get<JsonArray>(value);
+  }
+  JsonObject& getObject() {
+    return std::get<JsonObject>(value);
+  }
 };
 
 //------------------------------------------------------------------------------
