@@ -1,19 +1,16 @@
 #include "MapLoader.h"
 #include "Components/Transform.h"
+#include "JsonParser.h"
 #include "SDL3/SDL_filesystem.h"
-#include "nlohmann/json.hpp"
 #include "third_party/tinyxml2/tinyxml2.h"
 #include <exception>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <memory>
 #include <ostream>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
-#include "JsonParser.h"
 
 namespace fs = std::filesystem;
 
@@ -30,43 +27,33 @@ MapLoader::MapLoader(std::string mapFile, int tileSize,
       playerLayerName(playerLayerName) {}
 
 MapData MapLoader::LoadMap() {
-
-  // TESTING parser
-  JsonObject testMapJson = JsonParser::parseJson(mapFile);
-
-  std::ifstream f(mapFile);
-  if (!f.is_open()) {
-    std::stringstream ss;
-    ss << "Failed to open map file: " << mapFile << std::endl;
-    throw std::runtime_error(ss.str());
-  }
-
-  mapDir = fs::path(mapFile).parent_path();
-  mapDataJson = json::parse(f);
-  json &layers = mapDataJson["layers"];
+  mapDataJson = JsonParser::parseJson(mapFile);
 
   // We need at least one tileset, otherwise the map has no textures...
   if (!mapDataJson.contains("tilesets")) {
     throw std::runtime_error("No tilesets found!");
   }
 
-  // Build global ID to texture lookup
-  for (const auto &tileset : mapDataJson["tilesets"]) {
-    int gid = tileset.value("firstgid", -1);
+  // Make a global ID to texture location lookup
+  JsonArray tilesets = mapDataJson["tilesets"].getArray();
+  mapDir = fs::path(mapFile).parent_path();
+  for (const auto &tileset : tilesets) {
+    int gid = static_cast<int>(tileset.getObject().at("firstgid").getNumber());
     if (gid < 0)
       continue;
-
     fs::path tilesetFile =
-        fs::path(MapLoader::getTilesetSource(gid, mapDataJson));
+        fs::path(MapLoader::getTilesetSource(gid, tilesets));
     tilesetFile = mapDir / tilesetFile;
     MapLoader::addGidTexturesFromTileset(tilesetFile, gid);
   }
 
   // Find tile layer
-  json tileDataJson;
-  for (int i = 0; i < layers.size(); i++) {
-    if (layers[i]["name"] == tileLayerName) {
-      tileDataJson = layers[i];
+  JsonObject tileDataJson;
+  JsonArray &layers = mapDataJson["layers"].getArray();
+  for (const auto &layer : layers) {
+    std::string layerName = layer.getObject().at("name").getString();
+    if (layerName == tileLayerName) {
+      tileDataJson = layer.getObject();
     }
   }
 
@@ -75,19 +62,21 @@ MapData MapLoader::LoadMap() {
     throw std::runtime_error("Map file must have a tile layer");
   } else {
     // Get image path for tile set
-    int tilesetID = static_cast<int>(tileDataJson["id"]);
+    int tilesetID = static_cast<int>(tileDataJson["id"].getNumber());
     mapData.tilesetImg = gidTextures[tilesetID].texPath;
 
     // Set up tile set dimensions
-    mapData.height = tileDataJson["height"];
-    mapData.width = tileDataJson["width"];
+    mapData.height = static_cast<float>(tileDataJson["height"].getNumber());
+    mapData.width = static_cast<float>(tileDataJson["width"].getNumber());
 
     int h = static_cast<int>(mapData.height);
     int w = static_cast<int>(mapData.width);
+    JsonArray tileData = tileDataJson["data"].getArray();
     for (int i = 0; i < h; i++) {
       std::vector<int> row;
       for (int j = 0; j < w; j++) {
-        row.push_back(tileDataJson["data"][i * w + j]);
+        int val = static_cast<int>(tileData[i * w + j].getNumber());
+        row.push_back(val);
       }
       mapData.map.push_back(row);
     }
@@ -129,13 +118,13 @@ MapData MapLoader::LoadMap() {
   // Find and load player object
   // Iterate through tilesets
   bool playerObjectFound = false;
-  for (const auto &tileset : mapDataJson["tilesets"]) {
-    int gid = tileset.value("firstgid", -1);
+  for (const auto &tileset : tilesets) {
+    int gid = static_cast<int>(tileset.getObject().at("firstgid").getNumber());
     if (gid < 0)
       continue;
 
     fs::path tilesetFile =
-        fs::path(MapLoader::getTilesetSource(gid, mapDataJson));
+        fs::path(MapLoader::getTilesetSource(gid, tilesets));
     tilesetFile = mapDir / tilesetFile;
 
     tinyxml2::XMLDocument doc;
@@ -242,7 +231,6 @@ MapData MapLoader::LoadMap() {
     std::cerr << "Warning: player object not found." << std::endl;
   }
 
-  f.close();
   return mapData;
 }
 
@@ -251,17 +239,19 @@ MapLoader::~MapLoader() {};
 /*
  * Gets any collision objects attached to sprites and returns true if successful
  */
-bool MapLoader::processSpriteCollider(MapObject &mapObject, const json &object) {
+bool MapLoader::processSpriteCollider(MapObject &mapObject, const JsonObject &object) {
   // Get the tileset source from the map file using the GID value
-  int gid = object.value("gid", -1);
+  int gid = static_cast<int>(object.at("gid").getNumber());
   int firstGid = gidTextures[gid].firstGid;
   std::string source = "";
-  for (const auto &tileset : mapDataJson["tilesets"]) {
-    if (tileset.value("firstgid", -1) == firstGid) {
-      source = tileset.value("source", "");
+  for (const auto &tileset : mapDataJson["tilesets"].getArray()) {
+    JsonObject tilesetObj = tileset.getObject();
+    if (tilesetObj["firstgid"].getNumber() == firstGid) {
+      source = tilesetObj["source"].getString();
       break;
     }
   }
+
   // Exit function if there's no tilemap file
   if (source == "") {
     std::cerr << "Warning: no tilemap found for map object id: " <<
@@ -330,9 +320,9 @@ bool MapLoader::processSpriteCollider(MapObject &mapObject, const json &object) 
 /*
  * Process sprite object and return true if successful
  */
-bool MapLoader::processSpriteObject(MapObject &mapObject, const json &object) {
+bool MapLoader::processSpriteObject(MapObject &mapObject, const JsonObject &object) {
   // Get path to texture for sprite object
-  int spritesetID = object.value("gid", -1);
+  int spritesetID = static_cast<int>(object.at("gid").getNumber());
   auto it = gidTextures.find(spritesetID);
   if (it != gidTextures.end()) {
     mapObject.filePath = it->second.texPath;
@@ -348,7 +338,7 @@ bool MapLoader::processSpriteObject(MapObject &mapObject, const json &object) {
  * Process transition object and return true if successful
  */
 bool MapLoader::processTransitionObject(MapObject &mapObject,
-                                        const json &object) {
+                                        const JsonObject &object) {
   fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
 
   std::string mapFileName =
@@ -363,13 +353,13 @@ bool MapLoader::processTransitionObject(MapObject &mapObject,
   return true;
 }
 
-std::unique_ptr<MapObject> MapLoader::loadObject(const json &object, PropertyType propertyType) {
+std::unique_ptr<MapObject> MapLoader::loadObject(const JsonObject &object, PropertyType propertyType) {
   std::unique_ptr<MapObject> mapObject = std::make_unique<MapObject>();
-  mapObject->objectId = object.value("id", -1);
-  mapObject->height = object.value("height", 0.0f);
-  mapObject->width = object.value("width", 0.0f);
-  mapObject->xpos = object.value("x", 0.0f);
-  mapObject->ypos = object.value("y", 0.0f);
+  mapObject->objectId = static_cast<int>(object.at("id").getNumber());
+  mapObject->height = static_cast<float>(object.at("height").getNumber());
+  mapObject->width = static_cast<float>(object.at("width").getNumber());
+  mapObject->xpos = static_cast<float>(object.at("x").getNumber());
+  mapObject->ypos = static_cast<float>(object.at("y").getNumber());
 
   // Draw order is set by iteration position, which reflects the draw
   // order in the JSON map file
@@ -440,32 +430,34 @@ void MapLoader::processPlayerProperty(const char *name,
     tileProperty->QueryStringAttribute("value", &value);
 
     std::string animFilePath = (tilesetDir / fs::path(value)).string();
-    std::ifstream animationsFile(animFilePath);
-    if (!animationsFile.is_open()) {
-      std::stringstream ss;
-      ss << "Failed to open animations file: " << value << std::endl;
-      throw std::runtime_error(ss.str());
-    }
-
-    json animJson = json::parse(animationsFile);
-    for (const auto &animVals : animJson["animations"]) {
-      std::string animName = animVals.value("name", "");
-      Animation anim =
-          Animation(animName, animVals.value("index", 0),
-                    animVals.value("frames", 1), animVals.value("speed", 100));
+    JsonObject animJson = JsonParser::parseJson(animFilePath);
+    for (const auto &animVals : animJson["animations"].getArray()) {
+      std::string animName = animVals.getObject().at("name").getString();
+      int index = static_cast<int>(
+        animVals.getObject().at("index").getNumber()
+      );
+      int frames = static_cast<int>(
+        animVals.getObject().at("frames").getNumber()
+      );
+      int speed = static_cast<int>(
+                    animVals.getObject().at("speed").getNumber()
+      );
+      Animation anim = Animation(animName, index, frames, speed);
       mapData.playerObject.animations.push_back(anim);
     }
-    animationsFile.close();
   }
 }
 
 std::unordered_map<int, MapObject>
 MapLoader::loadMapObjects(std::string layerName, PropertyType propertyType) {
-  json objectDataJson;
-  json &layers = mapDataJson["layers"];
-  for (int i = 0; i < layers.size(); i++) {
-    if (layers[i]["name"] == layerName)
-      objectDataJson = layers[i];
+  JsonObject objectDataJson;
+  JsonArray &layers = mapDataJson["layers"].getArray();
+
+  for (const auto &layer : layers) {
+    std::string currentLayerName = layer.getObject().at("name").getString();
+    if (layerName == currentLayerName) {
+      objectDataJson = layer.getObject();
+    }
   }
 
   std::unordered_map<int, MapObject> mapObjects;
@@ -475,8 +467,9 @@ MapLoader::loadMapObjects(std::string layerName, PropertyType propertyType) {
   }
 
   drawOrderCounter = 0; // Reset the draw order for new layer
-  for (const auto &object : objectDataJson["objects"]) {
-    std::unique_ptr<MapObject> mapObject = loadObject(object, propertyType);
+  for (const auto &object : objectDataJson["objects"].getArray()) {
+    std::unique_ptr<MapObject> mapObject = loadObject(object.getObject(),
+                                                      propertyType);
     if (mapObject)
       mapObjects[mapObject->objectId] = *mapObject;
   }
@@ -566,16 +559,18 @@ void MapLoader::addGidTexturesFromTileset(const fs::path &tilesetFile,
 /** Return the path to the tileset definition
  * file given its ID value */
 std::string MapLoader::getTilesetSource(int tilesetID,
-                                        const json &tilesetInfo) {
-  if (!tilesetInfo.contains("tilesets")) {
-    std::cerr << "No 'tilesets' key found." << std::endl;
-    return "";
-  }
+                                        const JsonArray &tilesets) {
+  for (const auto &tileset : tilesets) {
+    JsonObject tilesetObj = tileset.getObject();
+    if (!tilesetObj.contains("firstgid") || !tilesetObj.contains("source"))
+      throw std::runtime_error(
+        "Tileset does not contain 'firstgid' and/or 'source'"
+      );
 
-  for (const auto &tileset : tilesetInfo["tilesets"]) {
-    if (tileset.value("firstgid", -1) == tilesetID) {
-      return tileset.value("source", "");
-    }
+    std::string source = tilesetObj["source"].getString();
+    int gid = static_cast<int>(tilesetObj["firstgid"].getNumber());
+    if (gid > 0 && gid == tilesetID)
+      return source;
   }
 
   std::cerr << "ID value not found in tileset definition." << std::endl;
@@ -583,25 +578,25 @@ std::string MapLoader::getTilesetSource(int tilesetID,
 }
 
 template <typename T>
-std::optional<T> MapLoader::getProperty(const json &object,
+std::optional<T> MapLoader::getProperty(const JsonObject &object,
                                         const std::string &property) {
-  if (object.find("properties") == object.end() ||
-      object["properties"].empty()) {
+  if (!object.contains("properties"))
     return std::nullopt;
-  }
-  for (const auto &prop : object["properties"]) {
-    if (prop["name"] == property) {
+
+  for (const auto &prop : object.at("properties").getArray()) {
+    if (prop.getObject().at("name").getString() == property) {
       // Check if type matches
-      const std::string type = prop["type"];
+      JsonObject propObj = prop.getObject();
+      const std::string type = propObj["type"].getString();
       if constexpr (std::is_same_v<T, float>) {
         if (type == "float")
-          return prop["value"].get<float>();
+          return static_cast<float>(propObj["value"].getNumber());
       } else if constexpr (std::is_same_v<T, int>) {
         if (type == "int")
-          return prop["value"].get<int>();
+          return static_cast<int>(propObj["value"].getNumber());
       } else if constexpr (std::is_same_v<T, std::string>) {
         if (type == "string")
-          return prop["value"].get<std::string>();
+          return propObj["value"].getString();
       }
       return std::nullopt;
     }

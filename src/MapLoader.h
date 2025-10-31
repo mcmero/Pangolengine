@@ -2,16 +2,14 @@
 
 #include "Components/Animation.h"
 #include "Components/Transform.h"
+#include "JsonParser.h"
 #include "Vector2D.h"
 #include <filesystem>
-#include <third_party/nlohmann/json.hpp>
 #include <third_party/tinyxml2/tinyxml2.h>
 #include <unordered_map>
 #include <vector>
 
 namespace fs = std::filesystem;
-
-using namespace nlohmann;
 
 struct MapObject {
   int objectId = -1;
@@ -69,7 +67,7 @@ private:
   MapData mapData;
 
   std::string mapFile;
-  json mapDataJson;
+  JsonObject mapDataJson;
   fs::path mapDir;
   const int tileSize;
   int drawOrderCounter = 0;
@@ -89,26 +87,26 @@ private:
 
   enum PropertyType { TILE, SPRITE, SPRITECOLLIDER, COLLISION, TRANSITION, INTERACTION };
 
-  bool processSpriteObject(MapObject &mapObject, const json &object);
+  bool processSpriteObject(MapObject &mapObject, const JsonObject &object);
 
-  bool processSpriteCollider(MapObject &mapObject, const json &object);
+  bool processSpriteCollider(MapObject &mapObject, const JsonObject &object);
 
-  bool processTransitionObject(MapObject &mapObject, const json &object);
+  bool processTransitionObject(MapObject &mapObject, const JsonObject &object);
 
   void processPlayerProperty(const char *name,
                              const tinyxml2::XMLElement *property,
                              const fs::path tilesetDir);
 
-  std::unique_ptr<MapObject> loadObject(const json &object, PropertyType propertyType);
+  std::unique_ptr<MapObject> loadObject(const JsonObject &object, PropertyType propertyType);
 
   std::unordered_map<int, MapObject> loadMapObjects(std::string layerName,
                                                     PropertyType propertyType);
 
   void addGidTexturesFromTileset(const fs::path &tilesetFile, int firstGid);
 
-  static std::string getTilesetSource(int tilesetID, const json &mapDataJson);
+  static std::string getTilesetSource(int tilesetID, const JsonArray &tilesets);
 
   template <typename T>
-  static std::optional<T> getProperty(const json &object,
+  static std::optional<T> getProperty(const JsonObject &object,
                                       const std::string &property);
 };

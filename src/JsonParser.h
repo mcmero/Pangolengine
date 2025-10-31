@@ -371,6 +371,7 @@ public:
     return std::holds_alternative<JsonObject>(value);
   }
 
+  // Mutable getters
   bool getBool() {
     return std::get<bool>(value);
   }
@@ -384,6 +385,23 @@ public:
     return std::get<JsonArray>(value);
   }
   JsonObject& getObject() {
+    return std::get<JsonObject>(value);
+  }
+
+  // Const getters
+  const bool getBool() const {
+    return std::get<bool>(value);
+  }
+  const double getNumber() const {
+    return std::get<double>(value);
+  }
+  const std::string& getString() const {
+    return std::get<std::string>(value);
+  }
+  const JsonArray& getArray() const {
+    return std::get<JsonArray>(value);
+  }
+  const JsonObject& getObject() const {
     return std::get<JsonObject>(value);
   }
 };
