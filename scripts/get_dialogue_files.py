@@ -35,6 +35,8 @@ def authenticate():
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes once.
+    # NOTE: if your token expires, remove the token.pickle file and rerun
+    # the script to re-authenticate
     pickle_file = os.path.join(os.path.expanduser(
         "~"), "token.pickle")
     if os.path.exists(pickle_file):
@@ -109,8 +111,12 @@ def export_to_json(name):
 
     # Process dialogue and write to JSON file
     dialogue = process_dialogue(data)
+    # wrap in top level object
+    dialogue_dict = {}
+    dialogue_dict[name] = dialogue
+
     with open(f"assets/scenes/{name}.json", "w") as json_file:
-        json.dump(dialogue, json_file, indent=4)
+        json.dump(dialogue_dict, json_file, indent=4)
 
     print(f"Exported dialogue file: {name}")
 
