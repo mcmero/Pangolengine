@@ -38,7 +38,7 @@ MapData MapLoader::LoadMap() {
   JsonArray tilesets = mapDataJson["tilesets"].getArray();
   mapDir = fs::path(mapFile).parent_path();
   for (const auto &tileset : tilesets) {
-    int gid = static_cast<int>(tileset.getObject().at("firstgid").getNumber());
+    int gid = static_cast<int>(tileset.at("firstgid").getNumber());
     if (gid < 0)
       continue;
     fs::path tilesetFile =
@@ -51,7 +51,7 @@ MapData MapLoader::LoadMap() {
   JsonObject tileDataJson;
   JsonArray &layers = mapDataJson["layers"].getArray();
   for (const auto &layer : layers) {
-    std::string layerName = layer.getObject().at("name").getString();
+    std::string layerName = layer.at("name").getString();
     if (layerName == tileLayerName) {
       tileDataJson = layer.getObject();
     }
@@ -119,7 +119,7 @@ MapData MapLoader::LoadMap() {
   // Iterate through tilesets
   bool playerObjectFound = false;
   for (const auto &tileset : tilesets) {
-    int gid = static_cast<int>(tileset.getObject().at("firstgid").getNumber());
+    int gid = static_cast<int>(tileset.at("firstgid").getNumber());
     if (gid < 0)
       continue;
 
@@ -432,15 +432,15 @@ void MapLoader::processPlayerProperty(const char *name,
     std::string animFilePath = (tilesetDir / fs::path(value)).string();
     JsonObject animJson = JsonParser::parseJson(animFilePath);
     for (const auto &animVals : animJson["animations"].getArray()) {
-      std::string animName = animVals.getObject().at("name").getString();
+      std::string animName = animVals.at("name").getString();
       int index = static_cast<int>(
-        animVals.getObject().at("index").getNumber()
+        animVals.at("index").getNumber()
       );
       int frames = static_cast<int>(
-        animVals.getObject().at("frames").getNumber()
+        animVals.at("frames").getNumber()
       );
       int speed = static_cast<int>(
-                    animVals.getObject().at("speed").getNumber()
+                    animVals.at("speed").getNumber()
       );
       Animation anim = Animation(animName, index, frames, speed);
       mapData.playerObject.animations.push_back(anim);
@@ -454,7 +454,7 @@ MapLoader::loadMapObjects(std::string layerName, PropertyType propertyType) {
   JsonArray &layers = mapDataJson["layers"].getArray();
 
   for (const auto &layer : layers) {
-    std::string currentLayerName = layer.getObject().at("name").getString();
+    std::string currentLayerName = layer.at("name").getString();
     if (layerName == currentLayerName) {
       objectDataJson = layer.getObject();
     }
@@ -584,7 +584,7 @@ std::optional<T> MapLoader::getProperty(const JsonObject &object,
     return std::nullopt;
 
   for (const auto &prop : object.at("properties").getArray()) {
-    if (prop.getObject().at("name").getString() == property) {
+    if (prop.at("name").getString() == property) {
       // Check if type matches
       JsonObject propObj = prop.getObject();
       const std::string type = propObj["type"].getString();

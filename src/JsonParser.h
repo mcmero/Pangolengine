@@ -387,6 +387,18 @@ public:
   JsonObject& getObject() {
     return std::get<JsonObject>(value);
   }
+  // Convenience function for objects
+  JsonValue& at(const std::string &key) {
+    if (!isObject())
+      throw std::runtime_error("JsonValue is not an object.");
+
+    JsonObject &obj = getObject();
+    auto it = obj.find(key);
+    if (it == obj.end())
+      throw std::out_of_range("Key not found: " + key);
+
+    return it->second;
+  }
 
   // Const getters
   const bool getBool() const {
@@ -404,6 +416,19 @@ public:
   const JsonObject& getObject() const {
     return std::get<JsonObject>(value);
   }
+  // Convenience function for objects
+  const JsonValue& at(const std::string &key) const {
+    if (!isObject())
+      throw std::runtime_error("JsonValue is not an object.");
+
+    const JsonObject &obj = getObject();
+    auto it = obj.find(key);
+    if (it == obj.end())
+      throw std::out_of_range("Key not found: " + key);
+
+    return it->second;
+  }
+
 };
 
 //------------------------------------------------------------------------------

@@ -40,16 +40,16 @@ public:
       JsonArray dialogueArray = dialogueJson[dialogueName].getArray();
       for (const auto &jnode : dialogueArray) {
         std::vector<Response> responses = {};
-        JsonArray responseArray = jnode.getObject().at("responses").getArray();
+        JsonArray responseArray = jnode.at("responses").getArray();
         for (const auto &jresp : responseArray) {
-          int next = static_cast<int>(jresp.getObject().at("next").getNumber());
-          responses.push_back({jresp.getObject().at("response").getString(),
+          int next = static_cast<int>(jresp.at("next").getNumber());
+          responses.push_back({jresp.at("response").getString(),
                                next});
         }
         dialogueTree.push_back({
-          static_cast<int>(jnode.getObject().at("id").getNumber()),
-          jnode.getObject().at("speaker").getString(),
-          jnode.getObject().at("line").getString(),
+          static_cast<int>(jnode.at("id").getNumber()),
+          jnode.at("speaker").getString(),
+          jnode.at("line").getString(),
           responses
         });
       }
