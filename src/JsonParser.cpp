@@ -414,6 +414,7 @@ JsonObject JsonParser::parseObject(JsonTokeniser &tokeniser) {
         raiseError(token, "Error token found");
         break;
       case JsonToken::Type::Null:
+        token = tokeniser.getToken();
         object[string] = JsonValue{};
         break;
       case JsonToken::Type::String: {
