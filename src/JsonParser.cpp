@@ -241,7 +241,7 @@ std::string JsonTokeniser::parseNumber() {
     if (isdigit(static_cast<unsigned char>(ch)))
       result << parseDigits();
     else
-      raiseError(errorMsg);
+      raiseError("Expected digits after exponent");
   }
 
   return result.str();
