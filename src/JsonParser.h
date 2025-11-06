@@ -118,10 +118,10 @@ public:
 
 class JsonParser {
 public:
-  static JsonObject parseJson(std::string file);
+  static JsonObject parseJson(const std::string &file);
 
 private:
   static JsonObject parseObject(JsonTokeniser &tokeniser);
   static JsonValue parseArray(JsonTokeniser &tokeniser);
-  static void raiseError(JsonToken token, std::string message);
+  static void raiseError(const JsonToken &token, const std::string &message);
 };

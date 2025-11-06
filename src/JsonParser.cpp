@@ -252,7 +252,7 @@ std::string JsonTokeniser::parseDigits() {
   std::stringstream result;
 
   while (true) {
-    if (isdigit(static_cast<char>(ch))) {
+    if (isdigit(static_cast<unsigned char>(ch))) {
       result << static_cast<char>(getChar());
       ch = in.peek();
     } else
@@ -371,7 +371,7 @@ const JsonValue& JsonValue::at(const std::string &key) const {
 // JsonParser Implementation
 //------------------------------------------------------------------------------
 
-JsonObject JsonParser::parseJson(std::string file) {
+JsonObject JsonParser::parseJson(const std::string &file) {
   std::ifstream f(file);
   if (!f.is_open()) {
     std::stringstream ss;
@@ -527,7 +527,7 @@ JsonValue JsonParser::parseArray(JsonTokeniser &tokeniser) {
   return JsonValue(array);
 }
 
-void JsonParser::raiseError(JsonToken token, std::string message) {
+void JsonParser::raiseError(const JsonToken &token, const std::string &message) {
   std::stringstream msg;
   msg << message << " at line " << token.line << ", column " << token.column;
   throw std::runtime_error(msg.str());
