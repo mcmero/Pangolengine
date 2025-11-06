@@ -104,8 +104,8 @@ public:
   JsonValue& at(const std::string &key);
 
   // Const getters
-  const bool getBool() const;
-  const double getNumber() const;
+  bool getBool() const;
+  double getNumber() const;
   const std::string& getString() const;
   const JsonArray& getArray() const;
   const JsonObject& getObject() const;

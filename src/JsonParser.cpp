@@ -335,11 +335,11 @@ JsonValue& JsonValue::at(const std::string &key) {
   return it->second;
 }
 
-const bool JsonValue::getBool() const {
+bool JsonValue::getBool() const {
   return std::get<bool>(value);
 }
 
-const double JsonValue::getNumber() const {
+double JsonValue::getNumber() const {
   return std::get<double>(value);
 }
 
@@ -439,6 +439,9 @@ JsonObject JsonParser::parseObject(JsonTokeniser &tokeniser) {
       }
       case JsonToken::Type::LeftBracket: // nested array
         object[string] = parseArray(tokeniser);
+        break;
+      case JsonToken::Type::LeftBrace: // nested object
+        object[string] = parseObject(tokeniser);
         break;
       default:
         raiseError(token, "Unexpected token found");
