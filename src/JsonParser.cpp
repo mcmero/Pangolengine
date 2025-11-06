@@ -518,8 +518,6 @@ JsonValue JsonParser::parseArray(JsonTokeniser &tokeniser) {
     token = tokeniser.getToken();
     if (token.type == JsonToken::Type::RightBracket)
       break; // end of array
-    else if (token.type == JsonToken::Type::Comma)
-      continue; // go to next element
     else if (token.type != JsonToken::Type::Comma) {
       raiseError(token,
                  "No comma found to indicate next value in array");
