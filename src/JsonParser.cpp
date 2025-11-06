@@ -187,7 +187,7 @@ std::string JsonTokeniser::parseAlpha() {
 
     if (isalpha(static_cast<unsigned char>(ch)))
       result << static_cast<char>(getChar());
-    else if (ch == ',' || std::isspace(static_cast<unsigned char>(ch)))
+    else if (ch == ',' || ch == '}' || ch == ']' || std::isspace(static_cast<unsigned char>(ch)))
       break;
     else
       raiseError(errorMsg);
@@ -393,6 +393,10 @@ JsonObject JsonParser::parseObject(JsonTokeniser &tokeniser) {
       );
 
   while (true) {
+    token = tokeniser.peekToken();
+    if (token.type == JsonToken::Type::RightBrace)
+      break; // empty object
+
     token = tokeniser.getToken();
     if (token.type != JsonToken::Type::String)
       raiseError(token, "No string found at start of object");
