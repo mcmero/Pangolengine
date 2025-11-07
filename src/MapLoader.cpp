@@ -252,13 +252,13 @@ MapLoader::~MapLoader() {};
  */
 bool MapLoader::processSpriteCollider(MapObject &mapObject, const JsonObject &object) {
   // Get the tileset source from the map file using the GID value
-  int gid = static_cast<int>(object.at("gid").getNumber());
-  int firstGid = gidTextures[gid].firstGid;
+  int objectGid = static_cast<int>(object.at("gid").getNumber());
+  int firstGid = gidTextures[objectGid].firstGid;
   std::string source = "";
   for (const auto &tileset : mapDataJson["tilesets"].getArray()) {
-    JsonObject tilesetObj = tileset.getObject();
-    if (tilesetObj["firstgid"].getNumber() == firstGid) {
-      source = tilesetObj["source"].getString();
+    int tilesetGid = static_cast<int>(tileset.at("firstgid").getNumber());
+    if (tilesetGid == firstGid) {
+      source = tileset.at("source").getString();
       break;
     }
   }
@@ -298,7 +298,7 @@ bool MapLoader::processSpriteCollider(MapObject &mapObject, const JsonObject &ob
     }
 
     // Find the correct file using global ID
-    if (firstGid + id == gid) {
+    if (firstGid + id == objectGid) {
       // Get collider attached to tile
       tinyxml2::XMLElement *objectGroup =
           tileNode->FirstChildElement("objectgroup");
@@ -451,7 +451,7 @@ void MapLoader::processPlayerProperty(const char *name,
         animVals.at("frames").getNumber()
       );
       int speed = static_cast<int>(
-                    animVals.at("speed").getNumber()
+        animVals.at("speed").getNumber()
       );
       Animation anim = Animation(animName, index, frames, speed);
       mapData.playerObject.animations.push_back(anim);
