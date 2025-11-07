@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <array>
 
 namespace fs = std::filesystem;
 
@@ -61,6 +62,16 @@ MapData MapLoader::LoadMap() {
   if (tileDataJson.size() == 0) {
     throw std::runtime_error("Map file must have a tile layer");
   } else {
+    // Validate required keys
+    const std::array<std::string, 4> keys = {"id", "height", "width", "data"};
+    for(const std::string& key : keys) {
+      if (!tileDataJson.contains(key)) {
+        throw std::runtime_error(
+          "Map tile layer is missing required key: " + key
+        );
+      }
+    }
+
     // Get image path for tile set
     int tilesetID = static_cast<int>(tileDataJson["id"].getNumber());
     mapData.tilesetImg = gidTextures[tilesetID].texPath;
