@@ -6,7 +6,7 @@
 #include <istream>
 #include <optional>
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -67,7 +67,7 @@ private:
 
 class JsonValue; // Forward definition
 using JsonArray  = std::vector<JsonValue>;
-using JsonObject = std::map<std::string, JsonValue>;
+using JsonObject = std::unordered_map<std::string, JsonValue>;
 
 class JsonValue {
 public:
