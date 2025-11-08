@@ -12,6 +12,7 @@
 #include "SDL3/SDL_surface.h"
 #include "SDL3/SDL_video.h"
 #include "UIHelper.h"
+#include <functional>
 #include <unordered_map>
 
 namespace fs = std::filesystem;

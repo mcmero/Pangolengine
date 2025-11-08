@@ -1,61 +1,63 @@
-[
-    {
-        "id": 0,
-        "speaker": "Anton",
-        "line": "Hello! This is a line of dialogue that I am speaking to you, the protagonist.",
-        "responses": [
-            {
-                "response": "Greetings! This is my response to you.",
-                "next": 1
-            },
-            {
-                "response": "I think I should leave",
-                "next": 3
-            },
-            {
-                "response": "I am ignoring you",
-                "next": -1
-            }
-        ],
-        "next": 1
-    },
-    {
-        "id": 1,
-        "speaker": "Anton",
-        "line": "Let me tell you about the dilemma that I would like you to solve for me.",
-        "responses": [
-            {
-                "response": "I'm not interested.",
-                "next": -1
-            },
-            {
-                "response": "Can you tell me more?",
-                "next": 2
-            }
-        ],
-        "next": -1
-    },
-    {
-        "id": 2,
-        "speaker": "Anton",
-        "line": "Here are some very pertinent details that are relevant to the case at hand. Now, go off and solve it!",
-        "responses": [
-            {
-                "response": "I'll get right on that!",
-                "next": 3
-            },
-            {
-                "response": "Actually, I'm not interested.",
-                "next": 0
-            }
-        ],
-        "next": 3
-    },
-    {
-        "id": 3,
-        "speaker": "Anton",
-        "line": "Off you go then!",
-        "responses": [],
-        "next": -1
-    }
-]
+{
+    "S001_Test": [
+        {
+            "id": 0,
+            "speaker": "Anton",
+            "line": "Hello! This is a line of dialogue that I am speaking to you, the protagonist.",
+            "responses": [
+                {
+                    "response": "Greetings! This is my response to you.",
+                    "next": 1
+                },
+                {
+                    "response": "I think I should leave",
+                    "next": 3
+                },
+                {
+                    "response": "I am ignoring you",
+                    "next": -1
+                }
+            ],
+            "next": 1
+        },
+        {
+            "id": 1,
+            "speaker": "Anton",
+            "line": "Let me tell you about the dilemma that I would like you to solve for me.",
+            "responses": [
+                {
+                    "response": "I'm not interested.",
+                    "next": -1
+                },
+                {
+                    "response": "Can you tell me more?",
+                    "next": 2
+                }
+            ],
+            "next": -1
+        },
+        {
+            "id": 2,
+            "speaker": "Anton",
+            "line": "Here are some very pertinent details that are relevant to the case at hand. Now, go off and solve it!",
+            "responses": [
+                {
+                    "response": "I'll get right on that!",
+                    "next": 3
+                },
+                {
+                    "response": "Actually, I'm not interested.",
+                    "next": 0
+                }
+            ],
+            "next": 3
+        },
+        {
+            "id": 3,
+            "speaker": "Anton",
+            "line": "Off you go then!",
+            "responses": [],
+            "next": -1
+        }
+    ]
+}
