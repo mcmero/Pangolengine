@@ -238,6 +238,10 @@ private:
   }
 
   void setScrollOffset(Direction dir) {
+    // Return if there are no responses to scroll
+    if (responseTextures.size() == 0)
+      return;
+
     // We can reset the scroll offset if we are at the first or last response
     if (selectedResponse == 0 || selectedResponse == responses.size() - 1) {
       scrollOffset = 0;
