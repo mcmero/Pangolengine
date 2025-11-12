@@ -32,7 +32,7 @@ public:
     std::unordered_map<std::string, MenuItem> mainMenuItems = {
       {"Graphics", {}},
       {"Audio", {}},
-      {"Gameplay", {}}
+      {"Exit", {}}
     };
     Menu mainMenu = {
       "Options",
@@ -65,7 +65,7 @@ public:
       SDL_SetRenderScale(renderer, 4.0f, 4.0f);
     };
     graphicsMenuItems["Resolution"].optionItems.push_back(setRes720p);
-    
+
     // Full screen mode
     OptionItem setFullScreen = {"Max"};
     setFullScreen.function = [](SDL_Renderer *renderer, SDL_Window *window){
@@ -83,10 +83,9 @@ public:
     Menu graphicsMenu = {
       "Graphics",
       graphicsMenuItems,
-      MenuType::Sub
+      MenuType::Settings
     };
     menus["Graphics"] = graphicsMenu;
-    //--------------------------------------------------------------------------
 
     // Link Graphics button to Graphics menu
     menus["Main"].menuItems["Graphics"].linkedMenu = &menus["Graphics"];
@@ -94,6 +93,41 @@ public:
     // Set up default option settings
     // Resolution = 1280x720
     menus["Graphics"].menuItems["Resolution"].selectedItem = 1;
+ 
+    //--------------------------------------------------------------------------
+    // Exit menu
+    //--------------------------------------------------------------------------
+
+    // render differently
+    std::unordered_map<std::string, MenuItem> exitMenuItems = {
+      {"Confirm", {}}
+    };
+
+    OptionItem exitGameConfirm = {"Yes"};
+    exitGameConfirm.function = [](SDL_Renderer *renderer, SDL_Window *window) {
+      // TODO: implement
+    };
+    exitMenuItems["Confirm"].optionItems.push_back(exitGameConfirm);
+
+    OptionItem exitGameCancel = {"No"};
+    exitGameConfirm.function = [](SDL_Renderer *renderer, SDL_Window *window) {
+
+    };
+    exitMenuItems["Confirm"].optionItems.push_back(exitGameCancel);
+
+    Menu exitMenu = {
+      "Exit game?",
+      exitMenuItems,
+      MenuType::Settings
+    };
+    menus["Exit"] = exitMenu;
+
+    // Link Graphics button to Graphics menu
+    menus["Main"].menuItems["Exit"].linkedMenu = &menus["Exit"];
+
+    // Default = No
+    menus["Exit"].menuItems["Confirm"].selectedItem = 1;
+    //--------------------------------------------------------------------------
 
     // Initialise main menu as active
     activeMenu = &menus["Main"];
@@ -166,7 +200,7 @@ public:
                                    spacingFactor);
         ++idx;
       }
-    } else if (show && activeMenu && activeMenu->menuType == MenuType::Sub) {
+    } else if (show && activeMenu && activeMenu->menuType == MenuType::Settings) {
       // Sub menus
       //------------------------------------------------------------------------
       // Render sub panel
@@ -283,11 +317,11 @@ public:
       if (!show)
         manager->trySetMenu(true);
       else if (manager->isMenuActive() &&
-               activeMenu->menuType == MenuType::Sub &&
+               activeMenu->menuType == MenuType::Settings &&
                mode == SelectMode::Item)
         activeMenu = &menus["Main"]; // go back to the main menu
       else if (manager->isMenuActive() &&
-               activeMenu->menuType == MenuType::Sub &&
+               activeMenu->menuType == MenuType::Settings &&
                mode == SelectMode::Option)
         mode = SelectMode::Item; // go back to item selection
       else
@@ -377,6 +411,7 @@ private:
 
   SDL_FRect mainMenuRect = SDL_FRect(120.0f, 42.0f, 80.0f, 80.0f);
   SDL_FRect subMenuRect = SDL_FRect(100.0f, 42.0f, 140.0f, 60.0f);
+  SDL_FRect confirmMenuRect = SDL_FRect(120.0f, 60.0f, 80.0f, 60.0f);
 
   float borderThickness = 2.0f;
   float pointsize = 14.0f;
@@ -393,7 +428,7 @@ private:
   SDL_Color buttonTextColour = {0, 0, 0};            // Black
   SDL_Color buttonTextSelectColour = {104, 31, 31};  // Dark red
 
-  enum class MenuType { Main, Sub };
+  enum class MenuType { Main, Settings, Choice };
   struct MenuItem; // Forward definition
   struct Menu {
     std::string headerText = "";
