@@ -5,6 +5,7 @@
 #include "IUIManager.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_filesystem.h"
+#include "SDL3/SDL_init.h"
 #include "SDL3/SDL_keycode.h"
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
@@ -100,33 +101,32 @@ public:
 
     // render differently
     std::unordered_map<std::string, MenuItem> exitMenuItems = {
-      {"Confirm", {}}
+      {"Yes", {}},
+      {"No", {}}
     };
 
     OptionItem exitGameConfirm = {"Yes"};
     exitGameConfirm.function = [](SDL_Renderer *renderer, SDL_Window *window) {
-      // TODO: implement
+      SDL_Quit();
     };
-    exitMenuItems["Confirm"].optionItems.push_back(exitGameConfirm);
+    exitMenuItems["Yes"].optionItems.push_back(exitGameConfirm);
 
     OptionItem exitGameCancel = {"No"};
     exitGameConfirm.function = [](SDL_Renderer *renderer, SDL_Window *window) {
 
     };
-    exitMenuItems["Confirm"].optionItems.push_back(exitGameCancel);
+    exitMenuItems["No"].optionItems.push_back(exitGameCancel);
 
     Menu exitMenu = {
       "Exit game?",
       exitMenuItems,
-      MenuType::Settings
+      MenuType::Choice
     };
     menus["Exit"] = exitMenu;
 
     // Link Graphics button to Graphics menu
     menus["Main"].menuItems["Exit"].linkedMenu = &menus["Exit"];
 
-    // Default = No
-    menus["Exit"].menuItems["Confirm"].selectedItem = 1;
     //--------------------------------------------------------------------------
 
     // Initialise main menu as active
@@ -301,8 +301,67 @@ public:
             Align::Top
           );
           TextureManager::DrawText(optTextProps, optionContainer);
-
         }
+        ++idx;
+      }
+    } else if (show && activeMenu && activeMenu->menuType == MenuType::Choice) {
+      // Choice menu
+      //------------------------------------------------------------------------
+      // Render main panel
+      SDL_FRect borderRect = UIHelper::getBorderRect(
+          choiceMenuRect.x,
+          choiceMenuRect.y,
+          choiceMenuRect.w,
+          choiceMenuRect.h,
+          borderThickness
+      );
+      SDL_FRect innerRect = UIHelper::getInnerRect(
+          choiceMenuRect.x,
+          choiceMenuRect.y,
+          choiceMenuRect.w,
+          choiceMenuRect.h
+      );
+      TextureManager::DrawPanel(borderRect, innerRect,
+                                borderColour, innerColour);
+
+      TextProperties headerProps = {
+          activeMenu->headerText,
+          pointsize,
+          SCREEN_WIDTH,
+          textColour,
+          Align::Center,
+          Align::Top
+      };
+      TextureManager::DrawText(headerProps, innerRect);
+ 
+      // Render buttons
+      int idx = 0;
+      for (const auto &item : activeMenu->menuItems) {
+        // Change text colour if button is selected
+        SDL_Color currentTextColour = buttonTextColour;
+        if (selectedItem == idx)
+          currentTextColour = buttonTextSelectColour;
+
+        TextProperties textProps = {
+            item.first,
+            pointsize,
+            SCREEN_WIDTH,
+            currentTextColour,
+            Align::Center,
+            Align::Top,
+            textOffset
+        };
+        ButtonProperties buttonProps = {
+            buttonSize,
+            buttonColour,
+            Align::Center,
+            Align::Top,
+            textProps
+        };
+        float spacingFactor =
+            itemSpacing * (static_cast<float>(idx) + 1.0f) + 5.0f;
+        TextureManager::DrawButton(buttonProps, innerRect,
+                                   spacingFactor);
         ++idx;
       }
     }
@@ -317,7 +376,8 @@ public:
       if (!show)
         manager->trySetMenu(true);
       else if (manager->isMenuActive() &&
-               activeMenu->menuType == MenuType::Settings &&
+               (activeMenu->menuType == MenuType::Settings ||
+                activeMenu->menuType == MenuType::Choice) &&
                mode == SelectMode::Item)
         activeMenu = &menus["Main"]; // go back to the main menu
       else if (manager->isMenuActive() &&
@@ -381,9 +441,13 @@ public:
         if (mode == SelectMode::Item && selectedMenu->second.linkedMenu) {
           // Set new active menu
           activeMenu = selectedMenu->second.linkedMenu;
+          selectedItem = 0;
         } else if (mode == SelectMode::Item && options && options->size() > 0) {
           // Switch to option selection mode
           mode = SelectMode::Option;
+          // TODO: handle selecting choice item -- which triggers the function
+          // call of the first option item (or all the function calls?)-- there is
+          // probably also a better way to do this
         } else if (mode == SelectMode::Option && options && options->size() > 0) {
           // Make sure selection is valid
           if (selectedMenu->second.selectedItem >= 0 &&
@@ -411,7 +475,7 @@ private:
 
   SDL_FRect mainMenuRect = SDL_FRect(120.0f, 42.0f, 80.0f, 80.0f);
   SDL_FRect subMenuRect = SDL_FRect(100.0f, 42.0f, 140.0f, 60.0f);
-  SDL_FRect confirmMenuRect = SDL_FRect(120.0f, 60.0f, 80.0f, 60.0f);
+  SDL_FRect choiceMenuRect = SDL_FRect(120.0f, 60.0f, 80.0f, 60.0f);
 
   float borderThickness = 2.0f;
   float pointsize = 14.0f;
