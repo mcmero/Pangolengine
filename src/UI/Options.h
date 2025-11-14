@@ -33,7 +33,7 @@ public:
     std::unordered_map<std::string, MenuItem> mainMenuItems = {
       {"Graphics", {}},
       {"Audio", {}},
-      {"Exit", {}}
+      {"Quit", {}}
     };
     Menu mainMenu = {
       "Options",
@@ -100,32 +100,32 @@ public:
     //--------------------------------------------------------------------------
 
     // render differently
-    std::unordered_map<std::string, MenuItem> exitMenuItems = {
+    std::unordered_map<std::string, MenuItem> quitMenuItems = {
       {"Yes", {}},
       {"No", {}}
     };
 
-    OptionItem exitGameConfirm = {"Yes"};
-    exitGameConfirm.function = [](SDL_Renderer *renderer, SDL_Window *window) {
-      SDL_Quit();
+    OptionItem quitGameConfirm = {"Yes"};
+    quitGameConfirm.function = [](SDL_Renderer *renderer, SDL_Window *window) {
+      std::cout << "QUIT GAME!" << std::endl;
     };
-    exitMenuItems["Yes"].optionItems.push_back(exitGameConfirm);
+    quitMenuItems["Yes"].optionItems.push_back(quitGameConfirm);
 
-    OptionItem exitGameCancel = {"No"};
-    exitGameConfirm.function = [](SDL_Renderer *renderer, SDL_Window *window) {
-
+    OptionItem quitGameCancel = {"No"};
+    quitGameCancel.function = [this](SDL_Renderer *renderer, SDL_Window *window) {
+      activeMenu = &menus["Main"]; // go back to the main menu
     };
-    exitMenuItems["No"].optionItems.push_back(exitGameCancel);
+    quitMenuItems["No"].optionItems.push_back(quitGameCancel);
 
-    Menu exitMenu = {
-      "Exit game?",
-      exitMenuItems,
+    Menu quitMenu = {
+      "Really quit?",
+      quitMenuItems,
       MenuType::Choice
     };
-    menus["Exit"] = exitMenu;
+    menus["Quit"] = quitMenu;
 
     // Link Graphics button to Graphics menu
-    menus["Main"].menuItems["Exit"].linkedMenu = &menus["Exit"];
+    menus["Main"].menuItems["Quit"].linkedMenu = &menus["Quit"];
 
     //--------------------------------------------------------------------------
 
@@ -443,11 +443,15 @@ public:
           activeMenu = selectedMenu->second.linkedMenu;
           selectedItem = 0;
         } else if (mode == SelectMode::Item && options && options->size() > 0) {
-          // Switch to option selection mode
-          mode = SelectMode::Option;
-          // TODO: handle selecting choice item -- which triggers the function
-          // call of the first option item (or all the function calls?)-- there is
-          // probably also a better way to do this
+          if (activeMenu->menuType == MenuType::Choice) {
+            assert(options->size() == 1 &&
+                   "Choice menu item can only have one option");
+            // Select the option directly
+            itemSet = &(*options)[0];
+          } else {
+            // Switch to option selection mode
+            mode = SelectMode::Option;
+          }
         } else if (mode == SelectMode::Option && options && options->size() > 0) {
           // Make sure selection is valid
           if (selectedMenu->second.selectedItem >= 0 &&
