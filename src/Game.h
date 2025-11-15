@@ -19,6 +19,7 @@ public:
   void update();
   void render();
   void clean();
+  void quit();
 
   bool isRunning() const { return running; }
 

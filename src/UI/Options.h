@@ -5,7 +5,6 @@
 #include "IUIManager.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_filesystem.h"
-#include "SDL3/SDL_init.h"
 #include "SDL3/SDL_keycode.h"
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
@@ -106,8 +105,8 @@ public:
     };
 
     OptionItem quitGameConfirm = {"Yes"};
-    quitGameConfirm.function = [](SDL_Renderer *renderer, SDL_Window *window) {
-      std::cout << "QUIT GAME!" << std::endl;
+    quitGameConfirm.function = [this](SDL_Renderer *renderer, SDL_Window *window) {
+      this->manager->setRequestExit(true);
     };
     quitMenuItems["Yes"].optionItems.push_back(quitGameConfirm);
 

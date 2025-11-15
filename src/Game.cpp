@@ -209,6 +209,10 @@ void Game::update() {
 
   uiManager->update(intObject, dialogue);
   updateCamera();
+
+  // Check whether exit was requested by in menu
+  if (uiManager->getRequestExit())
+    quit();
 }
 
 void Game::render() {
@@ -271,9 +275,10 @@ void Game::clean() {
     sprite->clean();
 
   registry.clear();
+}
 
-  // No need to destroy window and renderer as they are managed outside
-  SDL_Quit();
+void Game::quit() {
+  running = false;
 }
 
 void Game::unloadMap() {

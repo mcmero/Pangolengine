@@ -53,10 +53,15 @@ public:
 
   bool isMenuActive() const override { return menuActive; }
 
+  // Handle request to exit to game
+  void setRequestExit(bool v) override { requestExit = v;}
+  bool getRequestExit() const override { return requestExit; };
+
 private:
   Grid grid;
   bool menuActive = false;
   bool interactionActive = false;
+  bool requestExit = false;
 
   float pointsize = 14.0f;
   SDL_Color fontColour = {255, 255, 255};

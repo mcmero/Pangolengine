@@ -90,7 +90,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
   auto *app = (AppContext *)appstate;
 
   if (event->type == SDL_EVENT_QUIT) {
-    app->app_quit = SDL_APP_SUCCESS;
+    app->game.quit();
   } else {
     app->game.handleEvents(event);
   }
@@ -100,6 +100,10 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 
 SDL_AppResult SDL_AppIterate(void *appstate) {
   auto *app = (AppContext *)appstate;
+
+  if (!app->game.isRunning()) {
+    return SDL_APP_SUCCESS;
+  }
 
   auto frameStart = SDL_GetTicks();
   float deltaTime = 1.0f / 60.0f;
