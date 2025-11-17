@@ -11,6 +11,7 @@
 #include "SDL3/SDL_render.h"
 #include "SDL3/SDL_surface.h"
 #include "SDL3/SDL_video.h"
+#include "SDL3_mixer/SDL_mixer.h"
 #include "UIHelper.h"
 #include <functional>
 #include <unordered_map>
@@ -41,6 +42,7 @@ public:
     };
     menus["Main"] = mainMenu;
 
+    //--------------------------------------------------------------------------
     // Graphics options
     //--------------------------------------------------------------------------
     std::unordered_map<std::string, MenuItem> graphicsMenuItems = {
@@ -93,12 +95,44 @@ public:
     // Set up default option settings
     // Resolution = 1280x720
     menus["Graphics"].menuItems["Resolution"].selectedItem = 1;
+
+    //--------------------------------------------------------------------------
+    // Audio options
+    //--------------------------------------------------------------------------
+    std::unordered_map<std::string, MenuItem> audioMenuItems = {
+      {"Volume", {}},
+    };
+
+    // Volume options (levels)
+    OptionItem set50 = {"50"};
+    set50.function = [](SDL_Renderer *renderer, SDL_Window *window){
+      Mix_VolumeMusic(static_cast<int>(MIX_MAX_VOLUME * 0.5));
+    };
+    audioMenuItems["Volume"].optionItems.push_back(set50);
+ 
+    OptionItem set100 = {"100"};
+    set100.function = [](SDL_Renderer *renderer, SDL_Window *window){
+      Mix_VolumeMusic(MIX_MAX_VOLUME);
+    };
+    audioMenuItems["Volume"].optionItems.push_back(set100);
+
+    Menu audioMenu = {
+      "Audio",
+      audioMenuItems,
+      MenuType::Settings
+    };
+    menus["Audio"] = audioMenu;
+
+    // Link Graphics button to Graphics menu
+    menus["Main"].menuItems["Audio"].linkedMenu = &menus["Audio"];
+
+    // Set up default option settings
+    // Resolution = 1280x720
+    menus["Audio"].menuItems["Volume"].selectedItem = 1;
  
     //--------------------------------------------------------------------------
     // Exit menu
     //--------------------------------------------------------------------------
-
-    // render differently
     std::unordered_map<std::string, MenuItem> quitMenuItems = {
       {"Yes", {}},
       {"No", {}}

@@ -58,9 +58,9 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   uiManager = new UIManager();
 
   // Load music
-  // std::string level1Music = (assetsPath / "audio" / "walking.ogg").string();
-  // auto music = Mix_LoadMUS(level1Music.c_str());
-  // Mix_PlayMusic(music, 2);
+   std::string level1Music = (assetsPath / "audio" / "walking.ogg").string();
+   auto music = Mix_LoadMUS(level1Music.c_str());
+   Mix_PlayMusic(music, -1);
 
   return true;
 }
