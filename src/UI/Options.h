@@ -104,17 +104,14 @@ public:
     };
 
     // Volume options (levels)
-    OptionItem set50 = {"50"};
-    set50.function = [](SDL_Renderer *renderer, SDL_Window *window){
-      Mix_VolumeMusic(static_cast<int>(MIX_MAX_VOLUME * 0.5));
-    };
-    audioMenuItems["Volume"].optionItems.push_back(set50);
- 
-    OptionItem set100 = {"100"};
-    set100.function = [](SDL_Renderer *renderer, SDL_Window *window){
-      Mix_VolumeMusic(MIX_MAX_VOLUME);
-    };
-    audioMenuItems["Volume"].optionItems.push_back(set100);
+    for (int i = 10; i >= 0; --i) {
+      OptionItem level = {std::to_string(i * 10)};
+      level.function = [i](SDL_Renderer *renderer, SDL_Window *window){
+        float volume = std::round(MIX_MAX_VOLUME * float(i) / 10.0f);
+        Mix_VolumeMusic(static_cast<int>(volume));
+      };
+      audioMenuItems["Volume"].optionItems.push_back(level);
+    }
 
     Menu audioMenu = {
       "Audio",
@@ -127,8 +124,7 @@ public:
     menus["Main"].menuItems["Audio"].linkedMenu = &menus["Audio"];
 
     // Set up default option settings
-    // Resolution = 1280x720
-    menus["Audio"].menuItems["Volume"].selectedItem = 1;
+    menus["Audio"].menuItems["Volume"].selectedItem = 0; // Full volume
  
     //--------------------------------------------------------------------------
     // Exit menu
