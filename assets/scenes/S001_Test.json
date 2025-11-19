@@ -3,6 +3,7 @@
         {
             "id": 0,
             "speaker": "Anton",
+            "portrait": "npc_portrait.png",
             "line": "Hello! This is a line of dialogue that I am speaking to you, the protagonist.",
             "responses": [
                 {
@@ -23,6 +24,7 @@
         {
             "id": 1,
             "speaker": "Anton",
+            "portrait": "",
             "line": "Let me tell you about the dilemma that I would like you to solve for me.",
             "responses": [
                 {
@@ -39,6 +41,7 @@
         {
             "id": 2,
             "speaker": "Anton",
+            "portrait": "",
             "line": "Here are some very pertinent details that are relevant to the case at hand. Now, go off and solve it!",
             "responses": [
                 {
@@ -55,6 +58,7 @@
         {
             "id": 3,
             "speaker": "Anton",
+            "portrait": "",
             "line": "Off you go then!",
             "responses": [],
             "next": -1

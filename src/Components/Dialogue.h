@@ -15,6 +15,7 @@ struct Response {
 struct DialogueNode {
   int id;
   std::string speaker;
+  std::string portrait;
   std::string line;
   std::vector<Response> responses;
 };
@@ -49,6 +50,7 @@ public:
         dialogueTree.push_back({
           static_cast<int>(jnode.at("id").getNumber()),
           jnode.at("speaker").getString(),
+          jnode.at("portrait").getString(),
           jnode.at("line").getString(),
           responses
         });
@@ -69,6 +71,8 @@ public:
       throw std::runtime_error("Dialogue tree is empty.");
     }
   }
+
+  // TODO: clean up this repetitive code
   std::string getLine() {
     DialogueNode *node = getNodeFromId(currentNode);
     if (node != nullptr) {
@@ -81,6 +85,14 @@ public:
     DialogueNode *node = getNodeFromId(currentNode);
     if (node != nullptr) {
       return node->speaker;
+    }
+    throw std::runtime_error("Current node is not valid.");
+  }
+
+  std::string getPortrait() {
+    DialogueNode *node = getNodeFromId(currentNode);
+    if (node != nullptr) {
+      return node->portrait;
     }
     throw std::runtime_error("Current node is not valid.");
   }

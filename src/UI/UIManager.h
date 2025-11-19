@@ -17,7 +17,7 @@ public:
         dialogueBoxColour, pointsize, fontColour));
     grid.addChild(std::make_shared<PortraitPanel>(
         36.0f, 130.0f, 36.0f, 36.0f, 2.0f, dialogueBorderColour,
-        dialogueBoxColour, npcPortrait.c_str()));
+        dialogueBoxColour));
     grid.addChild(std::make_shared<DialogueResponsePanel>(
         80.0f, 10.0f, 220.0f, 40.0f, 2.0f, dialogueBorderColour,
         dialogueBoxColour, pointsize, fontColour, selectColour));
@@ -69,9 +69,4 @@ private:
   SDL_Color dialogueBorderColour = {0, 0, 0};
   SDL_Color dialogueBoxColour = {51, 64, 113};
   SDL_Color menuBorderColour = {208, 199, 125};
-
-  // TODO: add portrait location to dialogue sheet
-  fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
-  std::string npcPortrait =
-      (assetsPath / "textures" / "npc_portrait.png").string();
 };

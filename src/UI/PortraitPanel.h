@@ -2,6 +2,7 @@
 
 #include "../TextureManager.h"
 #include "IUIComponent.h"
+#include "SDL3/SDL_filesystem.h"
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
@@ -11,14 +12,12 @@ class PortraitPanel : public IUIComponent {
 public:
   PortraitPanel(float xpos, float ypos, float width, float height,
                 float borderThickness, SDL_Color borderColour,
-                SDL_Color innerColour, const char *texturePath)
+                SDL_Color innerColour)
       : borderRect(UIHelper::getBorderRect(xpos, ypos, width, height,
                                            borderThickness)),
         innerRect(UIHelper::getInnerRect(xpos, ypos, width, height)),
         portraitRect({xpos, ypos, width, height}), borderColour(borderColour),
-        innerColour(innerColour) {
-    portraitTex = TextureManager::LoadTexture(texturePath);
-  }
+        innerColour(innerColour) {}
 
   void render(SDL_Renderer *renderer, SDL_Window *window) override {
     if (show) {
@@ -33,6 +32,18 @@ public:
   void update(Interactable *interactable, Dialogue *dialogue) override {
     if (interactable != nullptr && interactable->active) {
       show = true;
+
+      // Get the current portrait
+      std::string portrait = dialogue->getPortrait();
+      if (portrait != "" && portrait != lastPortrait) {
+        std::string portraitPath = (texPath / dialogue->getPortrait()).string();
+
+        // Destroy previous texture
+        SDL_DestroyTexture(portraitTex);
+
+        // Create a new one
+        portraitTex = TextureManager::LoadTexture(portraitPath.c_str());
+      }
     } else
       show = false;
   }
@@ -48,5 +59,7 @@ private:
   SDL_Color borderColour;
   SDL_Color innerColour;
 
+  fs::path texPath = fs::path(SDL_GetBasePath()) / "assets" / "textures";
+  std::string lastPortrait;
   SDL_Texture *portraitTex;
 };
