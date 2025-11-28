@@ -12,12 +12,11 @@
 //------------------------------------------------------------------------------
 struct TsxToken {
   enum class Type {
-    ElementStart,   // <
+    ElementStart,   // <abc123
     ElementClose,   // >
     ElementEnd,     // />
-    PIStart,        // <?
+    PIStart,        // <?xml
     PIEnd,          // ?>
-    Element,        // abc123 at start/end of tag
     Attribute,      // abc123 within a tag
     Equals,         // =
     String,         // ".."

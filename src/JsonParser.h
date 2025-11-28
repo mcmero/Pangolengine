@@ -1,10 +1,7 @@
 #pragma once
 
+#include "Tokeniser.h"
 #include <cassert>
-#include <cstdint>
-#include <iostream>
-#include <istream>
-#include <optional>
 #include <string>
 #include <unordered_map>
 #include <variant>
@@ -13,7 +10,8 @@
 //------------------------------------------------------------------------------
 // Tokenizer
 //------------------------------------------------------------------------------
-struct JsonToken {
+class JsonToken : public IToken {
+public:
   enum class Type {
     LeftBrace,      // {
     RightBrace,     // }
@@ -28,37 +26,26 @@ struct JsonToken {
     Null,           // null
     EndOfFile,
     Error
-  } type;
+  };
 
-  std::string value = "";
+  JsonToken(
+    Type tokenType,
+    const std::string& value = "",
+    uint32_t line = 1,
+    uint32_t col = 1
+  );
 
-  uint32_t line = 1;
-  uint32_t column = 1;
+  Type type;
+
+  std::unique_ptr<IToken> clone() const override {
+      return std::make_unique<JsonToken>(*this);
+  }
 };
 
-class JsonTokeniser {
+class JsonTokeniser : public Tokeniser {
 public:
   JsonTokeniser(std::istream &in);
-
-  JsonToken getToken();
-  JsonToken peekToken();
-
-private:
-  std::istream &in;
-  std::optional<JsonToken> lookahead_;
-  uint32_t line = 1;
-  uint32_t column = 1;
-
-  JsonToken getTokenImpl();
-  void skipWhitespace();
-  int getChar();
-  JsonToken makeToken(std::string value, JsonToken::Type type,
-                      uint32_t startLine, uint32_t startCol);
-  std::string parseString();
-  std::string parseAlpha();
-  std::string parseNumber();
-  std::string parseDigits();
-  [[noreturn]] void raiseError(std::string message);
+  std::unique_ptr<IToken> getTokenImpl() override;
 };
 
 //------------------------------------------------------------------------------
