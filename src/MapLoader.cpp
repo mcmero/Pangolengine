@@ -1,6 +1,7 @@
 #include "MapLoader.h"
 #include "Components/Transform.h"
 #include "JsonParser.h"
+#include "TsxParser.h"
 #include "SDL3/SDL_filesystem.h"
 #include "third_party/tinyxml2/tinyxml2.h"
 #include <exception>

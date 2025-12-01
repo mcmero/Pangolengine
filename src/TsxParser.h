@@ -1,8 +1,8 @@
 #pragma once
 
-#include <optional>
 #include <string>
 #include <unordered_map>
+#include "Tokeniser.h"
 
 // This is a simple, minimal XML parser that will handle only the features found
 // in the tileset tsx file format
@@ -10,7 +10,8 @@
 //------------------------------------------------------------------------------
 // Tokenizer
 //------------------------------------------------------------------------------
-struct TsxToken {
+class TsxToken : public IToken {
+public:
   enum class Type {
     ElementStart,   // <abc123
     ElementClose,   // >
@@ -22,35 +23,26 @@ struct TsxToken {
     String,         // ".."
     EndOfFile,
     Error
-  } type;
+  };
 
-  std::string value = "";
+  TsxToken(
+    Type tokenType,
+    const std::string& value = "",
+    uint32_t line = 1,
+    uint32_t col = 1
+  );
 
-  uint32_t line = 1;
-  uint32_t column = 1;
+  Type type;
+
+  std::unique_ptr<IToken> clone() const override {
+      return std::make_unique<TsxToken>(*this);
+  }
 };
 
-class TsxTokeniser {
+class TsxTokeniser : public Tokeniser {
 public:
   TsxTokeniser(std::istream &in);
-
-  TsxToken getToken();
-  TsxToken peekToken();
-
-private:
-  std::istream &in;
-  std::optional<TsxToken> lookahead_;
-  uint32_t line = 1;
-  uint32_t column = 1;
-
-  TsxToken getTokenImpl();
-  void skipWhitespace();
-  int getChar();
-  TsxToken makeToken(std::string value, TsxToken::Type type,
-                         uint32_t startLine, uint32_t startCol);
-  std::string parseString();
-  std::string parseAlpha();
-  [[noreturn]] void raiseError(std::string message);
+  std::unique_ptr<IToken> getTokenImpl() override;
 };
 
 //------------------------------------------------------------------------------
