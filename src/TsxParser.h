@@ -15,7 +15,7 @@ public:
   enum class Type {
     ElementStart,   // <abc123
     ElementClose,   // >
-    ElementEnd,     // />
+    ElementEnd,     // /> or </abc123>
     PIStart,        // <?xml
     PIEnd,          // ?>
     Attribute,      // abc123 within a tag
@@ -53,6 +53,7 @@ class TsxNode {
 public:
   TsxNode *subNode = nullptr;
 
+  TsxNode();
   TsxNode(std::string name);
 
   void addAttribute(std::string name, std::string value);
@@ -63,7 +64,8 @@ public:
   const std::string& getValue(std::string attribute) const;
 
 private:
-  std::unordered_map<std::string, std::string> element;
+  std::string name;
+  std::unordered_map<std::string, std::string> attributes;
 };
 
 //------------------------------------------------------------------------------
@@ -75,5 +77,6 @@ public:
   static TsxNode parseTsx(const std::string &file);
 
 private:
+  static TsxNode parseNode(TsxTokeniser &tokeniser);
   static void raiseError(const TsxToken &token, const std::string &message);
 };

@@ -142,6 +142,9 @@ MapData MapLoader::LoadMap() {
     tinyxml2::XMLDocument doc;
     tinyxml2::XMLError eResult = doc.LoadFile(tilesetFile.string().c_str());
 
+    // JUST FOR TESTING
+    //TsxNode node = TsxParser::parseTsx(tilesetFile.string());
+
     if (eResult != tinyxml2::XML_SUCCESS) {
       throw std::runtime_error(
           "Error loading XML file: " + tilesetFile.string() +

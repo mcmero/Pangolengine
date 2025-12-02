@@ -43,6 +43,7 @@ PRIVATE
     src/Collision.cpp
     src/Tokeniser.cpp
     src/JsonParser.cpp
+    src/TsxParser.cpp
     src/Components/Components.h
     src/Components/ECS.h
     src/UI/UIManager.h
