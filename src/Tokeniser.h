@@ -37,7 +37,7 @@ protected:
   int getChar();
 
   std::string parseString();
-  std::string parseAlpha();
+  std::string parseAlpha(const char terminators[] = ",]}");
   std::string parseNumber();
   std::string parseDigits();
 

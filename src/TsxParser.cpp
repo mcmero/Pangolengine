@@ -36,7 +36,7 @@ std::unique_ptr<IToken> TsxTokeniser::getTokenImpl() {
 
     if (ch == '/') {
       getChar();
-      std::string str = parseAlpha();
+      std::string str = parseAlpha("=>");
       ch = in.peek();
       if (ch == '>') {
         getChar();
@@ -46,13 +46,13 @@ std::unique_ptr<IToken> TsxTokeniser::getTokenImpl() {
       }
     } else if (ch == '?') {
       getChar();
-      std::string str = parseAlpha();
+      std::string str = parseAlpha("=>");
       if (str == "xml")
         return makeToken<TsxToken>(
           TsxToken::Type::PIStart, "<?xml", line, column
         );
     } else {
-      std::string str = parseAlpha();
+      std::string str = parseAlpha("=>");
       return makeToken<TsxToken>(
         TsxToken::Type::ElementStart, "<" + str, line, column
       );
@@ -89,7 +89,7 @@ std::unique_ptr<IToken> TsxTokeniser::getTokenImpl() {
       TsxToken::Type::ElementEnd, ">", line, column
     );
   } else {
-    std::string str = parseAlpha();
+    std::string str = parseAlpha("=>");
     return makeToken<TsxToken>(
       TsxToken::Type::Attribute, str, line, column
     );
@@ -101,9 +101,6 @@ std::unique_ptr<IToken> TsxTokeniser::getTokenImpl() {
     startLine, startCol
   );
 }
-
-// TODO: make parseAlpha specific to Tsx parser (need to stop parsing when we
-// get to different chars, such as '=')
 
 //------------------------------------------------------------------------------
 // TsxValue Implementation

@@ -89,7 +89,7 @@ std::string Tokeniser::parseString() {
   return result.str();
 }
 
-std::string Tokeniser::parseAlpha() {
+std::string Tokeniser::parseAlpha(const char terminators[]) {
   int ch;
 
   std::stringstream result;
@@ -103,7 +103,9 @@ std::string Tokeniser::parseAlpha() {
 
     if (isalpha(static_cast<unsigned char>(ch)))
       result << static_cast<char>(getChar());
-    else if (ch == ',' || ch == '}' || ch == ']' || std::isspace(static_cast<unsigned char>(ch)))
+    else if (std::isspace(static_cast<unsigned char>(ch)) ||
+             memchr(terminators, static_cast<unsigned char>(ch),
+                    strlen(terminators)))
       break;
     else
       raiseError(errorMsg);
