@@ -29,6 +29,7 @@ std::unique_ptr<IToken> TsxTokeniser::getTokenImpl() {
 
   uint32_t startLine = line;
   uint32_t startCol  = column;
+  const char terminators[] = "=>";
 
   if (ch == '<') {
     getChar();
@@ -36,23 +37,23 @@ std::unique_ptr<IToken> TsxTokeniser::getTokenImpl() {
 
     if (ch == '/') {
       getChar();
-      std::string str = parseAlpha("=>");
+      std::string str = parseAlpha(terminators);
       ch = in.peek();
       if (ch == '>') {
         getChar();
         return makeToken<TsxToken>(
-          TsxToken::Type::ElementEnd, "</" + str, line, column
+          TsxToken::Type::ElementEnd, "</" + str + ">", line, column
         );
       }
     } else if (ch == '?') {
       getChar();
-      std::string str = parseAlpha("=>");
+      std::string str = parseAlpha(terminators);
       if (str == "xml")
         return makeToken<TsxToken>(
           TsxToken::Type::PIStart, "<?xml", line, column
         );
     } else {
-      std::string str = parseAlpha("=>");
+      std::string str = parseAlpha(terminators);
       return makeToken<TsxToken>(
         TsxToken::Type::ElementStart, "<" + str, line, column
       );
@@ -60,10 +61,12 @@ std::unique_ptr<IToken> TsxTokeniser::getTokenImpl() {
   } else if (ch == '?') {
     getChar();
     ch = in.peek();
-    if (ch == '>')
+    if (ch == '>') {
+      getChar();
       return makeToken<TsxToken>(
         TsxToken::Type::PIEnd, "?>", line, column
       );
+    }
   } else if (ch == '/') {
     getChar();
     ch = in.peek();
@@ -89,7 +92,7 @@ std::unique_ptr<IToken> TsxTokeniser::getTokenImpl() {
       TsxToken::Type::ElementEnd, ">", line, column
     );
   } else {
-    std::string str = parseAlpha("=>");
+    std::string str = parseAlpha(terminators);
     return makeToken<TsxToken>(
       TsxToken::Type::Attribute, str, line, column
     );
@@ -128,17 +131,17 @@ TsxNode TsxParser::parseTsx(const std::string &file) {
 TsxNode TsxParser::parseNode(TsxTokeniser &tokeniser) {
   TsxNode node = {};
 
-  std::unique_ptr<IToken> token = tokeniser.getToken();
+  std::unique_ptr<IToken> token = tokeniser.peekToken();
   TsxToken* tsxToken = dynamic_cast<TsxToken*>(token.get());
   if (tsxToken->type != TsxToken::Type::PIStart)
       throw std::runtime_error(
-      "Unexpected character found at start of object. Expected brace"
+      "Unexpected character found at start of object. Expected PI start (<?xml)."
       );
+  token = tokeniser.getToken();
 
   while (true) {
-    token = tokeniser.peekToken();
-    std::unique_ptr<IToken> token = tokeniser.getToken();
-    TsxToken* tsxToken = dynamic_cast<TsxToken*>(token.get());
+    token = tokeniser.getToken();
+    tsxToken = dynamic_cast<TsxToken*>(token.get());
     if (tsxToken->type == TsxToken::Type::EndOfFile)
       break;
   }
