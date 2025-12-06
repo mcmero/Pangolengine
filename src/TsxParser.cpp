@@ -112,6 +112,10 @@ std::unique_ptr<IToken> TsxTokeniser::getTokenImpl() {
 TsxNode::TsxNode() : name("") {}
 TsxNode::TsxNode(std::string name) : name(name) {}
 
+void TsxNode::addAttribute(std::string name, std::string value) {
+  attributes[name] = value;
+}
+
 //------------------------------------------------------------------------------
 // TxsParser Implementation
 //------------------------------------------------------------------------------
@@ -123,23 +127,61 @@ TsxNode TsxParser::parseTsx(const std::string &file) {
     ss << "Failed to open file: " << file << std::endl;
     throw std::runtime_error(ss.str());
   }
-
   TsxTokeniser tokeniser {f};
+
+  // Parse <?xml tags at start of file
+  std::unique_ptr<IToken> token = tokeniser.getToken();
+  TsxToken* tsxToken = dynamic_cast<TsxToken*>(token.get());
+  if (tsxToken->type != TsxToken::Type::PIStart)
+    throw std::runtime_error(
+    "Unexpected character found at start of object. Expected PI start (<?xml)."
+    );
+
+  TsxNode node = {"xml"};
+  while(true) {
+    token = tokeniser.peekToken();
+    tsxToken = dynamic_cast<TsxToken*>(token.get());
+    if (tsxToken->type == TsxToken::Type::EndOfFile)
+      throw std::runtime_error(
+      "Unexpected end of file encountered."
+      );
+    else if (tsxToken->type == TsxToken::Type::Attribute) {
+      token = tokeniser.getToken(); // Consume
+      std::string attribute = std::string(token->value);
+
+      token = tokeniser.getToken(); // Now check for equals
+      tsxToken = dynamic_cast<TsxToken*>(token.get());
+      if (tsxToken->type != TsxToken::Type::Equals)
+        throw std::runtime_error(
+        "Expected equals (=) after attribute."
+        );
+
+      token = tokeniser.getToken(); // Get value
+      tsxToken = dynamic_cast<TsxToken*>(token.get());
+      if (tsxToken->type != TsxToken::Type::String)
+        throw std::runtime_error(
+        "Expected string value after attribute equals sign."
+        );
+
+      node.addAttribute(attribute, token->value);
+    } else if (tsxToken->type == TsxToken::Type::PIEnd)
+      break;
+    else {
+      throw std::runtime_error(
+      "Unexpected token: " + token->value
+      );
+    }
+  }
+
   return parseNode(tokeniser);
 }
 
 TsxNode TsxParser::parseNode(TsxTokeniser &tokeniser) {
   TsxNode node = {};
 
-  std::unique_ptr<IToken> token = tokeniser.peekToken();
-  TsxToken* tsxToken = dynamic_cast<TsxToken*>(token.get());
-  if (tsxToken->type != TsxToken::Type::PIStart)
-      throw std::runtime_error(
-      "Unexpected character found at start of object. Expected PI start (<?xml)."
-      );
-  token = tokeniser.getToken();
-
   while (true) {
+    std::unique_ptr<IToken> token = tokeniser.peekToken();
+    TsxToken* tsxToken = dynamic_cast<TsxToken*>(token.get());
     token = tokeniser.getToken();
     tsxToken = dynamic_cast<TsxToken*>(token.get());
     if (tsxToken->type == TsxToken::Type::EndOfFile)

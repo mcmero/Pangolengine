@@ -65,7 +65,7 @@ public:
 
 private:
   std::string name;
-  std::unordered_map<std::string, std::string> attributes;
+  std::unordered_map<std::string, std::string> attributes = {};
 };
 
 //------------------------------------------------------------------------------
