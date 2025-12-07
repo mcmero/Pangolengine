@@ -51,7 +51,8 @@ public:
 
 class TsxNode {
 public:
-  TsxNode *subNode = nullptr;
+  std::string name = "";
+  std::vector<TsxNode> subNodes = {};
 
   TsxNode();
   TsxNode(std::string name);
@@ -64,7 +65,6 @@ public:
   const std::string& getValue(std::string attribute) const;
 
 private:
-  std::string name;
   std::unordered_map<std::string, std::string> attributes = {};
 };
 
@@ -74,7 +74,7 @@ private:
 
 class TsxParser {
 public:
-  static TsxNode parseTsx(const std::string &file);
+  static std::vector<TsxNode> parseTsx(const std::string &file);
 
 private:
   static TsxNode parseNode(TsxTokeniser &tokeniser);
