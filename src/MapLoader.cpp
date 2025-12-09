@@ -145,6 +145,8 @@ MapData MapLoader::LoadMap() {
     // JUST FOR TESTING
     std::vector<TsxNode> nodes = TsxParser::parseTsx(tilesetFile.string());
     TsxNode tilesetNode = TsxParser::getFirstChildElement(nodes, "tileset");
+    TsxNode nonexistantNode = TsxParser::getFirstChildElement(nodes, "something");
+    int tilewidth = tilesetNode.queryGetInt("tilewidth");
 
     if (eResult != tinyxml2::XML_SUCCESS) {
       throw std::runtime_error(

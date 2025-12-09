@@ -2,6 +2,8 @@
 #include <memory>
 #include <sstream>
 #include <fstream>
+#include <stdexcept>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -116,6 +118,31 @@ TsxNode::TsxNode(std::string name) : name(name){}
 
 void TsxNode::addAttribute(std::string name, std::string value) {
   attributes[name] = value;
+}
+
+int TsxNode::queryGetInt(std::string attribute) const {
+  if (!attributes.contains(attribute))
+    throw std::runtime_error("Attribute " + attribute + " not found!");
+
+  std::string value = attributes.at(attribute);
+  int result = std::stoi(value);
+  return result;
+}
+
+double TsxNode::queryGetDouble(std::string attribute) const {
+  if (!attributes.contains(attribute))
+    throw std::runtime_error("Attribute " + attribute + " not found!");
+
+  std::string value = attributes.at(attribute);
+  int result = std::stod(value);
+  return result;
+}
+
+const std::string& TsxNode::getValue(std::string attribute) const {
+  if (!attributes.contains(attribute))
+    throw std::runtime_error("Attribute " + attribute + " not found!");
+
+  return attributes.at(attribute);
 }
 
 //------------------------------------------------------------------------------
