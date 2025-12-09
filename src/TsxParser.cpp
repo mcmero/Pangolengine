@@ -3,6 +3,7 @@
 #include <sstream>
 #include <fstream>
 #include <unordered_map>
+#include <vector>
 
 using std::ifstream;
 
@@ -187,6 +188,16 @@ std::vector<TsxNode> TsxParser::parseTsx(const std::string &file) {
   }
 
   return nodes;
+}
+
+TsxNode TsxParser::getFirstChildElement(const std::vector<TsxNode> &nodes,
+                                        std::string name) {
+  for(const TsxNode &node : nodes) {
+    if (node.name == name)
+      return node;
+  }
+
+  return {};
 }
 
 TsxNode TsxParser::parseNode(TsxTokeniser &tokeniser) {

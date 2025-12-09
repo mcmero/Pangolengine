@@ -75,6 +75,8 @@ private:
 class TsxParser {
 public:
   static std::vector<TsxNode> parseTsx(const std::string &file);
+  static TsxNode getFirstChildElement(const std::vector<TsxNode> &nodes,
+                                      std::string name);
 
 private:
   static TsxNode parseNode(TsxTokeniser &tokeniser);
