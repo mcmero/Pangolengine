@@ -1,6 +1,7 @@
 #include "MapLoader.h"
 #include "Components/Transform.h"
 #include "SDL3/SDL_filesystem.h"
+#include "TsxParser.h"
 #include <exception>
 #include <filesystem>
 #include <iostream>
@@ -197,10 +198,10 @@ MapData MapLoader::LoadMap() {
 
       TsxNode objectNode = objectNodes[0];
       mapData.playerObject.collider.objectId = objectNode.getInt("id");
-      mapData.playerObject.collider.xpos = objectNode.getInt("x");
-      mapData.playerObject.collider.ypos = objectNode.getInt("y");
-      mapData.playerObject.collider.width = objectNode.getInt("width");
-      mapData.playerObject.collider.height = objectNode.getInt("height");
+      mapData.playerObject.collider.xpos = objectNode.getFloat("x");
+      mapData.playerObject.collider.ypos = objectNode.getFloat("y");
+      mapData.playerObject.collider.width = objectNode.getFloat("width");
+      mapData.playerObject.collider.height = objectNode.getFloat("height");
 
       // Process player properties
       std::vector<TsxNode> propertyNodes = TsxParser::getChildElements(
@@ -255,59 +256,55 @@ bool MapLoader::processSpriteCollider(MapObject &mapObject, const JsonObject &ob
   }
 
   fs::path tilesetFile = mapDir / fs::path(source);
+  std::vector<TsxNode> nodes = TsxParser::parseTsx(tilesetFile.string());
+  std::vector<TsxNode> tilesetNodes = TsxParser::getChildElements(
+    nodes,
+    "tileset"
+  );
+  if (tilesetNodes.size() == 0)
+    return false;
 
-  tinyxml2::XMLDocument doc;
-  tinyxml2::XMLError eResult = doc.LoadFile(tilesetFile.string().c_str());
+  std::vector<TsxNode> tileNodes = TsxParser::getChildElements(
+    tilesetNodes[0].subNodes,
+    "tile"
+  );
+  if (tileNodes.size() == 0)
+    return false;
 
-  if (eResult != tinyxml2::XML_SUCCESS) {
-    throw std::runtime_error(
-        "Error loading XML file: " + tilesetFile.string() +
-        " (Error Code: " + std::to_string(eResult) + ")");
-  }
-
-  tinyxml2::XMLNode *root = doc.FirstChildElement("tileset");
-  if (root == nullptr) {
-    throw std::runtime_error("No root element found in tileset file: " +
-                             tilesetFile.string());
-  }
-
-  tinyxml2::XMLElement *tileNode = root->FirstChildElement("tile");
-  while (tileNode) {
-    int id = 0;
-    eResult = tileNode->QueryIntAttribute("id", &id);
-    if (eResult != tinyxml2::XML_SUCCESS) {
-      throw std::runtime_error(
-          "No 'id' attribute found in tile node. Error Code: " +
-          std::to_string(eResult));
-    }
+  for (TsxNode tileNode : tileNodes) {
+    int id = tileNode.getInt("id");
 
     // Find the correct file using global ID
     if (firstGid + id == objectGid) {
       // Get collider attached to tile
-      tinyxml2::XMLElement *objectGroup =
-          tileNode->FirstChildElement("objectgroup");
-      if (objectGroup) {
-        tinyxml2::XMLElement *tileObject = objectGroup->FirstChildElement("object");
-        if (tileObject) {
-          float xpos = 0; float ypos = 0; float width = 0; float height = 0;
-          tileObject->QueryFloatAttribute("x", &xpos);
-          tileObject->QueryFloatAttribute("y", &ypos);
-          tileObject->QueryFloatAttribute("width", &width);
-          tileObject->QueryFloatAttribute("height", &height);
+      std::vector<TsxNode> objectGroupNodes = TsxParser::getChildElements(
+        tileNode.subNodes,
+        "objectgroup"
+      );
+      if (objectGroupNodes.size() == 0)
+        return false;
 
-          // Set coordinates relative to sprite position
-          mapObject.xpos = mapObject.xpos + xpos;
-          mapObject.ypos = mapObject.ypos + ypos;
-          mapObject.width = width;
-          mapObject.height = height;
+      std::vector<TsxNode> objectNodes = TsxParser::getChildElements(
+        objectGroupNodes[0].subNodes,
+        "object"
+      );
+      if (objectNodes.size() == 0)
+        return false;
 
-          break; // No need to keep iterating tiles
-        }
-      }
-      // If we've reached this code, there is no collider
-      return false;
+      TsxNode object = objectNodes[0];
+      float xpos = object.getFloat("y");
+      float ypos = object.getFloat("y");
+      float width = object.getFloat("width");
+      float height = object.getFloat("height");
+
+      // Set coordinates relative to sprite position
+      mapObject.xpos = mapObject.xpos + xpos;
+      mapObject.ypos = mapObject.ypos + ypos;
+      mapObject.width = width;
+      mapObject.height = height;
+
+      break; // No need to keep iterating tiles
     }
-    tileNode = tileNode->NextSiblingElement("tile");
   }
   return true;
 }
