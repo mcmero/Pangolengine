@@ -17,10 +17,6 @@ set(EXECUTABLE_NAME ${PROJECT_NAME})
 # Set asset directory
 set(ASSETS_DIR "${CMAKE_SOURCE_DIR}/assets")
 
-# Include directories
-include_directories(include)
-include_directories(include/third_party)
-
 # Create an executable or a shared library based on the platform and add our sources to it
 if (ANDROID)
 	# The SDL java code is hardcoded to load libmain.so on android, so we need to change EXECUTABLE_NAME
@@ -52,7 +48,6 @@ PRIVATE
     src/UI/IUIManager.h
     src/UI/UIComponents.h
     src/iosLaunchScreen.storyboard
-    include/third_party/tinyxml2/tinyxml2.cpp
 )
 
 # Copy assets to the build directory
