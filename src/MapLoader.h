@@ -3,6 +3,7 @@
 #include "Components/Animation.h"
 #include "Components/Transform.h"
 #include "JsonParser.h"
+#include "TsxParser.h"
 #include "Vector2D.h"
 #include <filesystem>
 #include <third_party/tinyxml2/tinyxml2.h>
@@ -93,8 +94,8 @@ private:
 
   bool processTransitionObject(MapObject &mapObject, const JsonObject &object);
 
-  void processPlayerProperty(const char *name,
-                             const tinyxml2::XMLElement *property,
+  void processPlayerProperty(const std::string name,
+                             const TsxNode tileProperty,
                              const fs::path tilesetDir);
 
   std::unique_ptr<MapObject> loadObject(const JsonObject &object, PropertyType propertyType);

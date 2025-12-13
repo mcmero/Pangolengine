@@ -120,7 +120,7 @@ void TsxNode::addAttribute(std::string name, std::string value) {
   attributes[name] = value;
 }
 
-int TsxNode::queryGetInt(std::string attribute) const {
+int TsxNode::getInt(std::string attribute) const {
   if (!attributes.contains(attribute))
     throw std::runtime_error("Attribute " + attribute + " not found!");
 
@@ -129,12 +129,12 @@ int TsxNode::queryGetInt(std::string attribute) const {
   return result;
 }
 
-double TsxNode::queryGetDouble(std::string attribute) const {
+float TsxNode::getFloat(std::string attribute) const {
   if (!attributes.contains(attribute))
     throw std::runtime_error("Attribute " + attribute + " not found!");
 
   std::string value = attributes.at(attribute);
-  int result = std::stod(value);
+  float result = std::stof(value);
   return result;
 }
 
@@ -217,14 +217,17 @@ std::vector<TsxNode> TsxParser::parseTsx(const std::string &file) {
   return nodes;
 }
 
-TsxNode TsxParser::getFirstChildElement(const std::vector<TsxNode> &nodes,
-                                        std::string name) {
+std::vector<TsxNode> TsxParser::getChildElements(
+  const std::vector<TsxNode> &nodes,
+  std::string name
+) {
+  std::vector<TsxNode> childNodes = {};
   for(const TsxNode &node : nodes) {
     if (node.name == name)
-      return node;
+      childNodes.push_back(node);
   }
 
-  return {};
+  return childNodes;
 }
 
 TsxNode TsxParser::parseNode(TsxTokeniser &tokeniser) {

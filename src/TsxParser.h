@@ -60,8 +60,8 @@ public:
   void addAttribute(std::string name, std::string value);
 
   // Const getters
-  int queryGetInt(std::string attribute) const;
-  double queryGetDouble(std::string attribute) const;
+  int getInt(std::string attribute) const;
+  float getFloat(std::string attribute) const;
   const std::string& getValue(std::string attribute) const;
 
 private:
@@ -75,8 +75,10 @@ private:
 class TsxParser {
 public:
   static std::vector<TsxNode> parseTsx(const std::string &file);
-  static TsxNode getFirstChildElement(const std::vector<TsxNode> &nodes,
-                                      std::string name);
+  static std::vector<TsxNode> getChildElements(
+    const std::vector<TsxNode> &nodes,
+    std::string name
+  );
 
 private:
   static TsxNode parseNode(TsxTokeniser &tokeniser);

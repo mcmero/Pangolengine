@@ -50,7 +50,7 @@
   </objectgroup>
  </tile>
  <tile id="12">
-  <image source="../textures/tower_building_right_end.png" width="80" height="180"/>
+  <image source="../textures/tower_building_right_end.png" width="81" height="180"/>
   <objectgroup draworder="index" id="2">
    <object id="1" x="7" y="16" width="60" height="156.333"/>
   </objectgroup>
