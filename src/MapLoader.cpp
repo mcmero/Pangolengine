@@ -11,6 +11,7 @@
 #include <string>
 #include <unordered_map>
 #include <array>
+#include <vector>
 
 namespace fs = std::filesystem;
 
@@ -465,80 +466,62 @@ MapLoader::loadMapObjects(std::string layerName, PropertyType propertyType) {
 
 void MapLoader::addGidTexturesFromTileset(const fs::path &tilesetFile,
                                           int firstGid) {
-  tinyxml2::XMLDocument doc;
-  tinyxml2::XMLError eResult = doc.LoadFile(tilesetFile.string().c_str());
+  std::vector<TsxNode> nodes = TsxParser::parseTsx(tilesetFile.string());
+  std::vector<TsxNode> tilesetNodes = TsxParser::getChildElements(
+    nodes,
+    "tileset"
+  );
+  if (tilesetNodes.size() == 0)
+    throw std::runtime_error("No tileset nodes found in " + tilesetFile.string());
 
-  if (eResult != tinyxml2::XML_SUCCESS) {
-    throw std::runtime_error("Error loading XML file: " + tilesetFile.string() +
-                             " (Error Code: " + std::to_string(eResult) + ")");
-  }
+  std::vector<TsxNode> imageNodes = TsxParser::getChildElements(
+    tilesetNodes[0].subNodes,
+    "image"
+  );
+  if (imageNodes.size() > 0) {
+    for (TsxNode imageNode : imageNodes) {
+      // Regular tileset
+      std::string imageSource = imageNode.getValue("source");
+      int tileCount = tilesetNodes[0].getInt("tilecount");
 
-  tinyxml2::XMLNode *root = doc.FirstChildElement("tileset");
-  if (root == nullptr) {
-    throw std::runtime_error("No root element found in tileset file: " +
-                             tilesetFile.string());
-  }
-
-  tinyxml2::XMLElement *imageElement = root->FirstChildElement("image");
-  if (imageElement) {
-    // Regular tileset
-    const char *imageSource = imageElement->Attribute("source");
-    if (imageSource == nullptr) {
-      throw std::runtime_error(
-          "No 'source' attribute found in 'image' element in tileset file: " +
-          tilesetFile.string());
-    }
-    int tileCount = 0;
-    root->ToElement()->QueryIntAttribute("tilecount", &tileCount);
-
-    // Add the same texture path for all tiles in this tileset
-    for (int i = 0; i < tileCount; ++i) {
-      try {
-        fs::path filePath = tilesetFile.parent_path() / fs::path(imageSource);
-        gidTextures[firstGid + i] = {
-          firstGid,
-          fs::canonical(filePath).string()
-        };
-      } catch (const std::exception &e) {
-        throw std::runtime_error("Error resolving file path for tile: " +
-                                 std::string(e.what()));
+      // Add the same texture path for all tiles in this tileset
+      for (int i = 0; i < tileCount; ++i) {
+        try {
+          fs::path filePath = tilesetFile.parent_path() / fs::path(imageSource);
+          gidTextures[firstGid + i] = {
+            firstGid,
+            fs::canonical(filePath).string()
+          };
+        } catch (const std::exception &e) {
+          throw std::runtime_error("Error resolving file path for tile: " +
+                                  std::string(e.what()));
+        }
       }
     }
   } else {
     // Object tileset, in this case each tile is one image
-    tinyxml2::XMLElement *tileNode = root->FirstChildElement("tile");
-    while (tileNode) {
-      int id = 0;
-      eResult = tileNode->QueryIntAttribute("id", &id);
-      if (eResult != tinyxml2::XML_SUCCESS) {
-        throw std::runtime_error(
-            "No 'id' attribute found in tile node. Error Code: " +
-            std::to_string(eResult));
-      }
+    std::vector<TsxNode> tileNodes = TsxParser::getChildElements(
+      tilesetNodes[0].subNodes, "tile"
+    );
+    for (TsxNode tileNode : tileNodes) {
+      int id = tileNode.getInt("id");
 
       // Each tile has its own image tag
-      tinyxml2::XMLElement *tileImageNode =
-          tileNode->FirstChildElement("image");
-      if (tileImageNode) {
-        const char *imageSource = tileImageNode->Attribute("source");
-        if (imageSource) {
-          fs::path filePath = tilesetFile.parent_path() / fs::path(imageSource);
-          gidTextures[firstGid + id] = {
-            firstGid,
-            fs::canonical(filePath).string()
-          };
-        } else {
-          throw std::runtime_error("Missing 'source' attribute for tile ID " +
-                                   std::to_string(id) +
-                                   " in tileset file: " + tilesetFile.string());
-        }
-      } else {
+      std::vector<TsxNode> tileImageNodes = TsxParser::getChildElements(
+        tileNode.subNodes,
+        "image"
+      );
+      if (tileImageNodes.size() == 0)
         throw std::runtime_error("No 'image' element found for tile ID " +
                                  std::to_string(id) +
                                  " in tileset file: " + tilesetFile.string());
-      }
 
-      tileNode = tileNode->NextSiblingElement("tile");
+      std::string imageSource = tileImageNodes[0].getValue("source");
+      fs::path filePath = tilesetFile.parent_path() / fs::path(imageSource);
+      gidTextures[firstGid + id] = {
+        firstGid,
+        fs::canonical(filePath).string()
+      };
     }
   }
 }

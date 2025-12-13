@@ -6,7 +6,6 @@
 #include "TsxParser.h"
 #include "Vector2D.h"
 #include <filesystem>
-#include <third_party/tinyxml2/tinyxml2.h>
 #include <unordered_map>
 #include <vector>
 
