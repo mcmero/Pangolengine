@@ -1,7 +1,6 @@
 #include "MapLoader.h"
 #include "Components/Transform.h"
 #include "SDL3/SDL_filesystem.h"
-#include "TsxParser.h"
 #include <exception>
 #include <filesystem>
 #include <iostream>

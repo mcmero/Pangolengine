@@ -37,9 +37,9 @@ PRIVATE
     src/MapLoader.cpp
     src/Vector2D.cpp
     src/Collision.cpp
-    src/Tokeniser.cpp
-    src/JsonParser.cpp
-    src/TsxParser.cpp
+    src/Parsers/Tokeniser.cpp
+    src/Parsers/JsonParser.cpp
+    src/Parsers/TsxParser.cpp
     src/Components/Components.h
     src/Components/ECS.h
     src/UI/UIManager.h

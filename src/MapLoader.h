@@ -2,8 +2,8 @@
 
 #include "Components/Animation.h"
 #include "Components/Transform.h"
-#include "JsonParser.h"
-#include "TsxParser.h"
+#include "Parsers/JsonParser.h"
+#include "Parsers/TsxParser.h"
 #include "Vector2D.h"
 #include <filesystem>
 #include <unordered_map>
