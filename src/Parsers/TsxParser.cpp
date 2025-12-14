@@ -146,7 +146,7 @@ const std::string& TsxNode::getValue(std::string attribute) const {
 }
 
 //------------------------------------------------------------------------------
-// TxsParser Implementation
+// TsxParser Implementation
 //------------------------------------------------------------------------------
 
 std::vector<TsxNode> TsxParser::parseTsx(const std::string &file) {

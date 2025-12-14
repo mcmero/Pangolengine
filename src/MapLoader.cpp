@@ -161,9 +161,13 @@ MapData MapLoader::LoadMap() {
       "tile"
     );
     for (TsxNode &tileNode : tileNodes) {
-      if(tileNode.getValue("type") != "player")
+      try {
+        playerObjectFound = (tileNode.getValue("type") == "player");
+      } catch (const std::exception&) {
         continue;
-      playerObjectFound = true;
+      }
+      if (!playerObjectFound)
+        continue;
 
       // Set IDs
       int id = tileNode.getInt("id");
@@ -292,7 +296,7 @@ bool MapLoader::processSpriteCollider(MapObject &mapObject, const JsonObject &ob
         return false;
 
       TsxNode object = objectNodes[0];
-      float xpos = object.getFloat("y");
+      float xpos = object.getFloat("x");
       float ypos = object.getFloat("y");
       float width = object.getFloat("width");
       float height = object.getFloat("height");
