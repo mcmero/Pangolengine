@@ -161,47 +161,45 @@ std::vector<TsxNode> TsxParser::parseTsx(const std::string &file) {
   // Parse <?xml tags at start of file
   std::unique_ptr<IToken> token = tokeniser.getToken();
   TsxToken* tsxToken = dynamic_cast<TsxToken*>(token.get());
-  if (tsxToken->type != TsxToken::Type::PIStart)
-    throw std::runtime_error(
-    "Unexpected character found at start of object. Expected PI start (<?xml)."
-    );
-
   std::vector<TsxNode> nodes = {};
-  TsxNode node = {"xml"};
-  while(true) {
-    token = tokeniser.getToken();
-    tsxToken = dynamic_cast<TsxToken*>(token.get());
-    if (tsxToken->type == TsxToken::Type::EndOfFile)
-      throw std::runtime_error(
-      "Unexpected end of file encountered."
-      );
-    else if (tsxToken->type == TsxToken::Type::Attribute) {
-      std::string attribute = std::string(token->value);
 
-      token = tokeniser.getToken(); // Now check for equals
+  if (tsxToken->type == TsxToken::Type::PIStart) {
+    TsxNode node = {"xml"};
+    while(true) {
+      token = tokeniser.getToken();
       tsxToken = dynamic_cast<TsxToken*>(token.get());
-      if (tsxToken->type != TsxToken::Type::Equals)
+      if (tsxToken->type == TsxToken::Type::EndOfFile)
         throw std::runtime_error(
-        "Expected equals (=) after attribute."
+        "Unexpected end of file encountered."
         );
+      else if (tsxToken->type == TsxToken::Type::Attribute) {
+        std::string attribute = std::string(token->value);
 
-      token = tokeniser.getToken(); // Get value
-      tsxToken = dynamic_cast<TsxToken*>(token.get());
-      if (tsxToken->type != TsxToken::Type::String)
+        token = tokeniser.getToken(); // Now check for equals
+        tsxToken = dynamic_cast<TsxToken*>(token.get());
+        if (tsxToken->type != TsxToken::Type::Equals)
+          throw std::runtime_error(
+          "Expected equals (=) after attribute."
+          );
+
+        token = tokeniser.getToken(); // Get value
+        tsxToken = dynamic_cast<TsxToken*>(token.get());
+        if (tsxToken->type != TsxToken::Type::String)
+          throw std::runtime_error(
+          "Expected string value after attribute equals sign."
+          );
+
+        node.addAttribute(attribute, token->value);
+      } else if (tsxToken->type == TsxToken::Type::PIEnd)
+        break;
+      else {
         throw std::runtime_error(
-        "Expected string value after attribute equals sign."
+        "Unexpected token: " + token->value
         );
-
-      node.addAttribute(attribute, token->value);
-    } else if (tsxToken->type == TsxToken::Type::PIEnd)
-      break;
-    else {
-      throw std::runtime_error(
-      "Unexpected token: " + token->value
-      );
+      }
     }
+    nodes.push_back(node);
   }
-  nodes.push_back(node);
 
   while(true) {
     token = tokeniser.peekToken();
@@ -210,7 +208,7 @@ std::vector<TsxNode> TsxParser::parseTsx(const std::string &file) {
     if (tsxToken->type == TsxToken::Type::EndOfFile)
       break;
 
-    node = parseNode(tokeniser);
+    TsxNode node = parseNode(tokeniser);
     nodes.push_back(node);
   }
 
