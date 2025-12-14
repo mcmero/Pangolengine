@@ -104,6 +104,7 @@ public:
     };
 
     // Volume options (levels)
+    // TODO: turn this into a slider widget
     for (int i = 10; i >= 0; --i) {
       OptionItem level = {std::to_string(i * 10)};
       level.function = [i](SDL_Renderer *renderer, SDL_Window *window){

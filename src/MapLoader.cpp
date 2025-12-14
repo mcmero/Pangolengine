@@ -1,8 +1,6 @@
 #include "MapLoader.h"
 #include "Components/Transform.h"
-#include "JsonParser.h"
 #include "SDL3/SDL_filesystem.h"
-#include "third_party/tinyxml2/tinyxml2.h"
 #include <exception>
 #include <filesystem>
 #include <iostream>
@@ -12,6 +10,7 @@
 #include <string>
 #include <unordered_map>
 #include <array>
+#include <vector>
 
 namespace fs = std::filesystem;
 
@@ -134,103 +133,93 @@ MapData MapLoader::LoadMap() {
     if (gid < 0)
       continue;
 
+    // Load tileset file into node
     fs::path tilesetFile =
         fs::path(MapLoader::getTilesetSource(gid, tilesets));
     tilesetFile = mapDir / tilesetFile;
+    std::vector<TsxNode> nodes = TsxParser::parseTsx(tilesetFile.string());
 
-    tinyxml2::XMLDocument doc;
-    tinyxml2::XMLError eResult = doc.LoadFile(tilesetFile.string().c_str());
+    std::vector<TsxNode> tilesetNodes = TsxParser::getChildElements(
+      nodes, "tileset"
+    );
+    if (tilesetNodes.size() == 0)
+        throw std::runtime_error("Tileset node not found");
 
-    if (eResult != tinyxml2::XML_SUCCESS) {
-      throw std::runtime_error(
-          "Error loading XML file: " + tilesetFile.string() +
-          " (Error Code: " + std::to_string(eResult) + ")");
-    }
-
-    tinyxml2::XMLNode *root = doc.FirstChildElement("tileset");
-    if (root == nullptr) {
-      throw std::runtime_error("No root element found in tileset file: " +
-                               tilesetFile.string());
-    }
-
-    tinyxml2::XMLElement *imageElement = root->FirstChildElement("image");
-    if (imageElement) {
+    TsxNode tilesetNode = tilesetNodes[0];
+    std::vector<TsxNode> imageNodes = TsxParser::getChildElements(
+      tilesetNode.subNodes,
+      "image"
+    );
+    if (imageNodes.size() > 0) {
       // Not an object tileset
       continue;
     }
 
     // Attempt to find player in object tileset
-    tinyxml2::XMLElement *tileNode = root->FirstChildElement("tile");
-    while (tileNode) {
-      int id = 0;
-      eResult = tileNode->QueryIntAttribute("id", &id);
-      if (eResult != tinyxml2::XML_SUCCESS) {
-        throw std::runtime_error(
-            "No 'id' attribute found in tile node. Error Code: " +
-            std::to_string(eResult));
-      }
-
-      // Get properties tag if it exists
-      tinyxml2::XMLElement *tileProperties =
-          tileNode->FirstChildElement("properties");
-      if (!tileProperties) {
-        // No properties on tile, so keep looking
-        tileNode = tileNode->NextSiblingElement("tile");
+    std::vector<TsxNode> tileNodes = TsxParser::getChildElements(
+      tilesetNode.subNodes,
+      "tile"
+    );
+    for (TsxNode &tileNode : tileNodes) {
+      try {
+        playerObjectFound = (tileNode.getValue("type") == "player");
+      } catch (const std::exception&) {
         continue;
       }
-
-      const char *type;
-      eResult = tileNode->QueryStringAttribute("type", &type);
-
-      // Class (type in the XML file) indicates the player object
-      if (eResult == tinyxml2::XML_SUCCESS && strcmp(type, "player") == 0) {
-        playerObjectFound = true;
-
-        // Set IDs
-        mapData.playerObject.objectId = id;
-        mapData.playerObject.globalId = gid + id;
-
-        // Get sprite dimensions
-        tinyxml2::XMLElement *image = tileNode->FirstChildElement("image");
-        if (image) {
-          image->QueryFloatAttribute("width", &mapData.playerObject.width);
-          image->QueryFloatAttribute("height", &mapData.playerObject.height);
-        }
-
-        // Get collider -- first object in object group
-        tinyxml2::XMLElement *object =
-            tileNode->FirstChildElement("objectgroup")
-                ->FirstChildElement("object");
-        if (object) {
-          object->QueryIntAttribute("id",
-                                    &mapData.playerObject.collider.objectId);
-          object->QueryFloatAttribute("x", &mapData.playerObject.collider.xpos);
-          object->QueryFloatAttribute("y", &mapData.playerObject.collider.ypos);
-          object->QueryFloatAttribute("width",
-                                      &mapData.playerObject.collider.width);
-          object->QueryFloatAttribute("height",
-                                      &mapData.playerObject.collider.height);
-        }
-      } else {
-        tileNode = tileNode->NextSiblingElement("tile");
+      if (!playerObjectFound)
         continue;
+
+      // Set IDs
+      int id = tileNode.getInt("id");
+      mapData.playerObject.objectId = id;
+      mapData.playerObject.globalId = gid + id;
+
+      // Get sprite dimensions
+      std::vector<TsxNode> imageNodes = TsxParser::getChildElements(
+        tileNode.subNodes,
+        "image"
+      );
+      if (imageNodes.size() > 0) {
+        TsxNode imageNode = imageNodes[0];
+        mapData.playerObject.width = imageNode.getFloat("width");
+        mapData.playerObject.height = imageNode.getFloat("height");
       }
+
+      // Get collider -- first object in object group
+      std::vector<TsxNode> objectGroupNodes = TsxParser::getChildElements(
+        tileNode.subNodes,
+        "objectgroup"
+      );
+      if (objectGroupNodes.size() == 0)
+        throw std::runtime_error("No object groups found on player node");
+
+      std::vector<TsxNode> objectNodes = TsxParser::getChildElements(
+        objectGroupNodes[0].subNodes,
+        "object"
+      );
+      if (objectNodes.size() == 0)
+        throw std::runtime_error("No object found on player node");
+
+      TsxNode objectNode = objectNodes[0];
+      mapData.playerObject.collider.objectId = objectNode.getInt("id");
+      mapData.playerObject.collider.xpos = objectNode.getFloat("x");
+      mapData.playerObject.collider.ypos = objectNode.getFloat("y");
+      mapData.playerObject.collider.width = objectNode.getFloat("width");
+      mapData.playerObject.collider.height = objectNode.getFloat("height");
 
       // Process player properties
-      tinyxml2::XMLElement *tileProperty =
-          tileProperties->FirstChildElement("property");
-      while (tileProperty) {
-        const char *name;
-        eResult = tileProperty->QueryStringAttribute("name", &name);
+      std::vector<TsxNode> propertyNodes = TsxParser::getChildElements(
+        tileNode.subNodes,
+        "properties"
+      );
+      if (propertyNodes.size() == 0)
+        throw std::runtime_error("No properties found on player node");
 
-        if (eResult != tinyxml2::XML_SUCCESS) {
-          tileProperty = tileProperty->NextSiblingElement("property");
-          continue;
-        }
+      for (TsxNode property : propertyNodes[0].subNodes) {
+        std::string name = property.getValue("name");
 
-        MapLoader::processPlayerProperty(name, tileProperty,
+        MapLoader::processPlayerProperty(name, property,
                                          tilesetFile.parent_path());
-        tileProperty = tileProperty->NextSiblingElement("property");
       }
       break;
     }
@@ -271,59 +260,55 @@ bool MapLoader::processSpriteCollider(MapObject &mapObject, const JsonObject &ob
   }
 
   fs::path tilesetFile = mapDir / fs::path(source);
+  std::vector<TsxNode> nodes = TsxParser::parseTsx(tilesetFile.string());
+  std::vector<TsxNode> tilesetNodes = TsxParser::getChildElements(
+    nodes,
+    "tileset"
+  );
+  if (tilesetNodes.size() == 0)
+    return false;
 
-  tinyxml2::XMLDocument doc;
-  tinyxml2::XMLError eResult = doc.LoadFile(tilesetFile.string().c_str());
+  std::vector<TsxNode> tileNodes = TsxParser::getChildElements(
+    tilesetNodes[0].subNodes,
+    "tile"
+  );
+  if (tileNodes.size() == 0)
+    return false;
 
-  if (eResult != tinyxml2::XML_SUCCESS) {
-    throw std::runtime_error(
-        "Error loading XML file: " + tilesetFile.string() +
-        " (Error Code: " + std::to_string(eResult) + ")");
-  }
-
-  tinyxml2::XMLNode *root = doc.FirstChildElement("tileset");
-  if (root == nullptr) {
-    throw std::runtime_error("No root element found in tileset file: " +
-                             tilesetFile.string());
-  }
-
-  tinyxml2::XMLElement *tileNode = root->FirstChildElement("tile");
-  while (tileNode) {
-    int id = 0;
-    eResult = tileNode->QueryIntAttribute("id", &id);
-    if (eResult != tinyxml2::XML_SUCCESS) {
-      throw std::runtime_error(
-          "No 'id' attribute found in tile node. Error Code: " +
-          std::to_string(eResult));
-    }
+  for (TsxNode tileNode : tileNodes) {
+    int id = tileNode.getInt("id");
 
     // Find the correct file using global ID
     if (firstGid + id == objectGid) {
       // Get collider attached to tile
-      tinyxml2::XMLElement *objectGroup =
-          tileNode->FirstChildElement("objectgroup");
-      if (objectGroup) {
-        tinyxml2::XMLElement *tileObject = objectGroup->FirstChildElement("object");
-        if (tileObject) {
-          float xpos = 0; float ypos = 0; float width = 0; float height = 0;
-          tileObject->QueryFloatAttribute("x", &xpos);
-          tileObject->QueryFloatAttribute("y", &ypos);
-          tileObject->QueryFloatAttribute("width", &width);
-          tileObject->QueryFloatAttribute("height", &height);
+      std::vector<TsxNode> objectGroupNodes = TsxParser::getChildElements(
+        tileNode.subNodes,
+        "objectgroup"
+      );
+      if (objectGroupNodes.size() == 0)
+        return false;
 
-          // Set coordinates relative to sprite position
-          mapObject.xpos = mapObject.xpos + xpos;
-          mapObject.ypos = mapObject.ypos + ypos;
-          mapObject.width = width;
-          mapObject.height = height;
+      std::vector<TsxNode> objectNodes = TsxParser::getChildElements(
+        objectGroupNodes[0].subNodes,
+        "object"
+      );
+      if (objectNodes.size() == 0)
+        return false;
 
-          break; // No need to keep iterating tiles
-        }
-      }
-      // If we've reached this code, there is no collider
-      return false;
+      TsxNode object = objectNodes[0];
+      float xpos = object.getFloat("x");
+      float ypos = object.getFloat("y");
+      float width = object.getFloat("width");
+      float height = object.getFloat("height");
+
+      // Set coordinates relative to sprite position
+      mapObject.xpos = mapObject.xpos + xpos;
+      mapObject.ypos = mapObject.ypos + ypos;
+      mapObject.width = width;
+      mapObject.height = height;
+
+      break; // No need to keep iterating tiles
     }
-    tileNode = tileNode->NextSiblingElement("tile");
   }
   return true;
 }
@@ -416,32 +401,26 @@ std::unique_ptr<MapObject> MapLoader::loadObject(const JsonObject &object, Prope
    return nullptr;
 }
 
-void MapLoader::processPlayerProperty(const char *name,
-                                      const tinyxml2::XMLElement *tileProperty,
+void MapLoader::processPlayerProperty(const std::string name,
+                                      const TsxNode tileProperty,
                                       const fs::path tilesetDir) {
 
-  if (strcmp(name, "sprite_offset_x") == 0) {
-    float value = 0.0;
-    tileProperty->QueryFloatAttribute("value", &value);
-    mapData.playerObject.spriteOffset.x = value;
+  if (name == "sprite_offset_x") {
+    mapData.playerObject.spriteOffset.x = tileProperty.getFloat("value");
 
-  } else if (strcmp(name, "sprite_offset_y") == 0) {
-    float value = 0.0;
-    tileProperty->QueryFloatAttribute("value", &value);
-    mapData.playerObject.spriteOffset.y = value;
+  } else if (name == "sprite_offset_y") {
+    mapData.playerObject.spriteOffset.y = tileProperty.getFloat("value");
 
-  } else if (strcmp(name, "spritesheet") == 0) {
-    const char *value = "";
-    tileProperty->QueryStringAttribute("value", &value);
+  } else if (name == "spritesheet") {
+    fs::path spritesheetPath = fs::path(tileProperty.getValue("value"));
     mapData.playerObject.spriteSheet =
-        fs::canonical(tilesetDir / fs::path(value)).string();
+        fs::canonical(tilesetDir / spritesheetPath).string();
+  } else if (name == "animations") {
+    fs::path animPath = fs::path(tileProperty.getValue("value"));
+    std::string animFullPath =
+        fs::canonical(tilesetDir / animPath).string();
 
-  } else if (strcmp(name, "animations") == 0) {
-    const char *value = "";
-    tileProperty->QueryStringAttribute("value", &value);
-
-    std::string animFilePath = (tilesetDir / fs::path(value)).string();
-    JsonObject animJson = JsonParser::parseJson(animFilePath);
+    JsonObject animJson = JsonParser::parseJson(animFullPath);
     for (const auto &animVals : animJson["animations"].getArray()) {
       std::string animName = animVals.at("name").getString();
       int index = static_cast<int>(
@@ -490,80 +469,62 @@ MapLoader::loadMapObjects(std::string layerName, PropertyType propertyType) {
 
 void MapLoader::addGidTexturesFromTileset(const fs::path &tilesetFile,
                                           int firstGid) {
-  tinyxml2::XMLDocument doc;
-  tinyxml2::XMLError eResult = doc.LoadFile(tilesetFile.string().c_str());
+  std::vector<TsxNode> nodes = TsxParser::parseTsx(tilesetFile.string());
+  std::vector<TsxNode> tilesetNodes = TsxParser::getChildElements(
+    nodes,
+    "tileset"
+  );
+  if (tilesetNodes.size() == 0)
+    throw std::runtime_error("No tileset nodes found in " + tilesetFile.string());
 
-  if (eResult != tinyxml2::XML_SUCCESS) {
-    throw std::runtime_error("Error loading XML file: " + tilesetFile.string() +
-                             " (Error Code: " + std::to_string(eResult) + ")");
-  }
+  std::vector<TsxNode> imageNodes = TsxParser::getChildElements(
+    tilesetNodes[0].subNodes,
+    "image"
+  );
+  if (imageNodes.size() > 0) {
+    for (TsxNode imageNode : imageNodes) {
+      // Regular tileset
+      std::string imageSource = imageNode.getValue("source");
+      int tileCount = tilesetNodes[0].getInt("tilecount");
 
-  tinyxml2::XMLNode *root = doc.FirstChildElement("tileset");
-  if (root == nullptr) {
-    throw std::runtime_error("No root element found in tileset file: " +
-                             tilesetFile.string());
-  }
-
-  tinyxml2::XMLElement *imageElement = root->FirstChildElement("image");
-  if (imageElement) {
-    // Regular tileset
-    const char *imageSource = imageElement->Attribute("source");
-    if (imageSource == nullptr) {
-      throw std::runtime_error(
-          "No 'source' attribute found in 'image' element in tileset file: " +
-          tilesetFile.string());
-    }
-    int tileCount = 0;
-    root->ToElement()->QueryIntAttribute("tilecount", &tileCount);
-
-    // Add the same texture path for all tiles in this tileset
-    for (int i = 0; i < tileCount; ++i) {
-      try {
-        fs::path filePath = tilesetFile.parent_path() / fs::path(imageSource);
-        gidTextures[firstGid + i] = {
-          firstGid,
-          fs::canonical(filePath).string()
-        };
-      } catch (const std::exception &e) {
-        throw std::runtime_error("Error resolving file path for tile: " +
-                                 std::string(e.what()));
+      // Add the same texture path for all tiles in this tileset
+      for (int i = 0; i < tileCount; ++i) {
+        try {
+          fs::path filePath = tilesetFile.parent_path() / fs::path(imageSource);
+          gidTextures[firstGid + i] = {
+            firstGid,
+            fs::canonical(filePath).string()
+          };
+        } catch (const std::exception &e) {
+          throw std::runtime_error("Error resolving file path for tile: " +
+                                  std::string(e.what()));
+        }
       }
     }
   } else {
     // Object tileset, in this case each tile is one image
-    tinyxml2::XMLElement *tileNode = root->FirstChildElement("tile");
-    while (tileNode) {
-      int id = 0;
-      eResult = tileNode->QueryIntAttribute("id", &id);
-      if (eResult != tinyxml2::XML_SUCCESS) {
-        throw std::runtime_error(
-            "No 'id' attribute found in tile node. Error Code: " +
-            std::to_string(eResult));
-      }
+    std::vector<TsxNode> tileNodes = TsxParser::getChildElements(
+      tilesetNodes[0].subNodes, "tile"
+    );
+    for (TsxNode tileNode : tileNodes) {
+      int id = tileNode.getInt("id");
 
       // Each tile has its own image tag
-      tinyxml2::XMLElement *tileImageNode =
-          tileNode->FirstChildElement("image");
-      if (tileImageNode) {
-        const char *imageSource = tileImageNode->Attribute("source");
-        if (imageSource) {
-          fs::path filePath = tilesetFile.parent_path() / fs::path(imageSource);
-          gidTextures[firstGid + id] = {
-            firstGid,
-            fs::canonical(filePath).string()
-          };
-        } else {
-          throw std::runtime_error("Missing 'source' attribute for tile ID " +
-                                   std::to_string(id) +
-                                   " in tileset file: " + tilesetFile.string());
-        }
-      } else {
+      std::vector<TsxNode> tileImageNodes = TsxParser::getChildElements(
+        tileNode.subNodes,
+        "image"
+      );
+      if (tileImageNodes.size() == 0)
         throw std::runtime_error("No 'image' element found for tile ID " +
                                  std::to_string(id) +
                                  " in tileset file: " + tilesetFile.string());
-      }
 
-      tileNode = tileNode->NextSiblingElement("tile");
+      std::string imageSource = tileImageNodes[0].getValue("source");
+      fs::path filePath = tilesetFile.parent_path() / fs::path(imageSource);
+      gidTextures[firstGid + id] = {
+        firstGid,
+        fs::canonical(filePath).string()
+      };
     }
   }
 }
