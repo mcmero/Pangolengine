@@ -1,8 +1,20 @@
-## SDL3 App From Source Minimal Example
-This is a minimal example for building and using SDL3 from source 
-using C++ and CMake. It also demonstrates setting up things like macOS/iOS
-bundles.
-See [src/main.cpp](src/main.cpp) for the code. 
+## Pangolengine: a 2D top-down game engine with dialogue trees
+
+Pangolengine is a simple 2D top-down game engine inspired by the
+[BirchEngine](https://github.com/carlbirch/BirchEngine) built using
+[SDL3](https://wiki.libsdl.org/SDL3/FrontPage) with no other dependencies.
+
+The engine leverages the [Tiled Map Editor](https://thorbjorn.itch.io/tiled)
+heavily, allowing levels to be designed in the editor, and easily loaded into
+the game engine. Simple dialogue trees can be written via [Google
+Sheets](https://docs.google.com/spreadsheets) and attached to NPCs.
+
+The primary aim of the project was to learn C++, object-oriented programming and
+the structure of simple game engines. It is primarily meant as an educational
+project and is not a full-fledged game engine.
+
+See [src/Game.cpp](src/Game.cpp) as a starting point to understanding the main
+game loop.
 
 ### Building And Running
 Are you a complete beginner? If so, read [this](https://github.com/Ravbug/sdl3-sample/wiki/Setting-up-your-computer)!
@@ -47,3 +59,4 @@ in development, so expect APIs to change.
 
 ## Reporting issues
 Is something not working? Create an Issue or send a Pull Request on this repository!
+

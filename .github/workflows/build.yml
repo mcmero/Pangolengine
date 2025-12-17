@@ -25,12 +25,12 @@ jobs:
           - name: Configure
             run: cmake -DBUILD_SHARED_LIBS=ON -DCMAKE_SYSTEM_NAME=${{ matrix.target }} -DCMAKE_SYSTEM_VERSION="10.0" -A${{ matrix.arch }} -S . -B build
           - name: Build
-            run: cmake --build build --target sdl-min --config Release
+            run: cmake --build build --target pangolengine --config Release
           - name: Upload Build
             uses: actions/upload-artifact@v4
             if: ${{ matrix.target != 'WindowsStore' }}
             with: 
-                name: sdl-min-${{ matrix.target }}-${{ matrix.arch }}
+                name: pangolengine-${{ matrix.target }}-${{ matrix.arch }}
                 path: |
                     build/Release/*.exe
                     build/Release/*.dll

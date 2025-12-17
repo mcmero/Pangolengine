@@ -9,7 +9,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE INTERNAL "")
 
 # Declare the project
-project(sdl-min)
+project(pangolengine)
 
 # Set the name of the executable
 set(EXECUTABLE_NAME ${PROJECT_NAME})
@@ -122,8 +122,8 @@ set_target_properties(${EXECUTABLE_NAME} PROPERTIES
     # in Xcode, create a Scheme in the schemes dropdown for the app.
     XCODE_GENERATE_SCHEME TRUE
     # Identification for Xcode
-    XCODE_ATTRIBUTE_BUNDLE_IDENTIFIER "com.ravbug.sdl3-sample"
-	XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.ravbug.sdl3-sample"
+    XCODE_ATTRIBUTE_BUNDLE_IDENTIFIER "com.mcmero.pangolengine"
+	XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.mcmero.pangolengine"
 	XCODE_ATTRIBUTE_CURRENTYEAR "${CURRENTYEAR}"
 )
 
