@@ -2,7 +2,8 @@
 
 Pangolengine is a simple 2D top-down game engine inspired by the
 [BirchEngine](https://github.com/carlbirch/BirchEngine) built using
-[SDL3](https://wiki.libsdl.org/SDL3/FrontPage) with no other dependencies.
+[SDL3](https://wiki.libsdl.org/SDL3/FrontPage) and its libraries, with no other
+dependencies.
 
 The engine leverages the [Tiled Map Editor](https://thorbjorn.itch.io/tiled)
 heavily, which can be used to design levels that can easily be loaded into
@@ -46,17 +47,42 @@ Linux, Mac OS and web via wasm*.
 
 *See further instructions in [`config/`](config/)
 
-## Updating SDL
-Just update the submodule:
+## Updating SDL and its libraries
+
+Just update the submodule, for example:
 ```sh
 cd SDL
 git pull
 ```
 You don't need to use a submodule, you can also copy the source in directly.
-This repository uses a submodule to keep its size to a minimum. Note that as of
-writing, SDL3 is in development, so expect APIs to change. 
+This repository uses a submodule to keep its size to a minimum.
 
+## Making compatible maps in Tiled
+
+This engine supports maps made via the [Tiled Map
+Editor](https://thorbjorn.itch.io/tiled) (I've only tested v1.11.0). The
+[Objects.tsx](assets/tilesets/Objects.tsx) file contains the sprite objects and
+[TilemapOutdoor.tsx](assets/tilesets/TilemapOutdoor.tsx) contains the tile map.
+Sprite objects support (only rectangular) collision boxes. (See the [Tiled
+docs](https://doc.mapeditor.org/en/stable/manual/objects/) for more info).
 
 ## Reporting issues
 Is something not working? Create an Issue or send a Pull Request on this repository!
+
+## References and resources
+
+- [sdl3-sample](https://github.com/Ravbug/sdl3-sample) -- template used to make
+  this project.
+- [SDL3](https://wiki.libsdl.org/SDL3/FrontPage) -- for more information and
+documentation on SDL3.
+- [Tiled Map Editor](https://thorbjorn.itch.io/tiled) -- used to make
+  the maps in this game.
+- [Aseprite](https://www.aseprite.org/) -- sprite and pixel-art editor I used to
+  make the sprite assets.
+- [Furnace](https://github.com/tildearrow/furnace) -- a chip-tune tracker that I
+  used to make the sound assets.
+- [Let's Make
+Games](https://www.youtube.com/playlist?list=PLhfAbcv9cehhkG7ZQK0nfIGJC_C-wSLrx)
+-- A great series of tutorials if you want to get started making a game engine
+with SDL (note that this series uses SDL2).
 
