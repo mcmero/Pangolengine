@@ -20,7 +20,7 @@ game loop.
 ### Building And Running
 
 If you are a novice, the setup instructions are very similar to the
-[sdl3-sample wiki](https://github.com/Ravbug/sdl3-sample/wiki/Setting-up-your-computer),
+[sdl3-sample wiki](https://github.com/Ravbug/sdl3-sample/wiki/Setting-up-your-computer)
 (this engine is built off this template). Make sure to substitute the
 sdl3-sample repository for this one if following those instructions.
 
@@ -57,14 +57,117 @@ git pull
 You don't need to use a submodule, you can also copy the source in directly.
 This repository uses a submodule to keep its size to a minimum.
 
+## Controls
+
+- Movement: W-A-S-D
+- Talk to NPC: E
+- Dialogue choices: up/down/enter
+- Dialogue scroll: W/S
+- Menu open/close: ESC
+- Menu navigation: arrow keys/enter
+
 ## Making compatible maps in Tiled
 
 This engine supports maps made via the [Tiled Map
 Editor](https://thorbjorn.itch.io/tiled) (I've only tested v1.11.0). The
-[Objects.tsx](assets/tilesets/Objects.tsx) file contains the sprite objects and
-[TilemapOutdoor.tsx](assets/tilesets/TilemapOutdoor.tsx) contains the tile map.
-Sprite objects support (only rectangular) collision boxes. (See the [Tiled
-docs](https://doc.mapeditor.org/en/stable/manual/objects/) for more info).
+following files contain example tilesets:
+
+- [Objects.tsx](assets/tilesets/Objects.tsx) -- contains sprite objects.
+- [TilemapOutdoor.tsx](assets/tilesets/TilemapOutdoor.tsx) -- contains a tile
+map.
+
+The tile map is designed to be used with tile layers which form the basic
+structure of the map. The sprite objects are used to represent entities that can
+be freely placed on the map.
+
+Layers in your Tiled map need to be named and arranged in the following way to
+be compatible with this engine, described below.
+
+### Tile layer
+
+Must be a tile layer called 'Tiles'. This layer contains the basic map
+structure. The engine uses 16x16 tiles by default.
+
+### Sprite layer
+
+Must be an object layer called 'Sprite'. The sprite objects support collision
+rectangles that can be attached to a given object via Tiled (currently, only
+collision rectangles are supported). For more information on how to do this,
+please see the [Tiled
+docs](https://doc.mapeditor.org/en/stable/manual/objects/).
+
+### Player layer
+
+Must be an object layer called 'Player'. This contains the player starting
+location, represented by the player sprite's location on this layer (note that
+the position will be slightly shifted in-game to align your character to the
+grid). The player sprite has object needs to have specific custom properties:
+
+- `animations` -- file location of the player
+animations file.
+- `sprite_offset_x` -- offset the sprite by this many pixels to align it to the
+  grid. Typically for a 32x32 pixel sprite, set this to 8 (half a tile).
+- `sprite_offset_y` -- offset for a sprite in the y axis, usually set this to 0.
+- `spritesheet` -- spritesheet file location.
+
+Any file locations are relative to the tileset where the object is contained.
+
+A player spritesheet is a JSON file that looks like this:
+
+```json
+{
+  "animations": [
+    {
+      "name": "walk_front",
+      "index": 0,
+      "frames": 4,
+      "speed": 150
+    },
+    {
+      "name": "walk_side",
+      "index": 1,
+      "frames": 4,
+      "speed": 150
+    },
+    {
+      "name": "walk_back",
+      "index": 2,
+      "frames": 4,
+      "speed": 150
+    }
+  ]
+}
+```
+
+This describes the animations for walking facing the camera, to the side and way
+from the camera. The index values and frames correspond to the sprite sheet
+defined above, where the index corresponds to the sprite row and the frames is
+the number of animation frames. So, in this case we have a 3-row sprite sheet
+with 4 frames of animation in each row.
+
+### Collision layer
+
+Must be an object layer called 'Collision'. On this layer, you can place
+rectangles that serve as collision objects for the player. These collisions
+will move relative to the tile map (they are unrelated to any entity however).
+
+### Transition layer
+Must be an object layer called 'Transition'. On this layer, you can add
+rectangles to define transitions. To do this, add a custom property called `map`
+with the name of the map file (which must be present under `assets/maps`). When
+a player walks on to the transition layer, the map will change to the defined
+map.
+
+### Interaction layer
+
+Must be an object layer called 'Interaction'. Place interaction rectangles over
+NPC sprite objects to allow dialogue with them. Interactions must contain the
+following custom properties:
+
+- `linked_id` -- the Object ID of the sprite that the interaction corresponds
+to.
+- `scene_file` -- name of the dialogue JSON file (described below).
+
 
 ## Reporting issues
 Is something not working? Create an Issue or send a Pull Request on this repository!
