@@ -1,28 +1,33 @@
 ## Pangolengine: a 2D top-down game engine with dialogue trees
 
 Pangolengine is a simple 2D top-down game engine inspired by the
-[BirchEngine](https://github.com/carlbirch/BirchEngine) built using
-[SDL3](https://wiki.libsdl.org/SDL3/FrontPage) and its libraries, with no other
-dependencies.
+[BirchEngine](https://github.com/carlbirch/BirchEngine) and built off Ravbug's
+[sdl3-sample](https://github.com/Ravbug/sdl3-sample) template, which uses
+[SDL3](https://wiki.libsdl.org/SDL3/FrontPage) and its libraries. The engine
+has the following features:
 
-The engine leverages the [Tiled Map Editor](https://thorbjorn.itch.io/tiled)
-heavily, which can be used to design levels that can easily be loaded into
-the game engine. Simple dialogue trees can be written via [Google
+- Character movement and animation on a top-down map with camera scrolling.
+- Support for maps exported from the [Tiled Map
+Editor](https://thorbjorn.itch.io/tiled), including tilemaps, object sprites,
+collisions and map transitions.
+- Support for simple dialogue trees that can be written and imported from [Google
 Sheets](https://docs.google.com/spreadsheets) and attached to NPCs.
+- An entity-component system.
+- A simple menu UI system.
 
 The primary aim of the project was to learn C++, object-oriented programming and
 the structure of simple game engines. It is primarily meant as an educational
 project and is not a fully-fledged game engine.
 
-See [src/Game.cpp](src/Game.cpp) as a starting point to understanding the main
-game loop.
+See [main.cpp](src/main.cpp),as a starting point for the main loop. The
+[src/Game.cpp](src/Game.cpp) contains much of the relevant game logic.
 
 ### Building And Running
 
-If you are a novice, the setup instructions are very similar to the
-[sdl3-sample wiki](https://github.com/Ravbug/sdl3-sample/wiki/Setting-up-your-computer)
-(this engine is built off this template). Make sure to substitute the
-sdl3-sample repository for this one if following those instructions.
+If you are a novice, the setup instructions are very similar to the [sdl3-sample
+wiki](https://github.com/Ravbug/sdl3-sample/wiki/Setting-up-your-computer). Make
+sure to substitute the sdl3-sample repository for this one if following those
+instructions.
 
 If you are familiar with using the command line and have Cmake and a C++
 compiler installed, you can use the commands below:
@@ -197,7 +202,8 @@ into JSON files ready for use by the engine.
 so see
 [here](https://googleapis.github.io/google-api-python-client/docs/oauth.html)
 for more information on the associated authentication and app permissions you
-will have to set. You will also have to set up a `credentials.json` file and put
+will have to set. You will also have to [set up a `credentials.json`
+file](https://developers.google.com/workspace/guides/create-credentials) and put
 it in your `$HOME` folder.
 
 The next step is to put all your dialogue files into a folder
