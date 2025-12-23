@@ -8,10 +8,10 @@ has the following features:
 
 - Character movement and animation on a top-down map with camera scrolling.
 - Support for maps exported from the [Tiled Map
-Editor](https://thorbjorn.itch.io/tiled), including tilemaps, object sprites,
+Editor](https://thorbjorn.itch.io/tiled), including tile maps, object sprites,
 collisions and map transitions.
-- Support for simple dialogue trees that can be written and imported from [Google
-Sheets](https://docs.google.com/spreadsheets) and attached to NPCs.
+- Support for simple dialogue trees that can be written and imported from
+[Google Sheets](https://docs.google.com/spreadsheets) and attached to NPCs.
 - An entity-component system.
 - A simple menu UI system.
 
@@ -19,7 +19,7 @@ The primary aim of the project was to learn C++, object-oriented programming and
 the structure of simple game engines. It is primarily meant as an educational
 project and is not a fully-fledged game engine.
 
-See [main.cpp](src/main.cpp), as a starting point for the main loop. The
+See [main.cpp](src/main.cpp),as a starting point for the main loop. The
 [src/Game.cpp](src/Game.cpp) contains much of the relevant game logic.
 
 ### Building And Running
