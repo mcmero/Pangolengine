@@ -181,6 +181,11 @@
                          "name":"map",
                          "type":"string",
                          "value":"level1.tmj"
+                        }, 
+                        {
+                         "name":"sound",
+                         "type":"string",
+                         "value":"door_effect.ogg"
                         }],
                  "rotation":0,
                  "type":"",

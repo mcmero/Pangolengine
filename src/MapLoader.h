@@ -15,11 +15,11 @@ struct MapObject {
   int objectId = -1;
   int linkedId = -1;
   int drawOrderId = -1;
-  std::string filePath;
   float width = 32;
   float height = 32;
   float xpos = 0;
   float ypos = 0;
+  std::unordered_map<std::string, std::string> properties;
 };
 
 struct PlayerObject {

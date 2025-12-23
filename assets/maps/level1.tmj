@@ -688,6 +688,11 @@
                          "name":"map",
                          "type":"string",
                          "value":"level2.tmj"
+                        }, 
+                        {
+                         "name":"sound",
+                         "type":"string",
+                         "value":"door_effect.ogg"
                         }],
                  "rotation":0,
                  "type":"",
