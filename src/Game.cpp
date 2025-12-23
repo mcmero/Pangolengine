@@ -16,6 +16,7 @@
 #include <filesystem>
 #include <iostream>
 #include <ostream>
+#include <stdexcept>
 #include <string>
 
 namespace fs = std::filesystem;
@@ -160,6 +161,10 @@ void Game::update() {
       interact.canInteract = true;
       intObject = &interact;
       dialogue = registry.tryGetComponent<Dialogue>(entity);
+      if (!dialogue)
+        throw std::runtime_error(
+          "No dialogue component found for interaction entity"
+        );
     } else {
       interact.canInteract = false;
     }
