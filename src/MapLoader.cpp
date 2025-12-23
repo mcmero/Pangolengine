@@ -321,7 +321,7 @@ bool MapLoader::processSpriteObject(MapObject &mapObject, const JsonObject &obje
   int spritesetID = static_cast<int>(object.at("gid").getNumber());
   auto it = gidTextures.find(spritesetID);
   if (it != gidTextures.end()) {
-    mapObject.filePath = it->second.texPath;
+    mapObject.properties["file_path"] = it->second.texPath;
     return true;
   }
 
@@ -337,15 +337,21 @@ bool MapLoader::processTransitionObject(MapObject &mapObject,
                                         const JsonObject &object) {
   fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
 
+  // Transition to map file -- cannot be empty
   std::string mapFileName =
       MapLoader::getProperty<std::string>(object, "map").value_or("");
-
   if (mapFileName.empty()) {
     std::cerr << "Warning: Map name empty!" << std::endl;
     return false;
   }
+  mapObject.properties["file_path"] = (assetsPath / "maps" / mapFileName).string();
 
-  mapObject.filePath = (assetsPath / "maps" / mapFileName).string();
+  // Check for optional sound property
+  std::string transitionSound =
+      MapLoader::getProperty<std::string>(object, "sound").value_or("");
+  if (transitionSound != "")
+    mapObject.properties["sound"] = (assetsPath / "audio" / transitionSound).string();
+
   return true;
 }
 
@@ -387,7 +393,8 @@ std::unique_ptr<MapObject> MapLoader::loadObject(const JsonObject &object, Prope
     std::string sceneFileName =
         MapLoader::getProperty<std::string>(object, "scene_file").value_or("");
 
-    mapObject->filePath = (assetsPath / "scenes" / sceneFileName).string();
+    mapObject->properties["file_path"] =
+        (assetsPath / "scenes" / sceneFileName).string();
     loadSuccess = true;
     break;
   }

@@ -16,6 +16,7 @@
 #include <filesystem>
 #include <iostream>
 #include <ostream>
+#include <stdexcept>
 #include <string>
 
 namespace fs = std::filesystem;
@@ -58,9 +59,12 @@ bool Game::initialise(SDL_Window *win, SDL_Renderer *rend) {
   uiManager = new UIManager();
 
   // Load music
-   std::string level1Music = (assetsPath / "audio" / "walking.ogg").string();
-   auto music = Mix_LoadMUS(level1Music.c_str());
-   Mix_PlayMusic(music, -1);
+  std::string level1Music = (assetsPath / "audio" / "walking.ogg").string();
+  auto music = Mix_LoadMUS(level1Music.c_str());
+  Mix_PlayMusic(music, -1); // Loop indefinately
+  Mix_VolumeMusic(
+    static_cast<int>(std::round(MIX_MAX_VOLUME * 0.5f)) // half volume
+  );
 
   return true;
 }
@@ -157,6 +161,10 @@ void Game::update() {
       interact.canInteract = true;
       intObject = &interact;
       dialogue = registry.tryGetComponent<Dialogue>(entity);
+      if (!dialogue)
+        throw std::runtime_error(
+          "No dialogue component found for interaction entity"
+        );
     } else {
       interact.canInteract = false;
     }
@@ -180,8 +188,8 @@ void Game::update() {
   }
 
   // Update all transitions
-  auto transitiongetEntitiesWithComponents = registry.getEntitiesWithComponents<Transition, Transform>();
-  for (auto entity : transitiongetEntitiesWithComponents) {
+  auto transitionEntitiesWithComponents = registry.getEntitiesWithComponents<Transition, Transform>();
+  for (auto entity : transitionEntitiesWithComponents) {
     auto &transition = registry.getComponent<Transition>(entity);
     auto &transform = registry.getComponent<Transform>(entity);
 
@@ -191,6 +199,10 @@ void Game::update() {
     if (Collision::AABB(playerCollider.collider, transition.collider)) {
       std::cout << "Trigger transition!" << std::endl;
       std::string mapPath = transition.mapPath;
+
+      // Play transition sound (if there is one)
+      if (transition.sound)
+        Mix_PlayChannel(-1, transition.sound, 0);
 
       Game::unloadMap();
       Game::loadMap(mapPath);
@@ -344,9 +356,10 @@ void Game::loadMap(std::string mapPath) {
     EntityId spriteEntity = registry.create();
 
     MapObject &sprite = spriteObject.second;
-    registry.addComponent<Sprite>(spriteEntity, sprite.filePath.c_str(),
-                             sprite.width, sprite.height, Offset{0, 0},
-                             std::vector<Animation>{}, sprite.drawOrderId);
+    registry.addComponent<Sprite>(spriteEntity,
+                                  sprite.properties["file_path"].c_str(),
+                                  sprite.width, sprite.height, Offset{0, 0},
+                                  std::vector<Animation>{}, sprite.drawOrderId);
     registry.addComponent<Transform>(spriteEntity, sprite.xpos, sprite.ypos,
                                 sprite.width, sprite.height);
 
@@ -423,8 +436,14 @@ void Game::loadMap(std::string mapPath) {
         transitionEntity, transition.xpos, transition.ypos, transition.width,
         transition.height);
 
+    Mix_Chunk *transitionSound = nullptr;
+    auto transitionProperties = &transitionObject.second.properties;
+    if (transitionProperties->contains("sound"))
+      transitionSound = Mix_LoadWAV(transitionProperties->at("sound").c_str());
+
     registry.addComponent<Transition>(transitionEntity, transform,
-                                 transition.filePath);
+                                      transition.properties["file_path"],
+                                      transitionSound);
 
     mapEntities[transitionObject.first] = transitionEntity;
   }
@@ -452,9 +471,11 @@ void Game::loadMap(std::string mapPath) {
                                           interaction.height, offset);
 
       // Add dialogue file if there is one
-      if (!interaction.filePath.empty())
-        registry.addComponent<Dialogue>(interactionEntity,
-                                        interaction.filePath.c_str());
+      if (interaction.properties.contains("file_path"))
+        registry.addComponent<Dialogue>(
+          interactionEntity,
+          interaction.properties["file_path"].c_str()
+        );
     } else {
       std::cerr << "No linked ID found for interaction object ID: "
                 << interaction.objectId << std::endl;

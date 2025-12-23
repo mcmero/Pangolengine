@@ -18,6 +18,7 @@
 
 namespace fs = std::filesystem;
 
+// TODO: split into header and cpp file
 class Options : public IUIComponent {
 public:
   Options(float borderThickness, SDL_Color borderColour,
@@ -125,7 +126,7 @@ public:
     menus["Main"].menuItems["Audio"].linkedMenu = &menus["Audio"];
 
     // Set up default option settings
-    menus["Audio"].menuItems["Volume"].selectedItem = 0; // Full volume
+    menus["Audio"].menuItems["Volume"].selectedItem = 5; // Half volume
  
     //--------------------------------------------------------------------------
     // Exit menu
