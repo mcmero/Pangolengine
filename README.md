@@ -97,9 +97,11 @@ structure. The engine uses 16x16 tiles by default.
 
 Must be an object layer called 'Sprite'. The sprite objects support collision
 rectangles that can be attached to a given object via Tiled (currently, only
-collision rectangles are supported). For more information on how to do this,
-please see the [Tiled
-docs](https://doc.mapeditor.org/en/stable/manual/objects/).
+collision a single collision rectangle is supported per object). For more
+information on how to do this, please see the [Tiled
+docs](https://doc.mapeditor.org/en/stable/manual/objects/). In case of large
+sprite structures (like the tower buildings included in the examples), it is
+best to split up your object so that you can give each section its own collider.
 
 ### Player layer
 

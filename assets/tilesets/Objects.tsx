@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.0" name="objects" tilewidth="208" tileheight="240" tilecount="10" columns="0" objectalignment="topleft">
+<tileset version="1.10" tiledversion="1.11.0" name="objects" tilewidth="208" tileheight="240" tilecount="12" columns="0" objectalignment="topleft">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="2" type="player">
   <properties>
@@ -65,6 +65,18 @@
   <image source="../textures/desk_with_computer.png" width="48" height="32"/>
   <objectgroup draworder="index" id="2">
    <object id="1" x="5.63636" y="17.1818" width="37.9091" height="11.3636"/>
+  </objectgroup>
+ </tile>
+ <tile id="16">
+  <image source="../textures/table.png" width="96" height="48"/>
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="3.45455" y="20" width="88.227" height="25.091"/>
+  </objectgroup>
+ </tile>
+ <tile id="17">
+  <image source="../textures/chair_back.png" width="16" height="32"/>
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="2.19036" y="16.7533" width="12.0174" height="13.7342"/>
   </objectgroup>
  </tile>
 </tileset>
