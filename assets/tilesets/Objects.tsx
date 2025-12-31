@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.0" name="objects" tilewidth="208" tileheight="240" tilecount="12" columns="0" objectalignment="topleft">
+<tileset version="1.10" tiledversion="1.11.0" name="objects" tilewidth="208" tileheight="240" tilecount="15" columns="0" objectalignment="topleft">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="2" type="player">
   <properties>
@@ -77,6 +77,24 @@
   <image source="../textures/chair_back.png" width="16" height="32"/>
   <objectgroup draworder="index" id="2">
    <object id="1" x="2.19036" y="16.7533" width="12.0174" height="13.7342"/>
+  </objectgroup>
+ </tile>
+ <tile id="18">
+  <image source="../textures/chair_front.png" width="16" height="32"/>
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="1" y="16.5652" width="14" height="14.6522"/>
+  </objectgroup>
+ </tile>
+ <tile id="19">
+  <image source="../textures/chair_left.png" width="16" height="32"/>
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="1.13043" y="17.3043" width="13.8696" height="14.0435"/>
+  </objectgroup>
+ </tile>
+ <tile id="20">
+  <image source="../textures/bookshelf.png" width="48" height="48"/>
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="2.90909" y="16.7273" width="42.1818" height="29.4545"/>
   </objectgroup>
  </tile>
 </tileset>
