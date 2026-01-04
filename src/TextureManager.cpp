@@ -1,5 +1,5 @@
 #include "TextureManager.h"
-#include "Game.h"
+#include "Engine.h"
 #include "SDL3/SDL_filesystem.h"
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
@@ -12,7 +12,7 @@ fs::path TextureManager::fontPath = fs::path(SDL_GetBasePath()) / "assets" /
 
 SDL_Texture *TextureManager::LoadTexture(const char *filePath) {
   SDL_Surface *tmpSurface = IMG_Load(filePath);
-  SDL_Texture *tex = SDL_CreateTextureFromSurface(Game::renderer, tmpSurface);
+  SDL_Texture *tex = SDL_CreateTextureFromSurface(Engine::renderer, tmpSurface);
   SDL_SetTextureScaleMode(tex, SDL_SCALEMODE_NEAREST);
   SDL_DestroySurface(tmpSurface);
 
@@ -21,7 +21,7 @@ SDL_Texture *TextureManager::LoadTexture(const char *filePath) {
 
 void TextureManager::Draw(SDL_Texture *tex, SDL_FRect srcRect,
                           SDL_FRect destRect, SDL_FlipMode flip) {
-  SDL_RenderTextureRotated(Game::renderer, tex, &srcRect,
+  SDL_RenderTextureRotated(Engine::renderer, tex, &srcRect,
                            &destRect, NULL, NULL, flip);
 }
 
@@ -40,7 +40,7 @@ SDL_Texture *TextureManager::LoadMessageTexture(const std::string_view text,
       font, text.data(), text.length(), colour, wraplength);
 
   SDL_Texture *messageTex =
-      SDL_CreateTextureFromSurface(Game::renderer, surfaceMessage);
+      SDL_CreateTextureFromSurface(Engine::renderer, surfaceMessage);
 
   // Set scale mode to ensure pixel-perfect rendering
   SDL_SetTextureScaleMode(messageTex, SDL_SCALEMODE_NEAREST);
@@ -53,10 +53,10 @@ SDL_Texture *TextureManager::LoadMessageTexture(const std::string_view text,
 }
 
 void TextureManager::DrawRect(SDL_FRect rect, SDL_Color colour) {
-  SDL_SetRenderDrawColor(Game::renderer, colour.r, colour.g, colour.b,
+  SDL_SetRenderDrawColor(Engine::renderer, colour.r, colour.g, colour.b,
                          SDL_ALPHA_OPAQUE);
-  SDL_RenderRect(Game::renderer, &rect);
-  SDL_RenderFillRect(Game::renderer, &rect);
+  SDL_RenderRect(Engine::renderer, &rect);
+  SDL_RenderFillRect(Engine::renderer, &rect);
 }
 
 void TextureManager::DrawPanel(SDL_FRect borderRect, SDL_FRect innerRect,
@@ -80,7 +80,7 @@ void TextureManager::DrawText(TextProperties textProps,
                                      textProps.verticalAlign);
   textRect.y = textRect.y + textProps.margin.top - textProps.margin.bottom;
   textRect.x = textRect.x + textProps.margin.left - textProps.margin.right;
-  SDL_RenderTexture(Game::renderer, textTex, NULL, &textRect);
+  SDL_RenderTexture(Engine::renderer, textTex, NULL, &textRect);
 
   // Cleanup
   SDL_DestroyTexture(textTex);
