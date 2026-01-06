@@ -55,7 +55,7 @@ Linux, Mac OS and web via wasm*.
 
 ## Updating SDL and its libraries
 
-Just update submodules like so::
+Just update submodules like so:
 ```sh
 cd SDL
 git pull

@@ -87,7 +87,7 @@ void DemoGame::onUpdate() {
   // Update all colliders
   auto colliderEntities = registry.getEntitiesWithComponents<Collider, Transform>();
   for (auto entity : colliderEntities) {
-    auto& collider = registry. getComponent<Collider>(entity);
+    auto& collider = registry.getComponent<Collider>(entity);
     auto& transform = registry.getComponent<Transform>(entity);
     transform.update();
     collider.update(transform);
@@ -99,7 +99,7 @@ void DemoGame::onUpdate() {
     SDL_FRect futureCollider;
     futureCollider.x = playerTransform.targetPosition.x + playerCollider.offset.x;
     futureCollider.y = playerTransform.targetPosition.y + playerCollider.offset.y;
-    futureCollider.h = playerCollider.collider. h;
+    futureCollider.h = playerCollider.collider.h;
     futureCollider.w = playerCollider.collider.w;
 
     for (auto entity : colliderEntities) {
@@ -120,11 +120,11 @@ void DemoGame::onUpdate() {
   Interactable* intObject = nullptr;
   Dialogue* dialogue = nullptr;
   for (auto entity : interactEntities) {
-    auto& interact = registry. getComponent<Interactable>(entity);
+    auto& interact = registry.getComponent<Interactable>(entity);
     auto& transform = registry.getComponent<Transform>(entity);
     interact.canInteract = false;
     if (entity != playerId &&
-      Collision::AABB(playerCollider.collider, interact. interactArea)) {
+      Collision::AABB(playerCollider.collider, interact.interactArea)) {
       interact.canInteract = true;
       intObject = &interact;
       dialogue = registry.tryGetComponent<Dialogue>(entity);
@@ -133,7 +133,7 @@ void DemoGame::onUpdate() {
           "No dialogue component found for interaction entity"
         );
     } else {
-      interact. canInteract = false;
+      interact.canInteract = false;
     }
     transform.update();
     interact.update(transform);
@@ -155,12 +155,12 @@ void DemoGame::onUpdate() {
   }
 
   // Update all transitions
-  auto transitionEntities = registry. getEntitiesWithComponents<Transition, Transform>();
+  auto transitionEntities = registry.getEntitiesWithComponents<Transition, Transform>();
   for (auto entity : transitionEntities) {
     auto& transition = registry.getComponent<Transition>(entity);
     auto& transform = registry.getComponent<Transform>(entity);
 
-    transform. update();
+    transform.update();
     transition.update(transform);
 
     if (Collision::AABB(playerCollider.collider, transition.collider)) {
@@ -238,7 +238,7 @@ void DemoGame::onRender() {
 
   // Render colliders -- this is only for debugging
   if (RENDER_COLLIDERS) {
-    auto colliderEntities = registry. getEntitiesWithComponents<Collider>();
+    auto colliderEntities = registry.getEntitiesWithComponents<Collider>();
     for (auto entity : colliderEntities) {
       auto& collider = registry.getComponent<Collider>(entity);
       collider.render();
@@ -250,7 +250,7 @@ void DemoGame::onRender() {
   SDL_RenderPresent(renderer);
 }
 
-void DemoGame:: onCleanup() {
+void DemoGame::onCleanup() {
   auto& registry = engine->getRegistry();
 
   unloadMap();
@@ -273,9 +273,9 @@ void DemoGame::updateCamera() {
                 float(Engine::mapData.playerObject.width) / 2.0f -
                 float(SCREEN_WIDTH) / 2.0f);
   int ypos = static_cast<int>(playerTransform.position.y +
-                float(Engine::mapData.playerObject. height) / 2.0f -
+                float(Engine::mapData.playerObject.height) / 2.0f -
                 float(SCREEN_HEIGHT) / 2.0f);
-  Camera:: update(xpos, ypos, Engine::mapData.pixelWidth, Engine::mapData.pixelHeight);
+  Camera::update(xpos, ypos, Engine::mapData.pixelWidth, Engine::mapData.pixelHeight);
 }
 
 void DemoGame::loadPlayer() {
@@ -284,22 +284,22 @@ void DemoGame::loadPlayer() {
   playerId = registry.create();
 
   registry.addComponent<Sprite>(
-    playerId, Engine::mapData.playerObject.spriteSheet. c_str(),
+    playerId, Engine::mapData.playerObject.spriteSheet.c_str(),
     Engine::mapData.playerObject.width, Engine::mapData.playerObject.height,
-    Engine::mapData. playerObject.spriteOffset, Engine::mapData.playerObject. animations);
+    Engine::mapData.playerObject.spriteOffset, Engine::mapData.playerObject.animations);
 
-  registry.addComponent<Transform>(playerId, Engine::mapData.startPos.x, Engine::mapData.startPos. y,
+  registry.addComponent<Transform>(playerId, Engine::mapData.startPos.x, Engine::mapData.startPos.y,
                 Engine::mapData.playerObject.width,
                 Engine::mapData.playerObject.height, true);
 
   auto& transform = registry.getComponent<Transform>(playerId);
   registry.addComponent<Collider>(playerId, transform.position.x, transform.position.y,
-                 Engine::mapData.playerObject. collider.width,
+                 Engine::mapData.playerObject.collider.width,
                  Engine::mapData.playerObject.collider.height,
                  transform,
                  Offset{Engine::mapData.playerObject.collider.xpos +
-                      Engine::mapData.playerObject. spriteOffset.x,
-                    Engine::mapData.playerObject. collider.ypos +
+                      Engine::mapData.playerObject.spriteOffset.x,
+                    Engine::mapData.playerObject.collider.ypos +
                       Engine::mapData.playerObject.spriteOffset.y});
 
   registry.addComponent<KeyboardController>(playerId);
@@ -309,7 +309,7 @@ void DemoGame::loadDemoMap(const std::string& mapPath) {
   auto& registry = engine->getRegistry();
 
   // Define paths to demo assets
-  fs:: path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
+  fs::path assetsPath = fs::path(SDL_GetBasePath()) / "assets";
   std::string entryMap = (assetsPath / "maps" / ENTRY_MAP).string();
 
   // Use provided map path, or default to ENTRY_MAP
@@ -326,7 +326,7 @@ void DemoGame::loadDemoMap(const std::string& mapPath) {
   Engine::mapData = mapLoader.LoadMap();
 
   mapId = registry.create();
-  registry.addComponent<Map>(mapId, &Engine::mapData, Engine::mapData.tilesetImg. c_str(), TILE_SIZE);
+  registry.addComponent<Map>(mapId, &Engine::mapData, Engine::mapData.tilesetImg.c_str(), TILE_SIZE);
 
   // Create entities from sprites first
   for (auto& spriteObject : Engine::mapData.spriteVector) {
@@ -344,7 +344,7 @@ void DemoGame::loadDemoMap(const std::string& mapPath) {
   }
 
   // Process sprite colliders
-  for (auto& colliderObject : Engine::mapData. spriteColliderVector) {
+  for (auto& colliderObject : Engine::mapData.spriteColliderVector) {
     MapObject& collider = colliderObject.second;
 
     // Skip this collider if it doesn't have a corresponding sprite
@@ -359,8 +359,8 @@ void DemoGame::loadDemoMap(const std::string& mapPath) {
 
     // Calculate offsets here because the collider may move
     Offset offset = {collider.xpos - transform.position.x,
-             collider.ypos - transform. position.y};
-    registry. addComponent<Collider>(spriteEntity, transform.position.x,
+             collider.ypos - transform.position.y};
+    registry.addComponent<Collider>(spriteEntity, transform.position.x,
                    transform.position.y, collider.width,
                    collider.height, transform, offset);
   }
@@ -376,10 +376,10 @@ void DemoGame::loadDemoMap(const std::string& mapPath) {
       colliderEntity = mapEntities[collider.linkedId];
 
       // Fetch the corresponding Transform component
-      auto& transform = registry. getComponent<Transform>(colliderEntity);
+      auto& transform = registry.getComponent<Transform>(colliderEntity);
 
       // Calculate offsets here because the collider may move
-      Offset offset = {collider. xpos - transform.position.x,
+      Offset offset = {collider.xpos - transform.position.x,
                collider.ypos - transform.position.y};
       registry.addComponent<Collider>(colliderEntity, transform.position.x,
                      transform.position.y, collider.width,
@@ -387,14 +387,14 @@ void DemoGame::loadDemoMap(const std::string& mapPath) {
     } else {
       // Non-linked static collider, treat as its own entity
       colliderEntity = registry.create();
-      registry.addComponent<Transform>(colliderEntity, collider. xpos, collider.ypos,
+      registry.addComponent<Transform>(colliderEntity, collider.xpos, collider.ypos,
                     collider.width, collider.height);
 
       // Fetch a reference to the transform created above
       auto& transform = registry.getComponent<Transform>(colliderEntity);
 
       registry.addComponent<Collider>(colliderEntity, collider.xpos, collider.ypos,
-                     collider.width, collider. height, transform);
+                     collider.width, collider.height, transform);
 
       mapEntities[colliderObject.first] = colliderEntity;
     }
@@ -407,7 +407,7 @@ void DemoGame::loadDemoMap(const std::string& mapPath) {
 
     auto& transform = registry.addComponent<Transform>(
       transitionEntity, transition.xpos, transition.ypos, transition.width,
-      transition. height);
+      transition.height);
 
     Mix_Chunk* transitionSound = nullptr;
     auto transitionProperties = &transitionObject.second.properties;
@@ -437,11 +437,11 @@ void DemoGame::loadDemoMap(const std::string& mapPath) {
       Offset offset = {interaction.xpos - transform.position.x,
                interaction.ypos - transform.position.y};
       registry.addComponent<Interactable>(interactionEntity, transform.position.x,
-                        transform.position.y, interaction. width,
-                        interaction. height, offset);
+                        transform.position.y, interaction.width,
+                        interaction.height, offset);
 
       // Add dialogue file if there is one
-      if (interaction. properties.contains("file_path"))
+      if (interaction.properties.contains("file_path"))
         registry.addComponent<Dialogue>(
           interactionEntity,
           interaction.properties["file_path"].c_str()
