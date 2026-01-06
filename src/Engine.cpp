@@ -106,8 +106,8 @@ bool Engine::initialise() {
   }
 
   // Initialise game implementation
-  if (!gameImpl->onInitialise())
-      return false;
+  if (!gameImpl || !gameImpl->onInitialise())
+    return false;
 
   SDL_Log("Engine initialized successfully!");
   return true;
