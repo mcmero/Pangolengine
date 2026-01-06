@@ -66,7 +66,6 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {
   auto* app = (AppContext*)appstate;
-  app->engine->cleanup();
   delete app->engine;
   delete app->game;
   delete app;
