@@ -17,9 +17,7 @@ EntityId Engine::mapId = 0;
 Engine::Engine(IGame* game, const char* windowTitle, int width, int height)
     : gameImpl(game), window(nullptr), 
       windowTitle(windowTitle), windowWidth(width),
-      windowHeight(height), running(true) {
-  mapLoader = nullptr;
-}
+      windowHeight(height), running(true) {}
 
 Engine::~Engine() {
   cleanup();

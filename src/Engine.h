@@ -25,7 +25,6 @@ public:
   SDL_Renderer* getRenderer() { return renderer; }
   SDL_Window* getWindow() { return window; }
   EntityRegistry& getRegistry() { return registry; }
-  MapLoader& getMapLoader() { return *mapLoader; }
 
   bool isRunning() const { return running; }
   void quit();
@@ -49,5 +48,4 @@ private:
   EntityRegistry registry = {};
   static EntityId playerId;
   static EntityId mapId;
-  MapLoader *mapLoader;
 };
