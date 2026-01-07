@@ -16,16 +16,14 @@ struct AppContext {
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   Engine* engine = new Engine(
-    nullptr,
     "Pangolengine Demo",
     SCREEN_WIDTH,
     SCREEN_HEIGHT
   );
 
   IGame* game = CreateGame(engine);
-  engine->setGameImpl(game);
 
-  if (!engine->initialise()) {
+  if (!engine->initialise(game)) {
     delete engine;
     delete game;
     return SDL_APP_FAILURE;

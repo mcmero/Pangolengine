@@ -14,8 +14,8 @@ int Engine::mapPixelWidth = 180;
 EntityId Engine::playerId = 0;
 EntityId Engine::mapId = 0;
 
-Engine::Engine(IGame* game, const char* windowTitle, int width, int height)
-    : gameImpl(game), window(nullptr), 
+Engine::Engine(const char* windowTitle, int width, int height)
+    : window(nullptr), 
       windowTitle(windowTitle), windowWidth(width),
       windowHeight(height), running(true) {}
 
@@ -23,7 +23,16 @@ Engine::~Engine() {
   cleanup();
 }
 
-bool Engine::initialise() {
+bool Engine::initialise(IGame *game) {
+  if (!game) {
+    SDL_LogError(
+      SDL_LOG_CATEGORY_CUSTOM,
+      "Game implementation required!"
+    );
+    return false;
+  }
+  this->gameImpl = game;
+
   // SDL initialisation
   if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
     SDL_LogError(
@@ -106,7 +115,7 @@ bool Engine::initialise() {
   }
 
   // Initialise game implementation
-  if (!gameImpl || !gameImpl->onInitialise())
+  if (!gameImpl->onInitialise())
     return false;
 
   SDL_Log("Engine initialized successfully!");

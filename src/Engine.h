@@ -10,12 +10,10 @@
 
 class Engine {
 public:
-  Engine(IGame* game, const char* windowTitle, int width, int height);
+  Engine(const char* windowTitle, int width, int height);
   ~Engine();
 
-  void setGameImpl(IGame* game) { gameImpl = game; }
-
-  bool initialise();
+  bool initialise(IGame* game);
   void handleEvent(SDL_Event *event);
   void updateCamera();
   void iterate();
