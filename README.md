@@ -19,8 +19,9 @@ The primary aim of the project was to learn C++, object-oriented programming and
 the structure of simple game engines. It is primarily meant as an educational
 project and is not a fully-fledged game engine.
 
-See [main.cpp](src/main.cpp),as a starting point for the main loop. The
-[src/Game.cpp](src/Game.cpp) contains much of the relevant game logic.
+See the example [main.cpp](examples/demo/main.cpp) as a starting point for the
+main loop, and [DemoGame.cpp](examples/demo/DemoGame.cpp) for the implementation
+logic.
 
 ### Building And Running
 
@@ -37,7 +38,7 @@ compiler installed, you can use the commands below:
 git clone https://github.com/mcmero/Pangolengine --depth=1 --recurse-submodules
 cd Pangolengine
 cmake -S . -B build
-cmake --build build --parallel --target pangolengine
+cmake --build build --parallel --target pangolengine_demo
 ```
 You can also use an init script inside [`config/`](config/). Then open the IDE project inside `build/` 
 (If you had CMake generate one) and run the executable under `build/Debug/`.
@@ -54,7 +55,7 @@ Linux, Mac OS and web via wasm*.
 
 ## Updating SDL and its libraries
 
-Just update the submodule, for example:
+Just update submodules like so:
 ```sh
 cd SDL
 git pull
