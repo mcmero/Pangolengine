@@ -34,7 +34,7 @@ jobs:
             echo "::warning title=Invalid file permissions automatically fixed::$line"
           done
        - name: Upload
-         uses: actions/upload-pages-artifact@v2
+         uses: actions/upload-pages-artifact@v3
 
   # Deploy job
   deploy:
