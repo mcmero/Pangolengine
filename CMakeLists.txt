@@ -148,7 +148,7 @@ if(BUILD_DEMO)
   set_target_properties(${DEMO_EXECUTABLE_NAME} PROPERTIES
     # On macOS, make a proper .app bundle instead of a bare executable
     MACOSX_BUNDLE TRUE
-    
+
     # Set the Info.plist file for Apple Mobile platforms. Without this file, your app will not launch
     # What is iosLaunchScreen. storyboard? This file describes what Apple's mobile platforms
     # should show the user while the application is starting up. If you don't include one,
@@ -159,7 +159,7 @@ if(BUILD_DEMO)
 
     # In Xcode, create a Scheme in the schemes dropdown for the app
     XCODE_GENERATE_SCHEME TRUE
-    
+
     # Identification for Xcode
     XCODE_ATTRIBUTE_BUNDLE_IDENTIFIER "com.mcmero.pangolengine.demo"
     XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.mcmero.pangolengine.demo"
@@ -173,13 +173,13 @@ if(BUILD_DEMO)
   # Note that fixup_bundle does not work on iOS, so you will want to use static libraries
   # or manually copy dylibs and set rpaths
   if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-    INSTALL(CODE 
+    INSTALL(CODE
       "include(BundleUtilities)
       fixup_bundle(\"$<TARGET_BUNDLE_DIR:${DEMO_EXECUTABLE_NAME}>\" \"\" \"\")
-      " 
+      "
       COMPONENT Runtime
     )
   endif()
-  
+
   install(TARGETS ${DEMO_EXECUTABLE_NAME} BUNDLE DESTINATION ./install)
 endif()

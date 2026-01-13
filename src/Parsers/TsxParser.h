@@ -2,6 +2,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 #include "Tokeniser.h"
 
 // This is a simple, minimal XML parser that will handle only the features found
