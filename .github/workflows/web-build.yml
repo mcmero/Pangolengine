@@ -5,6 +5,10 @@ jobs:
   build-web:
     name: Build demo for Web
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     steps:
        - name: Disabled
          run: echo "CI disable; debug at later time"
