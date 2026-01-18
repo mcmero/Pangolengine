@@ -137,12 +137,21 @@ if(BUILD_DEMO)
 
   # Copy demo assets to the build directory
   set(DEMO_ASSETS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/examples/demo/assets")
-  add_custom_command(
-    TARGET ${DEMO_EXECUTABLE_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${DEMO_ASSETS_DIR} $<TARGET_FILE_DIR:${DEMO_EXECUTABLE_NAME}>/assets
-    COMMENT "Copying demo assets..."
-  )
+
+  if(EMSCRIPTEN)
+    # For web builds, preload assets directly from source
+    target_link_options(${DEMO_EXECUTABLE_NAME} PRIVATE 
+      "--preload-file" "${DEMO_ASSETS_DIR}@/assets"
+    )
+  else()
+    # For desktop builds, copy assets to the build directory
+    add_custom_command(
+      TARGET ${DEMO_EXECUTABLE_NAME} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${DEMO_ASSETS_DIR} $<TARGET_FILE_DIR:${DEMO_EXECUTABLE_NAME}>/assets
+      COMMENT "Copying demo assets..."
+    )
+  endif()
 
   # Set platform-specific properties
   set_target_properties(${DEMO_EXECUTABLE_NAME} PROPERTIES
