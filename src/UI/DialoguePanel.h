@@ -131,7 +131,6 @@ public:
       default:
         break;
       }
-      std::cout << "Scroll offset: " << scrollOffset << std::endl;
     }
   }
 

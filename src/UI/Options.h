@@ -126,7 +126,7 @@ public:
     menus["Main"].menuItems["Audio"].linkedMenu = &menus["Audio"];
 
     // Set up default option settings
-    menus["Audio"].menuItems["Volume"].selectedItem = 5; // Half volume
+    menus["Audio"].menuItems["Volume"].selectedItem = 10; // No sound by default
  
     //--------------------------------------------------------------------------
     // Exit menu

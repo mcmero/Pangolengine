@@ -44,10 +44,23 @@ bool DemoGame::onInitialise() {
   auto music = Mix_LoadMUS(demoMusic.c_str());
   Mix_PlayMusic(music, -1); // Loop indefinitely
   Mix_VolumeMusic(
-    static_cast<int>(std::round(MIX_MAX_VOLUME * 0.5f)) // half volume
+    static_cast<int>(std::round(MIX_MAX_VOLUME * 0.0f)) // no sound
   );
 
   SDL_Log("Demo game initialized successfully!");
+
+  std::cout << "-------------------------------------------" << std::endl;
+  std::cout << "Welcome to the Pangolengine Demo!" << std::endl;
+  std::cout << "-------------------------------------------" << std::endl;
+  std::cout << "Movement: W-A-S-D"  << std::endl;
+  std::cout << "Initiate dialogue: E" << std::endl;
+  std::cout << "Select dialogue option: arrow keys"  << std::endl;
+  std::cout << "Scroll speaker dialogue box: W-A-S-D"  << std::endl;
+  std::cout << "Menu/back menu: ESC"  << std::endl;
+  std::cout << "Enter menu: ENTER"  << std::endl;
+  std::cout << "Scroll menu up/down/left/right: arrow keys"  << std::endl;
+  std::cout << "-------------------------------------------" << std::endl;
+
   return true;
 }
 

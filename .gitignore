@@ -1,5 +1,6 @@
 .DS_Store
 build/
+web-build/
 .cache/
 build.lnk
 compile_commands.json

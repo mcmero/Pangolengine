@@ -1,10 +1,8 @@
 ## Pangolengine: a 2D top-down game engine with dialogue trees
 
-Pangolengine is a simple 2D top-down game engine inspired by the
-[BirchEngine](https://github.com/carlbirch/BirchEngine) and built off Ravbug's
-[sdl3-sample](https://github.com/Ravbug/sdl3-sample) template, which uses
-[SDL3](https://wiki.libsdl.org/SDL3/FrontPage) and its libraries. The engine
-has the following features:
+Pangolengine is a simple 2D top-down game engine that uses
+[SDL3](https://wiki.libsdl.org/SDL3/FrontPage) and its libraries. The engine has
+the following features:
 
 - Character movement and animation on a top-down map with camera scrolling.
 - Support for maps exported from the [Tiled Map
@@ -241,5 +239,6 @@ documentation on SDL3.
 - [Let's Make
 Games](https://www.youtube.com/playlist?list=PLhfAbcv9cehhkG7ZQK0nfIGJC_C-wSLrx)
 -- A great series of tutorials if you want to get started making a game engine
-with SDL (note that this series uses SDL2).
-
+with SDL (note that the this uses SDL2). Parts of the Pangolengine draw
+inspiration from the [engine built in this
+series](https://github.com/carlbirch/BirchEngine).

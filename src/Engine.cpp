@@ -9,8 +9,8 @@
 // Define static members
 SDL_Renderer* Engine::renderer = nullptr;
 MapData Engine::mapData = {};
-int Engine::mapPixelHeight = 320;
-int Engine::mapPixelWidth = 180;
+int Engine::mapPixelHeight = SCREEN_HEIGHT;
+int Engine::mapPixelWidth = SCREEN_WIDTH;
 EntityId Engine::playerId = 0;
 EntityId Engine::mapId = 0;
 
