@@ -42,10 +42,10 @@ bool DemoGame::onInitialise() {
   // Load demo music
   std::string demoMusic = (assetsPath / "audio" / "walking.ogg").string();
   auto music = Mix_LoadMUS(demoMusic.c_str());
+  int init_volume = static_cast<int>(std::round(MIX_MAX_VOLUME * 0.0f)); // no sound
   Mix_PlayMusic(music, -1); // Loop indefinitely
-  Mix_VolumeMusic(
-    static_cast<int>(std::round(MIX_MAX_VOLUME * 0.0f)) // no sound
-  );
+  Mix_VolumeMusic(init_volume);
+  Mix_Volume(-1, init_volume);
 
   SDL_Log("Demo game initialized successfully!");
 

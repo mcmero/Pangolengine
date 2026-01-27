@@ -111,6 +111,7 @@ public:
       level.function = [i](SDL_Renderer *renderer, SDL_Window *window){
         float volume = std::round(MIX_MAX_VOLUME * float(i) / 10.0f);
         Mix_VolumeMusic(static_cast<int>(volume));
+        Mix_Volume(-1, static_cast<int>(volume));
       };
       audioMenuItems["Volume"].optionItems.push_back(level);
     }

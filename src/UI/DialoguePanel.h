@@ -33,7 +33,7 @@ public:
       TextureManager::DrawPanel(borderRect, innerRect, borderColour,
                                 innerColour);
 
-      // Keep seoffset within bounds so that we keep text visible
+      // Keeps offset within bounds so that we keep text visible
       if (!finishedWriting) {
         // Set max scroll offset if we haven't finished writing
         scrollOffset = messageDims.height - textRect.h;
