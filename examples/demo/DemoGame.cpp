@@ -1,16 +1,19 @@
 #include "DemoGame.h"
+#include "Components/ECS.h"
 #include "Engine.h"
 #include "Camera.h"
 #include "Collision.h"
 #include "Components/Components.h"
 #include "Components/KeyboardController.h"
 #include "Constants.h"
+#include "SDL3/SDL_mouse.h"
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
 #include "SDL3_mixer/SDL_mixer.h"
 #include <filesystem>
 #include <iostream>
+#include <ostream>
 #include <stdexcept>
 #include <string>
 
@@ -95,6 +98,7 @@ void DemoGame::onUpdate() {
   auto& playerCollider = registry.getComponent<Collider>(playerId);
   auto& playerTransform = registry.getComponent<Transform>(playerId);
   auto& playerController = registry.getComponent<KeyboardController>(playerId);
+  auto& playerMouserController = registry.getComponent<MouseController>(playerId);
   auto& playerSprite = registry.getComponent<Sprite>(playerId);
 
   // Update all colliders
@@ -198,6 +202,15 @@ void DemoGame::onUpdate() {
   // Handle player movement via polling for smooth movement
   const bool* keyState = SDL_GetKeyboardState(nullptr);
   playerController.pollInput(keyState, playerTransform, playerSprite);
+
+  // Test mouse input
+  float xpos, ypos;
+  SDL_MouseButtonFlags flags = SDL_GetMouseState(&xpos, &ypos);
+  SDL_Renderer *renderer = engine->getRenderer();
+  playerMouserController.pollInput(
+      flags, xpos, ypos, playerTransform,
+      playerSprite, renderer
+    );
 
   engine->uiManager->update(intObject, dialogue);
   updateCamera();
@@ -316,6 +329,7 @@ void DemoGame::loadPlayer() {
                       Engine::mapData.playerObject.spriteOffset.y});
 
   registry.addComponent<KeyboardController>(playerId);
+  registry.addComponent<MouseController>(playerId);
 }
 
 void DemoGame::loadDemoMap(const std::string& mapPath) {

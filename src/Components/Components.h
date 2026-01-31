@@ -4,6 +4,7 @@
 #include "Dialogue.h"
 #include "Interactable.h"
 #include "KeyboardController.h"
+#include "MouseController.h"
 #include "Map.h"
 #include "Sprite.h"
 #include "Transform.h"

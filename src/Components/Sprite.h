@@ -15,6 +15,8 @@ public:
   SDL_FlipMode spriteFlip = SDL_FLIP_NONE;
   Offset posOffset;
   int drawOrderId;
+  float width = 0;
+  float height = 0;
 
   Sprite(const char *texturePath, float width, float height,
          Offset posOffset = {0, 0}, std::vector<Animation> anims = {},
@@ -27,6 +29,9 @@ public:
     this->drawOrderId = drawOrderId;
 
     this->posOffset = posOffset;
+
+    this->width = width;
+    this->height = height;
 
     texture = TextureManager::LoadTexture(texturePath);
     animations = anims;

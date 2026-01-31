@@ -166,5 +166,4 @@ void Engine::cleanup() {
 
 void Engine::quit() {
   running = false;
-  SDL_Log("Engine quit requested");
-}
+  SDL_Log("Engine quit requested"); }
