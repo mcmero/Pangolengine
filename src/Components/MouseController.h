@@ -7,6 +7,7 @@
 #include "Sprite.h"
 #include "Transform.h"
 #include "../Camera.h"
+#include "Vector2D.h"
 
 class MouseController {
 public:
@@ -19,7 +20,7 @@ public:
     else
       canMove = true;
 
-    // Interact with entity if user clicks on them
+    // TODO: Interact with entity if user clicks on them
   }
 
   /**
@@ -30,47 +31,39 @@ public:
                  SDL_Renderer *renderer) {
     bool moving = false;
   
-
     if (!transform.isMoving && canMove && flags == SDL_BUTTON_LEFT) {
-      std::cout << "Clicked mouse at " << xpos << "," << ypos << std::endl;
-      std::cout << "Player pos at " << transform.position.x << "," << transform.position.y << std::endl;
-
-      // Need to adjust by the render scale
+      // Need to adjust moues click pos by the render scale
       float scaleX, scaleY;
       SDL_GetRenderScale(renderer, &scaleX, &scaleY);
+      float xposAdj = (xpos / scaleX);
+      float yposAdj = (ypos / scaleY);
 
-      // we need to adjust by 1. the scale, 2. the sprite offset and 3. sprite dimensions
-      // this will make any click relative to the sprite center
-      float xposAdj = (xpos / scaleX) + Camera::position.x - sprite.posOffset.x - (sprite.width / 2);
-      float yposAdj = (ypos / scaleY) + Camera::position.y - sprite.posOffset.y - (sprite.height / 2);
-      std::cout << "Adjusted pos at " << xposAdj << "," << yposAdj << std::endl;
+      // Adjust by camera and sprite offset/dimensions to get center pos of sprite
+      xposAdj = xposAdj + Camera::position.x - sprite.posOffset.x - (sprite.width / 2);
+      yposAdj = yposAdj + Camera::position.y - sprite.posOffset.y - (sprite.height / 2);
 
-      // Get player position on the grid
-      float xposGridPlayer = round(transform.position.x / TILE_SIZE);
-      float yposGridPlayer = round(transform.position.y / TILE_SIZE);
-      std::cout << "Plaer at pos at " << xposGridPlayer << "," << yposGridPlayer << std::endl;
+      // Create movement vector relative to player sprite, adjusted to tile grid
+      Vector2D movement = {
+        round(xposAdj / TILE_SIZE) - round(transform.position.x / TILE_SIZE),
+        round(yposAdj / TILE_SIZE) - round(transform.position.y / TILE_SIZE)
+      };
 
-      // Get click grid position
-      float xposGridClick = round(xposAdj / TILE_SIZE);
-      float yposGridClick = round(yposAdj / TILE_SIZE);
-      std::cout << "Clicked grid pos at " << xposGridClick << "," << yposGridClick << std::endl;
-
-      if (xposGridClick > xposGridPlayer) {
+      if (movement.x > 0 && movement.x > movement.y) {
         sprite.play("walk_right");
 
         setPlayerMovement(RIGHT, transform);
         lastDirection = RIGHT;
-      } else if (xposGridClick < xposGridPlayer) {
+      } else if (movement.x < 0 && movement.x < movement.y) {
         sprite.play("walk_left");
 
         setPlayerMovement(LEFT, transform);
         lastDirection = LEFT;
-      } else if (yposGridClick > yposGridPlayer) {
+      } else if (movement.y > 0 && movement.y > movement.x) {
         sprite.play("walk_down");
 
         setPlayerMovement(DOWN, transform);
         lastDirection = DOWN;
-      } else if (yposGridClick < yposGridPlayer) {
+      } else if (movement.y < 0 && movement.y < movement.x) {
         sprite.play("walk_up");
 
         setPlayerMovement(UP, transform);
