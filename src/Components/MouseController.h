@@ -16,9 +16,9 @@ public:
   void update(SDL_Event *event, bool menuActive, Transform &transform,
               Sprite &sprite, Interactable *intObject = nullptr) {
     if (menuActive || (intObject != nullptr && intObject->active))
-      canMove = false;
+      transform.canMove = false;
     else
-      canMove = true;
+      transform.canMove = true;
 
     // TODO: Interact with entity if user clicks on them
   }
@@ -31,8 +31,8 @@ public:
                  SDL_Renderer *renderer) {
     bool moving = false;
   
-    if (!transform.isMoving && canMove && flags == SDL_BUTTON_LEFT) {
-      // Need to adjust moues click pos by the render scale
+    if (!transform.isMoving && transform.canMove && flags == SDL_BUTTON_LEFT) {
+      // Need to adjust mouse click pos by the render scale
       float scaleX, scaleY;
       SDL_GetRenderScale(renderer, &scaleX, &scaleY);
       float xposAdj = (xpos / scaleX);
@@ -49,39 +49,33 @@ public:
       };
 
       if (movement.x > 0 && movement.x > movement.y) {
-        sprite.play("walk_right");
-
-        setPlayerMovement(RIGHT, transform);
-        lastDirection = RIGHT;
+        sprite.play("walk_side");
+        sprite.spriteFlip = SDL_FLIP_NONE;
+        transform.initiateMove(Direction::Right);
       } else if (movement.x < 0 && movement.x < movement.y) {
-        sprite.play("walk_left");
-
-        setPlayerMovement(LEFT, transform);
-        lastDirection = LEFT;
+        sprite.play("walk_side");
+        sprite.spriteFlip = SDL_FLIP_HORIZONTAL;
+        transform.initiateMove(Direction::Left);
       } else if (movement.y > 0 && movement.y > movement.x) {
         sprite.play("walk_down");
-
-        setPlayerMovement(DOWN, transform);
-        lastDirection = DOWN;
+        transform.initiateMove(Direction::Down);
       } else if (movement.y < 0 && movement.y < movement.x) {
         sprite.play("walk_up");
-
-        setPlayerMovement(UP, transform);
-        lastDirection = UP;
+        transform.initiateMove(Direction::Up);
       }
     } else {
-      switch (lastDirection) {
-      case UP:
+      switch (transform.lastDirection) {
+      case Direction::Up:
         sprite.play("walk_back");
         break;
-      case DOWN:
+      case Direction::Down:
         sprite.play("walk_front");
         break;
-      case LEFT:
+      case Direction::Left:
         sprite.play("walk_side");
         sprite.spriteFlip = SDL_FLIP_HORIZONTAL;
         break;
-      case RIGHT:
+      case Direction::Right:
         sprite.play("walk_side");
         sprite.spriteFlip = SDL_FLIP_NONE;
         break;
@@ -93,35 +87,6 @@ public:
 
     if (!moving) {
       sprite.stop();
-    }
-  }
-
-private:
-  enum Direction { UP, DOWN, LEFT, RIGHT, NONE };
-  Direction lastDirection = NONE;
-  bool canMove = true;
-
-  // TODO: abstract this function out
-  void setPlayerMovement(Direction dir, Transform &transform) {
-    // Set player movement vector if the direction is the same
-    // as the current direction, otherwise do not modify vector
-    if (lastDirection == dir && !transform.isMoving) {
-      switch (dir) {
-      case UP:
-        transform.initiateMove(Vector2D(0, -1.0f * TILE_SIZE));
-        break;
-      case DOWN:
-        transform.initiateMove(Vector2D(0, TILE_SIZE));
-        break;
-      case LEFT:
-        transform.initiateMove(Vector2D(-1.0f * TILE_SIZE, 0));
-        break;
-      case RIGHT:
-        transform.initiateMove(Vector2D(TILE_SIZE, 0));
-        break;
-      default:
-        break;
-      }
     }
   }
 };
