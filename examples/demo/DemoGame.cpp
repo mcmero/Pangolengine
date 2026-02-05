@@ -4,7 +4,6 @@
 #include "Camera.h"
 #include "Collision.h"
 #include "Components/Components.h"
-#include "Components/KeyboardController.h"
 #include "Constants.h"
 #include "SDL3/SDL_mouse.h"
 #include "SDL3/SDL_pixels.h"
@@ -69,7 +68,8 @@ bool DemoGame::onInitialise() {
 
 void DemoGame::onEvent(SDL_Event* event) {
   auto& registry = engine->getRegistry();
-  auto& controller = registry.getComponent<KeyboardController>(playerId);
+  auto& keyboardController = registry.getComponent<KeyboardController>(playerId);
+  auto& mouseController = registry.getComponent<MouseController>(playerId);
   auto& transform = registry.getComponent<Transform>(playerId);
   auto& sprite = registry.getComponent<Sprite>(playerId);
 
@@ -88,7 +88,19 @@ void DemoGame::onEvent(SDL_Event* event) {
   engine->uiManager->handleEvents(*event);
 
   // Handle player interaction events
-  controller.update(event, engine->uiManager->isMenuActive(), transform, sprite, intObject);
+  keyboardController.update(
+    event, engine->uiManager->isMenuActive(),
+    transform, sprite, intObject
+  );
+  
+  // Handle mouse interaction events
+  MouseInfo mouseInfo;
+  mouseInfo.flags = SDL_GetMouseState(&mouseInfo.xpos, &mouseInfo.ypos);
+  SDL_Renderer *renderer = engine->getRenderer();
+  mouseController.update(
+    mouseInfo, renderer, engine->uiManager->isMenuActive(),
+    transform, sprite, intObject
+  );
 }
 
 void DemoGame::onUpdate() {
@@ -203,14 +215,14 @@ void DemoGame::onUpdate() {
   const bool* keyState = SDL_GetKeyboardState(nullptr);
   playerController.pollInput(keyState, playerTransform, playerSprite);
 
-  // Test mouse input
-  float xpos, ypos;
-  SDL_MouseButtonFlags flags = SDL_GetMouseState(&xpos, &ypos);
+  // Handle mouse movement
+  MouseInfo mouseInfo;
+  mouseInfo.flags = SDL_GetMouseState(&mouseInfo.xpos, &mouseInfo.ypos);
   SDL_Renderer *renderer = engine->getRenderer();
   playerMouserController.pollInput(
-      flags, xpos, ypos, playerTransform,
-      playerSprite, renderer
-    );
+    mouseInfo, playerTransform,
+    playerSprite, renderer
+  );
 
   engine->uiManager->update(intObject, dialogue);
   updateCamera();
