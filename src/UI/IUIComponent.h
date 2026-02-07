@@ -11,7 +11,6 @@ public:
   virtual ~IUIComponent() = default;
   virtual void update(Interactable *interactable, Dialogue *dialogue) {}
   virtual void render(SDL_Renderer *renderer, SDL_Window *window) {}
-  virtual void handleEvents(const SDL_Event &event) {}
-  virtual void handleMouse(const MouseInfo &mouseInfo) {}
+  virtual void handleEvents(const SDL_Event &event, const MouseInfo &mouseInfo) {}
   virtual void clean() {}
 };

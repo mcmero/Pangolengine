@@ -9,7 +9,6 @@
 #include "SDL3/SDL_render.h"
 #include "SDL3_mixer/SDL_mixer.h"
 #include "UIHelper.h"
-#include "Vector2D.h"
 #include <algorithm>
 #include <sstream>
 #include <string>
@@ -120,7 +119,7 @@ public:
       show = false;
   }
 
-  void handleEvents(const SDL_Event &event) override {
+  void handleEvents(const SDL_Event &event, const MouseInfo &mouseInfo) override {
     // Handle panel scrolling
     if (show && finishedWriting && event.type == SDL_EVENT_KEY_DOWN) {
       switch (event.key.key) {
@@ -134,6 +133,8 @@ public:
         break;
       }
     }
+
+    // TODO: mouse scrolling
   }
 
   void clean() override { SDL_DestroyTexture(messageTex); }

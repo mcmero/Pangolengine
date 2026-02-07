@@ -23,15 +23,9 @@ public:
     }
   }
 
-  void handleEvents(const SDL_Event &e) {
+  void handleEvents(const SDL_Event &e, const MouseInfo &m) {
     for (auto &child : children) {
-      child->handleEvents(e);
-    }
-  }
-
-  void handleMouse(const MouseInfo &m) {
-    for (auto &child : children) {
-      child->handleMouse(m);
+      child->handleEvents(e, m);
     }
   }
 

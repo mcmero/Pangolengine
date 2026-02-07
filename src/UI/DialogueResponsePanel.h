@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../TextureManager.h"
+#include "Components/MouseController.h"
 #include "IUIComponent.h"
 #include "SDL3/SDL_keycode.h"
 #include "SDL3/SDL_rect.h"
@@ -117,7 +118,7 @@ public:
     }
   }
 
-  void handleEvents(const SDL_Event &event) override {
+  void handleEvents(const SDL_Event &event, const MouseInfo &mouseInfo) override {
     // Dialogue selection events
     if (state != INACTIVE && event.type == SDL_EVENT_KEY_DOWN) {
       switch (event.key.key) {

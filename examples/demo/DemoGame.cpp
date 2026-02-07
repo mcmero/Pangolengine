@@ -85,8 +85,6 @@ void DemoGame::onEvent(SDL_Event* event) {
     }
   }
 
-  engine->uiManager->handleEvents(*event);
-
   // Handle player interaction events
   keyboardController.update(
     event, engine->uiManager->isMenuActive(),
@@ -108,6 +106,9 @@ void DemoGame::onEvent(SDL_Event* event) {
     mouseInfo, renderer, engine->uiManager->isMenuActive(),
     transform, sprite, intObject
   );
+  
+  engine->uiManager->handleEvents(*event, mouseInfo);
+
 }
 
 void DemoGame::onUpdate() {

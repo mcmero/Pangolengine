@@ -401,7 +401,7 @@ public:
 
   void update(Interactable *interactable, Dialogue *dialogue) override {}
 
-  void handleEvents(const SDL_Event &event) override {
+  void handleEvents(const SDL_Event &event, const MouseInfo &mouseInfo) override {
 
     // Open or close menu with escape
     if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE) {
