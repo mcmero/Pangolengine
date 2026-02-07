@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Components/MouseController.h"
 #include "IUIComponent.h"
 #include <memory>
 #include <vector>
@@ -25,6 +26,12 @@ public:
   void handleEvents(const SDL_Event &e) {
     for (auto &child : children) {
       child->handleEvents(e);
+    }
+  }
+
+  void handleMouse(const MouseInfo &m) {
+    for (auto &child : children) {
+      child->handleMouse(m);
     }
   }
 

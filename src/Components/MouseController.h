@@ -28,10 +28,12 @@ public:
     else
       transform.canMove = true;
 
+    // Adjust mouse click by camera pos
+    Vector2D adjustedMouse = {
+      mouseInfo.xpos + Camera::position.x,
+      mouseInfo.ypos + Camera::position.y
+    };
     // Interact with entity if the user has clicked on them
-    Vector2D adjustedMouse = getAdjustedMousePos(
-      mouseInfo.xpos, mouseInfo.ypos, renderer
-    );
     if (intObject && mouseInfo.flags == SDL_BUTTON_LEFT) {
       SDL_FRect clickRect = {adjustedMouse.x, adjustedMouse.y, 1, 1};
       if (Collision::AABB(intObject->interactArea, clickRect)) {
@@ -44,16 +46,14 @@ public:
   /**
    * Handle input by polling mouse state for smooth movement animation
    */
-  void pollInput(const MouseInfo mouseInfo, Transform &transform, Sprite &sprite,
-                 SDL_Renderer *renderer) {
+  void pollInput(const MouseInfo mouseInfo, Transform &transform, Sprite &sprite) {
     bool moving = false;
   
     if (!transform.isMoving && transform.canMove && mouseInfo.flags == SDL_BUTTON_LEFT) {
-      Vector2D adjustedMouse = getAdjustedMousePos(
-        mouseInfo.xpos, mouseInfo.ypos, renderer
-      );
-      adjustedMouse.x = adjustedMouse.x - sprite.posOffset.x - (sprite.width / 2);
-      adjustedMouse.y = adjustedMouse.y - sprite.posOffset.y - (sprite.height / 2);
+      Vector2D adjustedMouse = {
+        mouseInfo.xpos + Camera::position.x - sprite.posOffset.x - (sprite.width / 2),
+        mouseInfo.ypos + Camera::position.y - sprite.posOffset.y - (sprite.height / 2)
+      };
 
       // Create movement vector relative to player sprite, adjusted to tile grid
       Vector2D movement = {
@@ -101,22 +101,5 @@ public:
     if (!moving) {
       sprite.stop();
     }
-  }
-
-private:
-  /*
-   * Take the x and y mouse position and adjust it by render scale and camera
-   * poisition to get the position corresponding to the game world.
-   */
-  Vector2D getAdjustedMousePos(const float xpos, const float ypos, SDL_Renderer *renderer) {
-    // Need to adjust mouse click pos by the render scale
-    float scaleX, scaleY;
-    SDL_GetRenderScale(renderer, &scaleX, &scaleY);
-
-    Vector2D adjusted;
-    adjusted.x = (xpos / scaleX) + Camera::position.x;
-    adjusted.y = (ypos / scaleY) + Camera::position.y;
-
-    return adjusted;
   }
 };

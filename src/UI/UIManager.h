@@ -1,10 +1,10 @@
 #pragma once
 
 #include "../Components/Dialogue.h"
+#include "Components/MouseController.h"
 #include "Grid.h"
 #include "IUIManager.h"
 #include "SDL3/SDL_events.h"
-#include "SDL3/SDL_filesystem.h"
 #include "SDL3/SDL_render.h"
 #include "UIComponents.h"
 #include <memory>
@@ -42,6 +42,8 @@ public:
   };
 
   void handleEvents(const SDL_Event &event) { grid.handleEvents(event); }
+  
+  void handleMouse(const MouseInfo &mouseInfo) { grid.handleMouse(mouseInfo); }
 
   void trySetMenu(bool active) override {
     // Only allow menu to be activated if interaction is not active

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../TextureManager.h"
+#include "Components/MouseController.h"
 #include "IUIComponent.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_pixels.h"
@@ -8,6 +9,7 @@
 #include "SDL3/SDL_render.h"
 #include "SDL3_mixer/SDL_mixer.h"
 #include "UIHelper.h"
+#include "Vector2D.h"
 #include <algorithm>
 #include <sstream>
 #include <string>

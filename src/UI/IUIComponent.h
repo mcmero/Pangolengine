@@ -2,6 +2,7 @@
 
 #include "../Components/Dialogue.h"
 #include "../Components/Interactable.h"
+#include "../Components/MouseController.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_render.h"
 
@@ -11,5 +12,6 @@ public:
   virtual void update(Interactable *interactable, Dialogue *dialogue) {}
   virtual void render(SDL_Renderer *renderer, SDL_Window *window) {}
   virtual void handleEvents(const SDL_Event &event) {}
+  virtual void handleMouse(const MouseInfo &mouseInfo) {}
   virtual void clean() {}
 };

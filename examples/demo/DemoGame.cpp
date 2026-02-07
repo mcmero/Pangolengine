@@ -92,11 +92,18 @@ void DemoGame::onEvent(SDL_Event* event) {
     event, engine->uiManager->isMenuActive(),
     transform, sprite, intObject
   );
-  
+
   // Handle mouse interaction events
   MouseInfo mouseInfo;
   mouseInfo.flags = SDL_GetMouseState(&mouseInfo.xpos, &mouseInfo.ypos);
+
+  // Adjust mouse position by render scale
   SDL_Renderer *renderer = engine->getRenderer();
+  float scaleX, scaleY;
+  SDL_GetRenderScale(renderer, &scaleX, &scaleY);
+  mouseInfo.xpos = mouseInfo.xpos / scaleX;
+  mouseInfo.ypos = mouseInfo.ypos / scaleY;
+
   mouseController.update(
     mouseInfo, renderer, engine->uiManager->isMenuActive(),
     transform, sprite, intObject
@@ -218,10 +225,16 @@ void DemoGame::onUpdate() {
   // Handle mouse movement
   MouseInfo mouseInfo;
   mouseInfo.flags = SDL_GetMouseState(&mouseInfo.xpos, &mouseInfo.ypos);
+
+  // Adjust mouse position by render scale
   SDL_Renderer *renderer = engine->getRenderer();
+  float scaleX, scaleY;
+  SDL_GetRenderScale(renderer, &scaleX, &scaleY);
+  mouseInfo.xpos = mouseInfo.xpos / scaleX;
+  mouseInfo.ypos = mouseInfo.ypos / scaleY;
+
   playerMouserController.pollInput(
-    mouseInfo, playerTransform,
-    playerSprite, renderer
+    mouseInfo, playerTransform, playerSprite
   );
 
   engine->uiManager->update(intObject, dialogue);
