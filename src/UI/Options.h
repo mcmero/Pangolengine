@@ -402,7 +402,6 @@ public:
   void update(Interactable *interactable, Dialogue *dialogue) override {}
 
   void handleEvents(const SDL_Event &event, const MouseInfo &mouseInfo) override {
-
     // Open or close menu with escape
     if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE) {
       if (!show)
@@ -426,15 +425,15 @@ public:
     if (!manager->isMenuActive())
       return;
 
-    if (event.type == SDL_EVENT_KEY_DOWN) {
-      // Get the selected menu and option items (need this to inform selection
-      // and scrolling)
-      auto *selectedMenu = getItemFromIndex<MenuItem>(
-          activeMenu->menuItems,
-          selectedItem
-      );
-      std::vector<OptionItem> *options = &selectedMenu->second.optionItems;
+    // Get the selected menu and option items (need this to inform selection
+    // and scrolling)
+    auto *selectedMenu = getItemFromIndex<MenuItem>(
+        activeMenu->menuItems,
+        selectedItem
+    );
+    std::vector<OptionItem> *options = &selectedMenu->second.optionItems;
 
+    if (event.type == SDL_EVENT_KEY_DOWN) {
       switch (event.key.key) {
 
       // Button selection scrolling
@@ -498,7 +497,28 @@ public:
       default:
         break;
       }
+    } else if (event.type == SDL_EVENT_MOUSE_WHEEL) {
+      if (event.wheel.y > 0 && mode == SelectMode::Item) {
+        // Scroll UP
+        scroll(selectedItem,
+                static_cast<int>(activeMenu->menuItems.size()),
+                Scroll::Back);
+      } else if (event.wheel.y < 0 && mode == SelectMode::Item) {
+        // Scroll DOWN
+        scroll(selectedItem,
+                static_cast<int>(activeMenu->menuItems.size()),
+                Scroll::Forward);
+      } else if (event.wheel.y > 0 && mode == SelectMode::Option) {
+        // Scroll UP in option mode = scroll item RIGHT
+        scroll(selectedMenu->second.selectedItem,
+                static_cast<int>(options->size()), Scroll::Back);
+      } else if (event.wheel.y < 0 && mode == SelectMode::Option) {
+        // Scroll DOWN in option mode = scroll item LEFT
+        scroll(selectedMenu->second.selectedItem,
+                static_cast<int>(options->size()), Scroll::Forward);
+      }
     }
+    // TODO: Select menu item if it was clicked on
   }
 
   void clean() override {

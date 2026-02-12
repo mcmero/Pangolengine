@@ -51,17 +51,17 @@ bool DemoGame::onInitialise() {
 
   SDL_Log("Demo game initialized successfully!");
 
-  std::cout << "-------------------------------------------" << std::endl;
+  std::cout << "-------------------------------------------------" << std::endl;
   std::cout << "Welcome to the Pangolengine Demo!" << std::endl;
-  std::cout << "-------------------------------------------" << std::endl;
-  std::cout << "Movement: W-A-S-D"  << std::endl;
-  std::cout << "Initiate dialogue: E" << std::endl;
-  std::cout << "Select dialogue option: arrow keys"  << std::endl;
-  std::cout << "Scroll speaker dialogue box: W-A-S-D"  << std::endl;
+  std::cout << "-------------------------------------------------" << std::endl;
+  std::cout << "Movement: W-A-S-D / mouse click"  << std::endl;
+  std::cout << "Initiate dialogue: E / mouse click" << std::endl;
+  std::cout << "Select dialogue option: arrow keys / mouse scroll"  << std::endl;
+  std::cout << "Scroll dialogue box: W-A-S-D / mouse scroll"  << std::endl;
   std::cout << "Menu/back menu: ESC"  << std::endl;
-  std::cout << "Enter menu: ENTER"  << std::endl;
-  std::cout << "Scroll menu up/down/left/right: arrow keys"  << std::endl;
-  std::cout << "-------------------------------------------" << std::endl;
+  std::cout << "Enter menu: ENTER / mouse click"  << std::endl;
+  std::cout << "Scroll menu: arrow keys / mouse wheel"  << std::endl;
+  std::cout << "-------------------------------------------------" << std::endl;
 
   return true;
 }
