@@ -507,8 +507,10 @@ public:
       int idx = 0;
       for (const auto& item : activeMenu->menuItems) {
         if (item.second.buttonPos &&
-            Collision::AABB(*item.second.buttonPos, mousePos))
+            Collision::AABB(*item.second.buttonPos, mousePos)) {
+          selectedItem = idx;
           selectItem(idx);
+        }
         ++idx;
       }
     }
