@@ -118,7 +118,7 @@ void DemoGame::onUpdate() {
   auto& playerCollider = registry.getComponent<Collider>(playerId);
   auto& playerTransform = registry.getComponent<Transform>(playerId);
   auto& playerController = registry.getComponent<KeyboardController>(playerId);
-  auto& playerMouserController = registry.getComponent<MouseController>(playerId);
+  auto& playerMouseController = registry.getComponent<MouseController>(playerId);
   auto& playerSprite = registry.getComponent<Sprite>(playerId);
 
   // Update all colliders
@@ -234,7 +234,7 @@ void DemoGame::onUpdate() {
   mouseInfo.xpos = mouseInfo.xpos / scaleX;
   mouseInfo.ypos = mouseInfo.ypos / scaleY;
 
-  playerMouserController.pollInput(
+  playerMouseController.pollInput(
     mouseInfo, playerTransform, playerSprite
   );
 
