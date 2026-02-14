@@ -86,9 +86,9 @@ void TextureManager::DrawText(TextProperties textProps,
   SDL_DestroyTexture(textTex);
 }
 
-void TextureManager::DrawButton(ButtonProperties buttonProps,
-                                SDL_FRect const &containerRect,
-                                float buttonSpacing) {
+SDL_FRect TextureManager::DrawButton(ButtonProperties buttonProps,
+                                     SDL_FRect const &containerRect,
+                                     float buttonSpacing) {
   // Make button container and align
   SDL_FRect buttonContainer = {containerRect.x, containerRect.y,
                                buttonProps.size.width, buttonProps.size.height};
@@ -100,6 +100,8 @@ void TextureManager::DrawButton(ButtonProperties buttonProps,
   // Render
   TextureManager::DrawRect(buttonContainer, buttonProps.colour);
   TextureManager::DrawText(buttonProps.textProps, buttonContainer);
+
+  return buttonContainer;
 }
 
 /**
