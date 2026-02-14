@@ -60,11 +60,12 @@ public:
         round(adjustedMouse.y / TILE_SIZE) - round(transform.position.y / TILE_SIZE)
       };
 
-      if (movement.x > 0 && movement.x > movement.y) {
+      // Prefer left/right movement over up/down movement mouse is diagonal
+      if (movement.x > 0 && movement.x >= movement.y) {
         sprite.play("walk_side");
         sprite.spriteFlip = SDL_FLIP_NONE;
         transform.initiateMove(Direction::Right);
-      } else if (movement.x < 0 && movement.x < movement.y) {
+      } else if (movement.x < 0 && movement.x <= movement.y) {
         sprite.play("walk_side");
         sprite.spriteFlip = SDL_FLIP_HORIZONTAL;
         transform.initiateMove(Direction::Left);
