@@ -173,7 +173,7 @@ public:
     }
 
     // Dialogue confirmation for mouse
-    if (state != INACTIVE && mouseInfo.flags == SDL_BUTTON_LEFT) {
+    if (state != INACTIVE && mouseInfo.flags & SDL_BUTTON_LEFT) {
       // Get the border rect of the selected response
       float yOffset = -scrollOffset;
       for (int idx = 0; idx < responseTextures.size(); idx++) {

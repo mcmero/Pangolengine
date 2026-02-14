@@ -503,7 +503,7 @@ public:
 
     // Select menu item if it was clicked on
     SDL_FRect mousePos = {mouseInfo.xpos, mouseInfo.ypos, 1, 1};
-    if (mouseInfo.flags == SDL_BUTTON_LEFT) {
+    if (mouseInfo.flags & SDL_BUTTON_LEFT) {
       int idx = 0;
       for (const auto& item : activeMenu->menuItems) {
         if (item.second.buttonPos &&

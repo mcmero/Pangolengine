@@ -34,7 +34,7 @@ public:
       mouseInfo.ypos + Camera::position.y
     };
     // Interact with entity if the user has clicked on them
-    if (intObject && mouseInfo.flags == SDL_BUTTON_LEFT) {
+    if (intObject && mouseInfo.flags & SDL_BUTTON_LEFT) {
       SDL_FRect clickRect = {adjustedMouse.x, adjustedMouse.y, 1, 1};
       if (Collision::AABB(intObject->interactArea, clickRect)) {
         intObject->interact();
@@ -49,9 +49,8 @@ public:
   void pollInput(const MouseInfo mouseInfo, Transform &transform, Sprite &sprite) {
     bool moving = false;
   
-    if (!transform.isMoving && transform.canMove && mouseInfo.flags == SDL_BUTTON_LEFT) {
-      Vector2D adjustedMouse = {
-        mouseInfo.xpos + Camera::position.x - sprite.posOffset.x - (sprite.width / 2),
+    if (!transform.isMoving && transform.canMove && mouseInfo.flags & SDL_BUTTON_LEFT) {
+      Vector2D adjustedMouse = { mouseInfo.xpos + Camera::position.x - sprite.posOffset.x - (sprite.width / 2),
         mouseInfo.ypos + Camera::position.y - sprite.posOffset.y - (sprite.height / 2)
       };
 
