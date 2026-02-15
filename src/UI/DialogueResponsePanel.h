@@ -153,6 +153,8 @@ public:
     }
 
     // Dialogue selection scrolling for mouse
+    // TODO: make scrolling work when the user's mouse is anywhere, except for 
+    // the dialogue panel
     SDL_FRect mousePos = {mouseInfo.xpos, mouseInfo.ypos, 1, 1};
     if (state != INACTIVE && event.type == SDL_EVENT_MOUSE_WHEEL
         && Collision::AABB(borderRect, mousePos)) {
@@ -175,6 +177,7 @@ public:
     // Dialogue confirmation for mouse
     if (state != INACTIVE && mouseInfo.flags & SDL_BUTTON_LEFT) {
       // Get the border rect of the selected response
+      // If user clicks on a response, select it
       float yOffset = -scrollOffset;
       for (int idx = 0; idx < responseTextures.size(); idx++) {
         ResponseTexture &curLine = responseTextures[idx];
@@ -196,7 +199,8 @@ public:
 
         // Now check if it's selected and clicked on
         bool clickedOnResponse = Collision::AABB(responseRect, mousePos);
-        if (idx == selectedResponse && curLine.displayed && clickedOnResponse) {
+        if (curLine.displayed && clickedOnResponse) {
+          selectedResponse = idx;
           if (responses.size() > 0 && getNextNode() > 0) {
             state = PROGRESS;
           } else {
@@ -205,8 +209,14 @@ public:
           }
           break;
         }
-
         yOffset += curLine.height;
+      }
+      // If user has clicked elsewhere, proceed with selected response
+      if (responses.size() > 0 && getNextNode() > 0) {
+        state = PROGRESS;
+      } else {
+        // We've run out of responses, end the dialogue
+        state = END;
       }
     }
   }
