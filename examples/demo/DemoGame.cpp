@@ -1,16 +1,18 @@
 #include "DemoGame.h"
+#include "Components/ECS.h"
 #include "Engine.h"
 #include "Camera.h"
 #include "Collision.h"
 #include "Components/Components.h"
-#include "Components/KeyboardController.h"
 #include "Constants.h"
+#include "SDL3/SDL_mouse.h"
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
 #include "SDL3_mixer/SDL_mixer.h"
 #include <filesystem>
 #include <iostream>
+#include <ostream>
 #include <stdexcept>
 #include <string>
 
@@ -49,24 +51,25 @@ bool DemoGame::onInitialise() {
 
   SDL_Log("Demo game initialized successfully!");
 
-  std::cout << "-------------------------------------------" << std::endl;
+  std::cout << "-------------------------------------------------" << std::endl;
   std::cout << "Welcome to the Pangolengine Demo!" << std::endl;
-  std::cout << "-------------------------------------------" << std::endl;
-  std::cout << "Movement: W-A-S-D"  << std::endl;
-  std::cout << "Initiate dialogue: E" << std::endl;
-  std::cout << "Select dialogue option: arrow keys"  << std::endl;
-  std::cout << "Scroll speaker dialogue box: W-A-S-D"  << std::endl;
+  std::cout << "-------------------------------------------------" << std::endl;
+  std::cout << "Movement: W-A-S-D / mouse click"  << std::endl;
+  std::cout << "Initiate dialogue: E / mouse click" << std::endl;
+  std::cout << "Select dialogue option: arrow keys / mouse scroll"  << std::endl;
+  std::cout << "Scroll dialogue box: W-A-S-D / mouse scroll"  << std::endl;
   std::cout << "Menu/back menu: ESC"  << std::endl;
-  std::cout << "Enter menu: ENTER"  << std::endl;
-  std::cout << "Scroll menu up/down/left/right: arrow keys"  << std::endl;
-  std::cout << "-------------------------------------------" << std::endl;
+  std::cout << "Enter menu: ENTER / mouse click"  << std::endl;
+  std::cout << "Scroll menu: arrow keys / mouse wheel"  << std::endl;
+  std::cout << "-------------------------------------------------" << std::endl;
 
   return true;
 }
 
 void DemoGame::onEvent(SDL_Event* event) {
   auto& registry = engine->getRegistry();
-  auto& controller = registry.getComponent<KeyboardController>(playerId);
+  auto& keyboardController = registry.getComponent<KeyboardController>(playerId);
+  auto& mouseController = registry.getComponent<MouseController>(playerId);
   auto& transform = registry.getComponent<Transform>(playerId);
   auto& sprite = registry.getComponent<Sprite>(playerId);
 
@@ -82,10 +85,30 @@ void DemoGame::onEvent(SDL_Event* event) {
     }
   }
 
-  engine->uiManager->handleEvents(*event);
-
   // Handle player interaction events
-  controller.update(event, engine->uiManager->isMenuActive(), transform, sprite, intObject);
+  keyboardController.update(
+    event, engine->uiManager->isMenuActive(),
+    transform, sprite, intObject
+  );
+
+  // Handle mouse interaction events
+  MouseInfo mouseInfo;
+  mouseInfo.flags = SDL_GetMouseState(&mouseInfo.xpos, &mouseInfo.ypos);
+
+  // Adjust mouse position by render scale
+  SDL_Renderer *renderer = engine->getRenderer();
+  float scaleX, scaleY;
+  SDL_GetRenderScale(renderer, &scaleX, &scaleY);
+  mouseInfo.xpos = mouseInfo.xpos / scaleX;
+  mouseInfo.ypos = mouseInfo.ypos / scaleY;
+
+  mouseController.update(
+    mouseInfo, renderer, engine->uiManager->isMenuActive(),
+    transform, sprite, intObject
+  );
+  
+  engine->uiManager->handleEvents(*event, mouseInfo);
+
 }
 
 void DemoGame::onUpdate() {
@@ -95,6 +118,7 @@ void DemoGame::onUpdate() {
   auto& playerCollider = registry.getComponent<Collider>(playerId);
   auto& playerTransform = registry.getComponent<Transform>(playerId);
   auto& playerController = registry.getComponent<KeyboardController>(playerId);
+  auto& playerMouseController = registry.getComponent<MouseController>(playerId);
   auto& playerSprite = registry.getComponent<Sprite>(playerId);
 
   // Update all colliders
@@ -198,6 +222,21 @@ void DemoGame::onUpdate() {
   // Handle player movement via polling for smooth movement
   const bool* keyState = SDL_GetKeyboardState(nullptr);
   playerController.pollInput(keyState, playerTransform, playerSprite);
+
+  // Handle mouse movement
+  MouseInfo mouseInfo;
+  mouseInfo.flags = SDL_GetMouseState(&mouseInfo.xpos, &mouseInfo.ypos);
+
+  // Adjust mouse position by render scale
+  SDL_Renderer *renderer = engine->getRenderer();
+  float scaleX, scaleY;
+  SDL_GetRenderScale(renderer, &scaleX, &scaleY);
+  mouseInfo.xpos = mouseInfo.xpos / scaleX;
+  mouseInfo.ypos = mouseInfo.ypos / scaleY;
+
+  playerMouseController.pollInput(
+    mouseInfo, playerTransform, playerSprite
+  );
 
   engine->uiManager->update(intObject, dialogue);
   updateCamera();
@@ -316,6 +355,7 @@ void DemoGame::loadPlayer() {
                       Engine::mapData.playerObject.spriteOffset.y});
 
   registry.addComponent<KeyboardController>(playerId);
+  registry.addComponent<MouseController>(playerId);
 }
 
 void DemoGame::loadDemoMap(const std::string& mapPath) {

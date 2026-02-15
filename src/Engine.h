@@ -15,7 +15,6 @@ public:
 
   bool initialise(IGame* game);
   void handleEvent(SDL_Event *event);
-  void updateCamera();
   void iterate();
   void render();
   void cleanup();

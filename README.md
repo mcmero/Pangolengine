@@ -46,10 +46,9 @@ You can also use an init script inside [`config/`](config/). Then open the IDE p
 The [sdl3-sample](https://github.com/Ravbug/sdl3-sample)
 that this engine is based off has support for a [number of platforms](https://github.com/Ravbug/sdl3-sample?tab=readme-ov-file#supported-platforms).
 For the simplicity of my development process however, I am currently only
-supporting Windows, but in theory it should be possible to compile easily on
-Linux, Mac OS and web via wasm*.
-
-*See further instructions in [`config/`](config/)
+supporting Windows and web build via Emscripten, but it should be relatively
+easy to compile on Linux and Mac OS (see further instructions in
+[`config/`](config/)).
 
 ## Updating SDL and its libraries
 

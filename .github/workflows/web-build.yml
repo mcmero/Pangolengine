@@ -1,5 +1,7 @@
 name: Build Sample For Web
-on: [push, pull_request]
+on:
+  push:
+    branches: [ "main" ]
 
 jobs:
   build-web:

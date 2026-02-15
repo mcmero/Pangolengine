@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../TextureManager.h"
+#include "../Components/MouseController.h"
+#include "Collision.h"
 #include "IUIComponent.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_pixels.h"
@@ -118,18 +120,25 @@ public:
       show = false;
   }
 
-  void handleEvents(const SDL_Event &event) override {
+  void handleEvents(const SDL_Event &event, const MouseInfo &mouseInfo) override {
     // Handle panel scrolling
-    if (show && finishedWriting && event.type == SDL_EVENT_KEY_DOWN) {
-      switch (event.key.key) {
-      case SDLK_S: // scroll down
-        scrollOffset += scrollAmount;
-        break;
-      case SDLK_W: // scroll up
-        scrollOffset -= scrollAmount;
-        break;
-      default:
-        break;
+    if (show && finishedWriting) {
+      if (event.type == SDL_EVENT_KEY_DOWN) {
+        switch (event.key.key) {
+        case SDLK_S: // scroll down
+          scrollOffset += scrollAmount;
+          break;
+        case SDLK_W: // scroll up
+          scrollOffset -= scrollAmount;
+          break;
+        default:
+          break;
+        }
+      } else if (event.type == SDL_EVENT_MOUSE_WHEEL) {
+        // Only scroll if our mouse position overlaps with the dialogue window
+        SDL_FRect mousePos = {mouseInfo.xpos, mouseInfo.ypos, 1, 1};
+        if (Collision::AABB(borderRect, mousePos))
+          scrollOffset -= (scrollAmount * event.wheel.y);
       }
     }
   }

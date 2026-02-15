@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../TextureManager.h"
+#include "Collision.h"
 #include "IUIComponent.h"
 #include "IUIManager.h"
 #include "SDL3/SDL_events.h"
@@ -204,7 +205,7 @@ public:
 
       // Render buttons
       int idx = 0;
-      for (const auto &item : activeMenu->menuItems) {
+      for (auto &item : activeMenu->menuItems) {
         // Change text colour if button is selected
         SDL_Color currentTextColour = buttonTextColour;
         if (selectedItem == idx)
@@ -228,8 +229,10 @@ public:
         };
         float spacingFactor =
             itemSpacing * (static_cast<float>(idx) + 1.0f) + 5.0f;
-        TextureManager::DrawButton(buttonProps, innerRect,
-                                   spacingFactor);
+        item.second.buttonPos = TextureManager::DrawButton(
+          buttonProps, innerRect,
+          spacingFactor
+        );
         ++idx;
       }
     } else if (show && activeMenu && activeMenu->menuType == MenuType::Settings) {
@@ -265,7 +268,7 @@ public:
 
       // Render options
       int idx = 0;
-      for (const auto &item : activeMenu->menuItems) {
+      for (auto &item : activeMenu->menuItems) {
         // Left menu label
         //----------------------------------------------------------------------
         // Change text colour if button is selected
@@ -287,6 +290,7 @@ public:
             itemSpacing * (static_cast<float>(idx) + 1.0f) + 5.0f;
         SDL_FRect textContainer = innerRect;
         textContainer.y = textContainer.y + spacingFactor; // Shift text down
+        item.second.buttonPos = textContainer;
  
         TextureManager::DrawText(textProps, textContainer);
  
@@ -368,7 +372,7 @@ public:
  
       // Render buttons
       int idx = 0;
-      for (const auto &item : activeMenu->menuItems) {
+      for (auto &item : activeMenu->menuItems) {
         // Change text colour if button is selected
         SDL_Color currentTextColour = buttonTextColour;
         if (selectedItem == idx)
@@ -392,7 +396,7 @@ public:
         };
         float spacingFactor =
             itemSpacing * (static_cast<float>(idx) + 1.0f) + 5.0f;
-        TextureManager::DrawButton(buttonProps, innerRect,
+        item.second.buttonPos = TextureManager::DrawButton(buttonProps, innerRect,
                                    spacingFactor);
         ++idx;
       }
@@ -401,8 +405,7 @@ public:
 
   void update(Interactable *interactable, Dialogue *dialogue) override {}
 
-  void handleEvents(const SDL_Event &event) override {
-
+  void handleEvents(const SDL_Event &event, const MouseInfo &mouseInfo) override {
     // Open or close menu with escape
     if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE) {
       if (!show)
@@ -426,15 +429,17 @@ public:
     if (!manager->isMenuActive())
       return;
 
-    if (event.type == SDL_EVENT_KEY_DOWN) {
-      // Get the selected menu and option items (need this to inform selection
-      // and scrolling)
-      auto *selectedMenu = getItemFromIndex<MenuItem>(
-          activeMenu->menuItems,
-          selectedItem
-      );
-      std::vector<OptionItem> *options = &selectedMenu->second.optionItems;
+    // Get the selected menu and option items (need this to inform selection
+    // and scrolling)
+    auto *selectedMenu = getItemFromIndex<MenuItem>(
+        activeMenu->menuItems,
+        selectedItem
+    );
+    if (!selectedMenu)
+      return;
+    std::vector<OptionItem> *options = &selectedMenu->second.optionItems;
 
+    if (event.type == SDL_EVENT_KEY_DOWN) {
       switch (event.key.key) {
 
       // Button selection scrolling
@@ -470,33 +475,45 @@ public:
       // Item selection
       //----------------------------------------------------------------------
       case SDLK_RETURN: {
-        if (mode == SelectMode::Item && selectedMenu->second.linkedMenu) {
-          // Set new active menu
-          activeMenu = selectedMenu->second.linkedMenu;
-          selectedItem = 0;
-        } else if (mode == SelectMode::Item && options && options->size() > 0) {
-          if (activeMenu->menuType == MenuType::Choice) {
-            assert(options->size() == 1 &&
-                   "Choice menu item can only have one option");
-            // Select the option directly
-            itemSet = &(*options)[0];
-          } else {
-            // Switch to option selection mode
-            mode = SelectMode::Option;
-          }
-        } else if (mode == SelectMode::Option && options && options->size() > 0) {
-          // Make sure selection is valid
-          if (selectedMenu->second.selectedItem >= 0 &&
-              selectedMenu->second.selectedItem < options->size()) {
-            itemSet = &(*options)[selectedMenu->second.selectedItem];
-          }
-          // Back to item select mode
-          mode = SelectMode::Item;
-        }
+        selectItem(selectedItem);
         break;
       }
       default:
         break;
+      }
+    } else if (event.type == SDL_EVENT_MOUSE_WHEEL) {
+      if (event.wheel.y > 0 && mode == SelectMode::Item) {
+        // Scroll UP
+        scroll(selectedItem,
+                static_cast<int>(activeMenu->menuItems.size()),
+                Scroll::Back);
+      } else if (event.wheel.y < 0 && mode == SelectMode::Item) {
+        // Scroll DOWN
+        scroll(selectedItem,
+                static_cast<int>(activeMenu->menuItems.size()),
+                Scroll::Forward);
+      } else if (event.wheel.y > 0 && mode == SelectMode::Option) {
+        // Scroll UP in option mode = scroll item RIGHT
+        scroll(selectedMenu->second.selectedItem,
+                static_cast<int>(options->size()), Scroll::Back);
+      } else if (event.wheel.y < 0 && mode == SelectMode::Option) {
+        // Scroll DOWN in option mode = scroll item LEFT
+        scroll(selectedMenu->second.selectedItem,
+                static_cast<int>(options->size()), Scroll::Forward);
+      }
+    }
+
+    // Select menu item if it was clicked on
+    SDL_FRect mousePos = {mouseInfo.xpos, mouseInfo.ypos, 1, 1};
+    if (mouseInfo.flags & SDL_BUTTON_LEFT) {
+      int idx = 0;
+      for (const auto& item : activeMenu->menuItems) {
+        if (item.second.buttonPos &&
+            Collision::AABB(*item.second.buttonPos, mousePos)) {
+          selectedItem = idx;
+          selectItem(idx);
+        }
+        ++idx;
       }
     }
   }
@@ -541,12 +558,14 @@ private:
     void selectItem(SDL_Renderer* ren, SDL_Window* win) {
         if (function)
             function(ren, win);
-    }
+    };
+    std::optional<SDL_FRect> buttonPos = std::nullopt;
   };
   struct MenuItem {
     Menu *linkedMenu = nullptr;
     std::vector<OptionItem> optionItems = {};
     int selectedItem = -1;
+    std::optional<SDL_FRect> buttonPos = std::nullopt;
   };
   Menu *activeMenu;
   std::unordered_map<std::string, Menu> menus = {};
@@ -587,6 +606,40 @@ private:
       selected = size - 1;
     } else {
       selected--;
+    }
+  }
+
+  // Helper method to select an item at index position idx from the active menu
+  void selectItem(int idx) {
+    auto *selectedMenu = getItemFromIndex<MenuItem>(
+        activeMenu->menuItems,
+        idx
+    );
+    if (!selectedMenu)
+      return;
+    std::vector<OptionItem> *options = &selectedMenu->second.optionItems;
+    if (mode == SelectMode::Item && selectedMenu->second.linkedMenu) {
+      // Set new active menu
+      activeMenu = selectedMenu->second.linkedMenu;
+      selectedItem = 0;
+    } else if (mode == SelectMode::Item && options && options->size() > 0) {
+      if (activeMenu->menuType == MenuType::Choice) {
+        assert(options->size() == 1 &&
+              "Choice menu item can only have one option");
+        // Select the option directly
+        itemSet = &(*options)[0];
+      } else {
+        // Switch to option selection mode
+        mode = SelectMode::Option;
+      }
+    } else if (mode == SelectMode::Option && options && options->size() > 0) {
+      // Make sure selection is valid
+      if (selectedMenu->second.selectedItem >= 0 &&
+          selectedMenu->second.selectedItem < options->size()) {
+        itemSet = &(*options)[selectedMenu->second.selectedItem];
+      }
+      // Back to item select mode
+      mode = SelectMode::Item;
     }
   }
 };

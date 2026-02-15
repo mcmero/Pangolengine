@@ -11,6 +11,8 @@ struct Offset {
   float x = 0;
   float y = 0;
 };
+  
+enum class Direction { Up, Down, Left, Right, None };
 
 class Transform {
 public:
@@ -24,6 +26,8 @@ public:
   float moveProgress; // between 0 and 1
   bool isMoving = false;
   bool isPlayer = false;
+  bool canMove = true;
+  Direction lastDirection = Direction::None;
 
   Transform() { position = Vector2D(); }
 
@@ -60,15 +64,41 @@ public:
     }
   }
 
-  void initiateMove(Vector2D pos) {
-    startPosition.x = position.x;
-    startPosition.y = position.y;
-    targetPosition.x = position.x + pos.x;
-    targetPosition.y = position.y + pos.y;
-    isMoving = true;
-    moveProgress = 0.0f;
-    std::cout << "Moving to (" << targetPosition.x << "," << targetPosition.y
-              << ")" << std::endl;
+  void initiateMove(Direction dir) {
+    if (lastDirection == dir && !isMoving) {
+      startPosition.x = position.x;
+      startPosition.y = position.y;
+      Vector2D moveVect = {0, 0};
+
+      // Determine position change vector
+      switch (dir) {
+      case Direction::Up:
+        moveVect.y = -1.0f * TILE_SIZE;
+        break;
+      case Direction::Down:
+        moveVect.y = TILE_SIZE;
+        break;
+      case Direction::Left:
+        moveVect.x = -1.0f * TILE_SIZE;
+        break;
+      case Direction::Right:
+        moveVect.x = TILE_SIZE;
+        break;
+      default:
+        break;
+      }
+    
+      // Add vector to target position
+      targetPosition.x = position.x + moveVect.x;
+      targetPosition.y = position.y + moveVect.y;
+      std::cout << "Moving to (" << targetPosition.x << "," << targetPosition.y
+                << ")" << std::endl;
+
+      // Update properties
+      isMoving = true;
+      moveProgress = 0.0f;
+    }
+    lastDirection = dir;
   }
 
   void abortMove() {

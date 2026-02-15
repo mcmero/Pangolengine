@@ -1,8 +1,12 @@
 #pragma once
 
 #include "../TextureManager.h"
+#include "../Components/MouseController.h"
+#include "Collision.h"
 #include "IUIComponent.h"
+#include "SDL3/SDL_events.h"
 #include "SDL3/SDL_keycode.h"
+#include "SDL3/SDL_mouse.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
 #include "UIHelper.h"
@@ -117,8 +121,8 @@ public:
     }
   }
 
-  void handleEvents(const SDL_Event &event) override {
-    // Dialogue selection events
+  void handleEvents(const SDL_Event &event, const MouseInfo &mouseInfo) override {
+    // Dialogue selection events for keyboard
     if (state != INACTIVE && event.type == SDL_EVENT_KEY_DOWN) {
       switch (event.key.key) {
       case SDLK_DOWN:
@@ -145,6 +149,74 @@ public:
         break;
       default:
         break;
+      }
+    }
+
+    // Dialogue selection scrolling for mouse
+    // TODO: make scrolling work when the user's mouse is anywhere, except for 
+    // the dialogue panel
+    SDL_FRect mousePos = {mouseInfo.xpos, mouseInfo.ypos, 1, 1};
+    if (state != INACTIVE && event.type == SDL_EVENT_MOUSE_WHEEL
+        && Collision::AABB(borderRect, mousePos)) {
+      // Scrolling down
+      if (event.wheel.y < 0) {
+        if ((selectedResponse + 1) >= static_cast<int>(responses.size()))
+          selectedResponse = 0;
+        else
+          selectedResponse++;
+        setScrollOffset(DOWN);
+      } else if (event.wheel.y > 0) {
+        if ((selectedResponse - 1) < 0)
+          selectedResponse = static_cast<int>(responses.size()) - 1;
+        else
+          selectedResponse--;
+        setScrollOffset(UP);
+      }
+    }
+
+    // Dialogue confirmation for mouse
+    if (state != INACTIVE && mouseInfo.flags & SDL_BUTTON_LEFT) {
+      // Get the border rect of the selected response
+      // If user clicks on a response, select it
+      float yOffset = -scrollOffset;
+      for (int idx = 0; idx < responseTextures.size(); idx++) {
+        ResponseTexture &curLine = responseTextures[idx];
+
+        // Skip responses above view area
+        if (yOffset + textRect.y < textRect.y) {
+          yOffset += curLine.height;
+          continue;
+        }
+
+        // Break if response is below viewable area
+        if (yOffset + textRect.y + curLine.height > textRect.y + textRect.h)
+          break;
+
+        // Position of this response on the screen
+        SDL_FRect responseRect = {
+          textRect.x, textRect.y + yOffset, curLine.width, curLine.height
+        };
+
+        // Now check if it's selected and clicked on
+        bool clickedOnResponse = Collision::AABB(responseRect, mousePos);
+        if (curLine.displayed && clickedOnResponse) {
+          selectedResponse = idx;
+          if (responses.size() > 0 && getNextNode() > 0) {
+            state = PROGRESS;
+          } else {
+            // We've run out of responses, end the dialogue
+            state = END;
+          }
+          break;
+        }
+        yOffset += curLine.height;
+      }
+      // If user has clicked elsewhere, proceed with selected response
+      if (responses.size() > 0 && getNextNode() > 0) {
+        state = PROGRESS;
+      } else {
+        // We've run out of responses, end the dialogue
+        state = END;
       }
     }
   }

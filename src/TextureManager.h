@@ -62,8 +62,10 @@ public:
   static void DrawText(TextProperties textProps,
                        SDL_FRect const &containerRect);
 
-  static void DrawButton(ButtonProperties buttonProps,
-                         SDL_FRect const &containerRect, float buttonSpacing);
+  // Draw correctly spaced button and return the drawn button rectangle
+  static SDL_FRect DrawButton(ButtonProperties buttonProps,
+                              SDL_FRect const &containerRect,
+                              float buttonSpacing);
 
   static Size GetMessageTextureDimensions(SDL_Texture *messageTex);
 };
