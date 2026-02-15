@@ -435,6 +435,8 @@ public:
         activeMenu->menuItems,
         selectedItem
     );
+    if (!selectedMenu)
+      return;
     std::vector<OptionItem> *options = &selectedMenu->second.optionItems;
 
     if (event.type == SDL_EVENT_KEY_DOWN) {
@@ -613,6 +615,8 @@ private:
         activeMenu->menuItems,
         idx
     );
+    if (!selectedMenu)
+      return;
     std::vector<OptionItem> *options = &selectedMenu->second.optionItems;
     if (mode == SelectMode::Item && selectedMenu->second.linkedMenu) {
       // Set new active menu
