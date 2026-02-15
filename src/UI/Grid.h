@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Components/MouseController.h"
+#include "../Components/MouseController.h"
 #include "IUIComponent.h"
 #include <memory>
 #include <vector>

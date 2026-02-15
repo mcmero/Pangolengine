@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../TextureManager.h"
+#include "../Components/MouseController.h"
 #include "Collision.h"
-#include "Components/MouseController.h"
 #include "IUIComponent.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_keycode.h"

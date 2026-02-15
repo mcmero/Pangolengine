@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Components/Dialogue.h"
-#include "Components/MouseController.h"
+#include "../Components/MouseController.h"
 #include "Grid.h"
 #include "IUIManager.h"
 #include "SDL3/SDL_events.h"
