@@ -3,7 +3,6 @@
 #include "IGame.h"
 #include "Components/ECS.h"
 #include "SDL3/SDL_events.h"
-#include <SDL3/SDL.h>
 
 // Forward declaration to avoid circular dependency
 class Engine;

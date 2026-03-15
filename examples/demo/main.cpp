@@ -1,7 +1,6 @@
 #include "Pangolengine.h"
+#include "SDL3/SDL_main.h"
 #include "DemoGame.h"
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h>
 
 // Game-specific creation function
 IGame* CreateGame(Engine* engine) {
@@ -42,7 +41,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 SDL_AppResult SDL_AppIterate(void *appstate) {
   auto* app = (AppContext*)appstate;
 
-  if (! app->engine->isRunning()) {
+  if (!app->engine->isRunning()) {
       return SDL_APP_SUCCESS;
   }
 

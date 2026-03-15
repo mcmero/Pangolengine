@@ -1,15 +1,5 @@
 #include "DemoGame.h"
-#include "Components/ECS.h"
-#include "Engine.h"
-#include "Camera.h"
-#include "Collision.h"
-#include "Components/Components.h"
-#include "Constants.h"
-#include "SDL3/SDL_mouse.h"
-#include "SDL3/SDL_pixels.h"
-#include "SDL3/SDL_rect.h"
-#include "SDL3/SDL_render.h"
-#include "SDL3_mixer/SDL_mixer.h"
+#include "Pangolengine.h"
 #include <filesystem>
 #include <iostream>
 #include <ostream>
