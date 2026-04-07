@@ -1,3 +1,4 @@
+![Pangolengine logo](/logo.png)
 ## Pangolengine: a 2D top-down game engine with dialogue trees
 
 Pangolengine is a simple 2D top-down game engine that uses
